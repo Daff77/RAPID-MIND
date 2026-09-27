@@ -7,7 +7,6 @@ interface VolunteerHeaderProps {
   currentTab: 'home' | 'new' | 'history';
   onSelectTab: (tab: 'home' | 'new' | 'history') => void;
   onGoToDashboard?: () => void;
-  onOpenDemoDrawer?: () => void;
 }
 
 export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({

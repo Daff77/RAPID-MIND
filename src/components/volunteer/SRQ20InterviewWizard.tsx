@@ -275,7 +275,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-            Screen 5: Menu Wawancara SRQ-20 (Hari 4–30)
+            Menu Wawancara SRQ-20 (Hari 4–30)
           </span>
           <h2 className="text-base font-bold text-slate-900 mt-0.5">
             Penapisan Distres Psikologis Terstruktur (WHO SRQ-20)
@@ -517,19 +517,19 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               onClick={handleProceedToFunctional}
               className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition"
             >
-              <span>Lanjut ke Screen 6 (Fungsi Harian)</span>
+              <span>Lanjut ke Penilaian Fungsi Harian</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 2: SCREEN 6: PENILAIAN FAKTOR RISIKO & FUNGSI HARIAN */}
+      {/* STEP 2: PENILAIAN FAKTOR RISIKO & FUNGSI HARIAN */}
       {wizardStep === 'functional' && (
         <div className="space-y-4 animate-in fade-in">
           <div>
             <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-              Screen 6: Penilaian Faktor Risiko & Keberfungsian Hidup Harian
+              Penilaian Faktor Risiko & Keberfungsian Hidup Harian
             </span>
             <h3 className="text-sm font-bold text-slate-900 mt-0.5">
               Evaluasi Hendaya Keberfungsian Harian Penyintas
@@ -584,18 +584,18 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Lihat Hasil Asesmen Otomatis (Screen 7)</span>
+              <span>Lihat Hasil Asesmen Triase</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 3: SCREEN 7: HASIL ASESMEN OTOMATIS & INTEGRASI DATABASE */}
+      {/* STEP 3: HASIL ASESMEN OTOMATIS & INTEGRASI DATABASE */}
       {wizardStep === 'result' && analysisResult && (
         <div className="space-y-4 animate-in fade-in">
           <div>
             <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-              Screen 7: Hasil Asesmen Otomatis (Triase Terpadu)
+              Hasil Asesmen Triase Terpadu
             </span>
             <h3 className="text-base font-bold text-slate-900 mt-0.5">
               Klasifikasi Tingkat Risiko Kesehatan Mental

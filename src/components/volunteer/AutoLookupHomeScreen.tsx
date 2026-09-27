@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Search,
-  QrCode,
   UserCheck,
   UserPlus,
   ArrowRight,
@@ -83,30 +82,18 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
     onSelectSurvivor(newSurvivor, 'pfa');
   };
 
-  const handleUsePresetExisting = () => {
-    const presetNik = '3501234567890001';
-    setSearchQuery(presetNik);
-    handleSearch(presetNik);
-  };
-
-  const handleUsePresetNew = () => {
-    const randomNik = `3501${Math.floor(Math.random() * 900000000000 + 100000000000)}`;
-    setSearchQuery(randomNik);
-    handleSearch(randomNik);
-  };
-
   return (
     <div className="space-y-5 max-w-lg mx-auto py-2">
       {/* Brand Hero */}
       <section className="text-center sm:text-left space-y-1">
         <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-          Screen 2: Homescreen & Identitas Penyintas
+          Identitas Penyintas
         </span>
         <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
           Penapisan Kesehatan Jiwa Bencana
         </h2>
         <p className="text-xs text-slate-500">
-          Masukkan NIK, scan QR Code gelang posko, atau cari nama penyintas untuk memulai asesmen terpandu.
+          Masukkan NIK, ID Posko, atau nama penyintas untuk memulai asesmen terpandu.
         </p>
       </section>
 
@@ -115,17 +102,8 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <Search className="w-3.5 h-3.5 text-blue-600" />
-            <span>Pencarian Identitas (Auto-Lookup NIK / QR)</span>
+            <span>Pencarian Identitas (Auto-Lookup NIK / ID)</span>
           </label>
-
-          <button
-            type="button"
-            onClick={() => handleSearch('3501234567890001')}
-            className="text-[11px] text-blue-600 hover:underline font-semibold flex items-center gap-1"
-          >
-            <QrCode className="w-3 h-3" />
-            <span>Simulasi Scan QR</span>
-          </button>
         </div>
 
         <div className="flex gap-2">
@@ -146,25 +124,6 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
           >
             <Search className="w-3.5 h-3.5" />
             <span>Cari</span>
-          </button>
-        </div>
-
-        {/* 1-Click Quick Demo Presets */}
-        <div className="pt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
-          <span className="text-slate-400 font-medium">Contoh Cepat:</span>
-          <button
-            type="button"
-            onClick={handleUsePresetExisting}
-            className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold border border-emerald-200 transition"
-          >
-            NIK Lama (Dewi Sartika)
-          </button>
-          <button
-            type="button"
-            onClick={handleUsePresetNew}
-            className="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-800 hover:bg-blue-100 font-semibold border border-blue-200 transition"
-          >
-            NIK Baru (Penyintas Baru)
           </button>
         </div>
       </div>
@@ -342,7 +301,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                 type="submit"
                 className="w-full h-11 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
               >
-                <span>Daftar & Lanjut ke Menu PFA (Screen 3)</span>
+                <span>Daftar & Lanjut ke Menu PFA</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </form>

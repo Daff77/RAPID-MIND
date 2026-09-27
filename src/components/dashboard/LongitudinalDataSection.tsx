@@ -186,7 +186,8 @@ export const LongitudinalDataSection: React.FC = () => {
 
       {/* Survivor Longitudinal Cards List */}
       <div className="space-y-3">
-        {filtered.map((item) => {
+        {filtered.length > 0 ? (
+          filtered.map((item) => {
           const isExpanded = expandedSurvivorId === item.profile.id;
 
           // Determine current highest/latest risk
@@ -324,7 +325,12 @@ export const LongitudinalDataSection: React.FC = () => {
               )}
             </div>
           );
-        })}
+        })
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-xs text-slate-400">
+          Belum ada rekam jejak penyintas yang tercatat.
+        </div>
+      )}
       </div>
     </div>
   );

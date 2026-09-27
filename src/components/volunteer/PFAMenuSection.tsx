@@ -120,7 +120,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-            Screen 3: Menu PFA (Fase Akut: Hari 1–3)
+            Menu PFA (Fase Akut: Hari 1–3)
           </span>
           <h2 className="text-base font-bold text-slate-900 mt-0.5">
             Pertolongan Pertama Psikologis (Look-Listen-Link)
@@ -411,7 +411,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                 onClick={() => handleFinishPFA(true)}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition"
               >
-                <span>Simpan & Lanjut ke SRQ-20 (Screen 5)</span>
+                <span>Simpan & Lanjut ke SRQ-20</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

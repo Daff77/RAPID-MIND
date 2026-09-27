@@ -11,9 +11,7 @@ import {
   saveCentralAssessment,
   saveAssessmentLocally,
   syncPendingAssessments,
-  resetToDemoData as storageResetDemo,
 } from '../services/offlineStorage';
-import { DemoScenario } from '../data/demoScenarios';
 
 interface AssessmentContextValue {
   centralAssessments: AssessmentRecord[];
@@ -25,10 +23,6 @@ interface AssessmentContextValue {
   toggleOnlineStatus: (explicitStatus?: boolean) => void;
   addAssessment: (record: Omit<AssessmentRecord, 'syncStatus'>) => { record: AssessmentRecord; isOfflineSaved: boolean };
   triggerSync: () => Promise<number>;
-  resetDemoData: () => void;
-  activeScenario: DemoScenario | null;
-  applyDemoScenario: (scenario: DemoScenario) => void;
-  clearDemoScenario: () => void;
   kpiStats: KPIStats;
 }
 
@@ -40,7 +34,6 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncSuccessBanner, setSyncSuccessBanner] = useState<string | null>(null);
-  const [activeScenario, setActiveScenario] = useState<DemoScenario | null>(null);
 
   // Initialize from storage on mount
   useEffect(() => {
@@ -78,31 +71,13 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const result = await syncPendingAssessments();
       setCentralAssessments(getCentralAssessments());
       setOfflineQueue([]);
-      setSyncSuccessBanner(`✓ ${result.syncedCount} assessment${result.syncedCount > 1 ? 's' : ''} synchronized successfully.`);
+      setSyncSuccessBanner(`✓ ${result.syncedCount} asesmen berhasil disinkronisasi ke server pusat.`);
       setTimeout(() => setSyncSuccessBanner(null), 5000);
       return result.syncedCount;
     } finally {
       setIsSyncing(false);
     }
   }, [offlineQueue]);
-
-  const resetDemoData = useCallback(() => {
-    storageResetDemo();
-    setCentralAssessments(getCentralAssessments());
-    setOfflineQueue([]);
-    setIsOnline(true);
-    setActiveScenario(null);
-    setSyncSuccessBanner('Demo data reset to initial benchmark state.');
-    setTimeout(() => setSyncSuccessBanner(null), 4000);
-  }, []);
-
-  const applyDemoScenario = useCallback((scenario: DemoScenario) => {
-    setActiveScenario(scenario);
-  }, []);
-
-  const clearDemoScenario = useCallback(() => {
-    setActiveScenario(null);
-  }, []);
 
   // Combined records for the volunteer view (pending items at top)
   const allAssessments = useMemo(() => {
@@ -151,7 +126,6 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, [centralAssessments, offlineQueue]);
 
-
   const value = useMemo(
     () => ({
       centralAssessments,
@@ -163,10 +137,6 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       toggleOnlineStatus,
       addAssessment,
       triggerSync,
-      resetDemoData,
-      activeScenario,
-      applyDemoScenario,
-      clearDemoScenario,
       kpiStats,
     }),
     [
@@ -179,10 +149,6 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       toggleOnlineStatus,
       addAssessment,
       triggerSync,
-      resetDemoData,
-      activeScenario,
-      applyDemoScenario,
-      clearDemoScenario,
       kpiStats,
     ]
   );

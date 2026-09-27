@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Mic,
   ClipboardCheck,
   ArrowLeft,
   User,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
@@ -40,19 +39,19 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
   onAssessmentSaved,
   onCancel,
 }) => {
-  const { allAssessments, activeScenario, clearDemoScenario } = useAssessment();
+  const { allAssessments } = useAssessment();
 
   const nextIdDefault = `VCT-${String(allAssessments.length + 1).padStart(3, '0')}`;
 
   const [step, setStep] = useState<'context' | 'assessment' | 'result'>('context');
 
-  // Enhanced Victim Data fields (Requirement 4)
+  // Enhanced Victim Data fields
   const [victimId, setVictimId] = useState<string>(nextIdDefault);
-  const [victimName, setVictimName] = useState<string>('Siti Rahayu');
-  const [victimAge, setVictimAge] = useState<string>('34');
+  const [victimName, setVictimName] = useState<string>('');
+  const [victimAge, setVictimAge] = useState<string>('');
   const [victimGender, setVictimGender] = useState<'L' | 'P'>('P');
   const [victimCategory, setVictimCategory] = useState<'Anak' | 'Remaja' | 'Dewasa' | 'Lansia'>('Dewasa');
-  const [initialCondition, setInitialCondition] = useState<string>('Mengeluh pusing dan tampak cemas');
+  const [initialCondition, setInitialCondition] = useState<string>('');
 
   const handleAgeChange = (val: string) => {
     setVictimAge(val);
@@ -66,20 +65,6 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
   const [checklistUsed, setChecklistUsed] = useState<string[] | undefined>();
   const [isPFAModalOpen, setIsPFAModalOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (activeScenario) {
-      setVictimId(activeScenario.victimId || nextIdDefault);
-      setLocation(activeScenario.defaultLocation || 'Posko A');
-      setMethod(activeScenario.method);
-      setTranscriptUsed(activeScenario.transcript);
-      setChecklistUsed(activeScenario.checklistIds);
-      if (activeScenario.title) {
-        setVictimName(activeScenario.title.split('—')[0]?.trim() || 'Korban Kasus Demo');
-      }
-      setStep('context');
-    }
-  }, [activeScenario]);
-
   // Is victim data available & valid for STT?
   const isVictimDataAvailable = Boolean(victimId.trim() && victimName.trim());
 
@@ -91,16 +76,6 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
     category: victimCategory,
     initialCondition: initialCondition.trim() || undefined,
     isAvailable: isVictimDataAvailable,
-  };
-
-  const handlePopulateDemoVictim = () => {
-    setVictimId(`VCT-${String(Math.floor(Math.random() * 800) + 200).padStart(3, '0')}`);
-    setVictimName('Ibu Ratna Wulandari');
-    setVictimAge('38');
-    setVictimGender('P');
-    setVictimCategory(getCategoryFromAge(38));
-    setInitialCondition('Tampak gemetar, mengeluh pusing dan sesak napas');
-    setLocation('Posko A');
   };
 
   const handleStartAssessment = () => {
@@ -124,10 +99,11 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
   };
 
   const handleReset = () => {
-    clearDemoScenario();
     setStep('context');
     setVictimId(`VCT-${String(allAssessments.length + 2).padStart(3, '0')}`);
     setVictimName('');
+    setVictimAge('');
+    setInitialCondition('');
     setAnalysisResult(null);
     setTranscriptUsed(undefined);
     setChecklistUsed(undefined);
@@ -190,16 +166,6 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
                 Pastikan data korban tersedia sebelum memulai perekaman suara STT.
               </p>
             </div>
-
-            <button
-              type="button"
-              onClick={handlePopulateDemoVictim}
-              className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-bold transition flex items-center gap-1 shrink-0"
-              title="Isi otomatis dengan data korban demo"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Contoh Korban</span>
-            </button>
           </div>
 
           {/* 1. Status Ketersediaan Data Korban (Requirement 4 Indicator) */}

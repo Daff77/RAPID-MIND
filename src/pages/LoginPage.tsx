@@ -79,11 +79,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
-  const handleQuickDemo = (role: UserRole) => {
-    quickLogin(role);
-    onLoginSuccess(role);
-  };
-
   return (
     <div className="min-h-screen bg-[#F6F8FB] text-slate-900 flex flex-col justify-center items-center p-4 font-sans">
       <div className="w-full max-w-md space-y-4">
@@ -212,39 +207,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </button>
           </form>
 
-          {/* 3 Quick Demo Pass Buttons */}
-          <div className="pt-2 border-t border-slate-100 space-y-2">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block text-center">
-              1-Click Demo Pass
-            </span>
-            <div className="grid grid-cols-3 gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('volunteer')}
-                className="py-2 px-2 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-left transition"
-              >
-                <span className="text-xs font-bold text-blue-900 block truncate">Volunteer</span>
-                <span className="text-[10px] text-blue-700 block truncate">Siti (Posko A)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('hospital')}
-                className="py-2 px-2 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100 text-left transition"
-              >
-                <span className="text-xs font-bold text-emerald-900 block truncate">Rumah Sakit</span>
-                <span className="text-[10px] text-emerald-700 block truncate">dr. Budi (RSUD)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('admin')}
-                className="py-2 px-2 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-left transition"
-              >
-                <span className="text-xs font-bold text-indigo-900 block truncate">Admin</span>
-                <span className="text-[10px] text-indigo-700 block truncate">dr. Sarah (Pusat)</span>
-              </button>
+          {/* Informasi Akun Terdaftar */}
+          <div className="pt-2 border-t border-slate-100 text-center text-[11px] text-slate-500 space-y-1">
+            <span className="font-semibold block text-slate-600">Akun Terdaftar:</span>
+            <div className="flex flex-wrap justify-center gap-1.5 text-[10px] text-slate-700 font-mono">
+              <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">volunteer</span>
+              <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">rumahsakit</span>
+              <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">admin</span>
             </div>
+            <span className="text-[10px] text-slate-400 block">Sandi default: <code className="font-mono text-slate-600">password123</code></span>
           </div>
         </div>
       </div>

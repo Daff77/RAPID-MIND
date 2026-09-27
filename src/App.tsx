@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AssessmentProvider, useAssessment } from './context/AssessmentContext';
+import { AssessmentProvider } from './context/AssessmentContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { VolunteerPage } from './pages/VolunteerPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -7,8 +7,6 @@ import { HospitalPage } from './pages/HospitalPage';
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedCard } from './components/auth/UnauthorizedCard';
 import { Smartphone } from 'lucide-react';
-import { DemoPresetsPanel } from './components/volunteer/DemoPresetsPanel';
-import { DemoScenario } from './data/demoScenarios';
 import { UserRole } from './types/auth';
 
 type RouteType = 'volunteer' | 'dashboard' | 'hospital' | 'login';
@@ -37,9 +35,6 @@ const PageRouter: React.FC = () => {
   });
 
   const [usePhoneFrame, setUsePhoneFrame] = useState<boolean>(false);
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState<boolean>(false);
-
-  const { applyDemoScenario } = useAssessment();
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -77,11 +72,6 @@ const PageRouter: React.FC = () => {
     } else {
       navigateTo('volunteer');
     }
-  };
-
-  const handleLaunchScenario = (sc: DemoScenario) => {
-    applyDemoScenario(sc);
-    navigateTo('volunteer');
   };
 
   // If NOT authenticated, show the Login Page
@@ -177,13 +167,6 @@ const PageRouter: React.FC = () => {
           }
         />
       )}
-
-      {/* Demo Modal Triggered on Demand */}
-      <DemoPresetsPanel
-        isOpen={isDemoModalOpen}
-        onClose={() => setIsDemoModalOpen(false)}
-        onScenarioActivated={handleLaunchScenario}
-      />
     </div>
   );
 };

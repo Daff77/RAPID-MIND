@@ -316,8 +316,8 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-slate-400">
-                  No assessments found matching the search criteria.
+                <td colSpan={7} className="py-8 text-center text-slate-400">
+                  Belum ada riwayat asesmen yang tercatat.
                 </td>
               </tr>
             )}

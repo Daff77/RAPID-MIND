@@ -82,9 +82,6 @@ export const TriageMap: React.FC = () => {
               <MapPin className="w-3.5 h-3.5 text-blue-600" />
               <span>GEOSPATIAL SITUATION — RESPONSE POSTS</span>
             </h3>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-              Demo / Simulated Data
-            </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
             Geographic stations overview across the operational relief sector.

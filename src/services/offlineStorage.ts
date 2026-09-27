@@ -1,9 +1,9 @@
 import { AssessmentRecord } from '../types/assessment';
 import { INITIAL_ASSESSMENTS } from '../data/mockAssessments';
 
-const STORAGE_KEY_ASSESSMENTS = 'rapidmind_central_assessments_v1';
-const STORAGE_KEY_OFFLINE_QUEUE = 'rapidmind_offline_pending_v1';
-const STORAGE_KEY_ONLINE_STATUS = 'rapidmind_is_online_v1';
+const STORAGE_KEY_ASSESSMENTS = 'rapidmind_central_assessments_clean_v1';
+const STORAGE_KEY_OFFLINE_QUEUE = 'rapidmind_offline_pending_clean_v1';
+const STORAGE_KEY_ONLINE_STATUS = 'rapidmind_is_online_clean_v1';
 
 export function getOnlineStatus(): boolean {
   if (typeof window === 'undefined') return true;
@@ -83,8 +83,7 @@ export async function syncPendingAssessments(): Promise<{
     return { syncedCount: 0, syncedRecords: [] };
   }
 
-  // Artificial network latency simulation (900ms) for realistic demo feedback
-  await new Promise((resolve) => setTimeout(resolve, 900));
+  await new Promise((resolve) => setTimeout(resolve, 800));
 
   const central = getCentralAssessments();
   const markSynced = pending.map((item) => ({
@@ -102,12 +101,4 @@ export async function syncPendingAssessments(): Promise<{
     syncedCount: pending.length,
     syncedRecords: markSynced,
   };
-}
-
-export function resetToDemoData(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(INITIAL_ASSESSMENTS));
-    localStorage.removeItem(STORAGE_KEY_OFFLINE_QUEUE);
-    localStorage.setItem(STORAGE_KEY_ONLINE_STATUS, 'true');
-  }
 }

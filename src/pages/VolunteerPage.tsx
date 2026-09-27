@@ -6,9 +6,7 @@ import { SRQ20InterviewWizard } from '../components/volunteer/SRQ20InterviewWiza
 import { NewAssessmentWizard } from '../components/volunteer/NewAssessmentWizard';
 import { VolunteerHistory } from '../components/volunteer/VolunteerHistory';
 import { FloatingRedFlagButton } from '../components/volunteer/FloatingRedFlagButton';
-import { DemoPresetsPanel } from '../components/volunteer/DemoPresetsPanel';
-import { DemoScenario } from '../data/demoScenarios';
-import { AssessmentMethod, SurvivorProfile } from '../types/assessment';
+import { SurvivorProfile } from '../types/assessment';
 
 interface VolunteerPageProps {
   onGoToDashboard: () => void;
@@ -19,7 +17,6 @@ type VolunteerActiveView = 'home' | 'pfa' | 'srq20' | 'new_triase' | 'history';
 export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard }) => {
   const [activeView, setActiveView] = useState<VolunteerActiveView>('home');
   const [selectedSurvivor, setSelectedSurvivor] = useState<SurvivorProfile | null>(null);
-  const [isDemoDrawerOpen, setIsDemoDrawerOpen] = useState(false);
 
   const handleSelectSurvivorFromLookup = (survivor: SurvivorProfile, targetFlow: 'pfa' | 'srq20') => {
     setSelectedSurvivor(survivor);
@@ -28,10 +25,6 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
     } else {
       setActiveView('srq20');
     }
-  };
-
-  const handleScenarioActivated = (_scenario: DemoScenario) => {
-    setActiveView('new_triase');
   };
 
   return (
@@ -45,12 +38,11 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
           else if (tab === 'history') setActiveView('history');
         }}
         onGoToDashboard={onGoToDashboard}
-        onOpenDemoDrawer={() => setIsDemoDrawerOpen(true)}
       />
 
       {/* Main Container */}
       <main className="flex-1 px-3 sm:px-4 py-5 max-w-2xl mx-auto w-full pb-24">
-        {/* SCREEN 2: HOMESCREEN & IDENTITAS PENYINTAS (AUTO-LOOKUP SYSTEM) */}
+        {/* HOMESCREEN & IDENTITAS PENYINTAS (AUTO-LOOKUP SYSTEM) */}
         {activeView === 'home' && (
           <AutoLookupHomeScreen
             onSelectSurvivor={handleSelectSurvivorFromLookup}
@@ -58,7 +50,7 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
           />
         )}
 
-        {/* SCREEN 3: MENU PFA (FASE AKUT: HARI 1–3) */}
+        {/* MENU PFA (FASE AKUT: HARI 1–3) */}
         {activeView === 'pfa' && selectedSurvivor && (
           <PFAMenuSection
             survivor={selectedSurvivor}
@@ -74,7 +66,7 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
           />
         )}
 
-        {/* SCREEN 5, 6, 7: MENU WAWANCARA SRQ-20 (HARI 4–30) & FUNGSI HARIAN */}
+        {/* MENU WAWANCARA SRQ-20 (HARI 4–30) & FUNGSI HARIAN */}
         {activeView === 'srq20' && selectedSurvivor && (
           <SRQ20InterviewWizard
             survivor={selectedSurvivor}
@@ -85,7 +77,7 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
           />
         )}
 
-        {/* SCREEN METODE TRIASE LAPANGAN STT + CHECKLIST */}
+        {/* METODE TRIASE LAPANGAN STT + CHECKLIST */}
         {activeView === 'new_triase' && (
           <NewAssessmentWizard
             initialMethod="VERBAL"
@@ -94,11 +86,11 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
           />
         )}
 
-        {/* RIWAYAT & DATABASE REKAM MEDIS PENYINTAS */}
+        {/* RIWAYAT ASESMEN PENYINTAS */}
         {activeView === 'history' && <VolunteerHistory />}
       </main>
 
-      {/* 🚨 ALWAYS-ON FLOATING SHORTCUT: RED FLAG EMERGENCY (Screen 2 s.d. Screen 7) */}
+      {/* 🚨 ALWAYS-ON FLOATING SHORTCUT: RED FLAG EMERGENCY */}
       <FloatingRedFlagButton
         currentVictimId={selectedSurvivor?.id || 'VCT-ACTIVE'}
         currentVictimName={selectedSurvivor?.name || 'Penyintas Lapangan'}
@@ -106,13 +98,6 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
         onEmergencyTriggered={() => {
           // Keep floating or notify
         }}
-      />
-
-      {/* Discreet Demo Presets Drawer */}
-      <DemoPresetsPanel
-        isOpen={isDemoDrawerOpen}
-        onClose={() => setIsDemoDrawerOpen(false)}
-        onScenarioActivated={handleScenarioActivated}
       />
     </div>
   );

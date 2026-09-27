@@ -205,7 +205,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
-                  Role 2: Faskes & PSC 119 Tele-Emergency
+                  Faskes & PSC 119 Tele-Emergency
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium">
@@ -443,48 +443,56 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filtered.slice(0, 10).map((r) => {
-                      const tier = getRecordTier(r);
-                      const t0Stat = getRecordT0Status(r);
-                      const transport = patientStatuses[r.id]?.transportStage;
+                    {filtered.length > 0 ? (
+                      filtered.slice(0, 10).map((r) => {
+                        const tier = getRecordTier(r);
+                        const t0Stat = getRecordT0Status(r);
+                        const transport = patientStatuses[r.id]?.transportStage;
 
-                      return (
-                        <tr key={r.id} className="hover:bg-slate-50/70 transition">
-                          <td className="py-3 px-3.5">
-                            <span className="font-mono font-bold text-slate-900 block">{r.id}</span>
-                            <span className="text-[11px] text-slate-600">{r.victimName || '-'}</span>
-                          </td>
-                          <td className="py-3 px-3.5 font-medium">{r.location}</td>
-                          <td className="py-3 px-3.5">{renderTierBadge(tier, t0Stat)}</td>
-                          <td className="py-3 px-3.5">
-                            {transport ? (
+                        return (
+                          <tr key={r.id} className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3.5">
+                              <span className="font-mono font-bold text-slate-900 block">{r.id}</span>
+                              <span className="text-[11px] text-slate-600">{r.victimName || '-'}</span>
+                            </td>
+                            <td className="py-3 px-3.5 font-medium">{r.location}</td>
+                            <td className="py-3 px-3.5">{renderTierBadge(tier, t0Stat)}</td>
+                            <td className="py-3 px-3.5">
+                              {transport ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAdvanceTransportStage(r.id)}
+                                  className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-[10px] hover:bg-blue-100"
+                                  title="Klik untuk memajukan status armada"
+                                >
+                                  {transport === 'dispatch' && '🚑 Menuju Posko'}
+                                  {transport === 'on_site' && '📍 Tiba di Posko'}
+                                  {transport === 'en_route_hospital' && '🏥 Menuju RS'}
+                                  {transport === 'admitted' && '✓ Rawat Inap IGD'}
+                                </button>
+                              ) : (
+                                <span className="text-slate-400 text-[11px]">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3.5 text-right">
                               <button
                                 type="button"
-                                onClick={() => handleAdvanceTransportStage(r.id)}
-                                className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-[10px] hover:bg-blue-100"
-                                title="Klik untuk memajukan status armada"
+                                onClick={() => handleOpenTeleEmergency(r)}
+                                className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[11px] transition"
                               >
-                                {transport === 'dispatch' && '🚑 Menuju Posko'}
-                                {transport === 'on_site' && '📍 Tiba di Posko'}
-                                {transport === 'en_route_hospital' && '🏥 Menuju RS'}
-                                {transport === 'admitted' && '✓ Rawat Inap IGD'}
+                                Validasi
                               </button>
-                            ) : (
-                              <span className="text-slate-400 text-[11px]">-</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-3.5 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenTeleEmergency(r)}
-                              className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[11px] transition"
-                            >
-                              Validasi
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-xs text-slate-400">
+                          Belum ada antrean rujukan faskes saat ini.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

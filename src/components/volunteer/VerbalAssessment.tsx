@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Mic,
   Square,
-  Sparkles,
   RefreshCw,
   AlertCircle,
   RotateCcw,
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 import { LocationPost, TriageAnalysisResult, VictimData } from '../../types/assessment';
 import { analyzeCombined } from '../../services/triageEngine';
-import { PRESET_TRANSCRIPTS, PresetTranscript } from '../../services/speechSimulation';
 import {
   isSpeechRecognitionSupported,
   isMicrophoneSupported,
@@ -129,7 +127,6 @@ export const VerbalAssessment: React.FC<VerbalAssessmentProps> = ({
   const [language, setLanguage] = useState<'id-ID' | 'en-US'>('id-ID');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
-  const [showDemoOptions, setShowDemoOptions] = useState<boolean>(false);
   const [isChecklistExpanded, setIsChecklistExpanded] = useState<boolean>(true);
 
   const timerIntervalRef = useRef<number | null>(null);
@@ -261,13 +258,6 @@ export const VerbalAssessment: React.FC<VerbalAssessmentProps> = ({
         setUiState('NO_SPEECH');
       }
     }, 350);
-  };
-
-  const handleSelectDemoPreset = (preset: PresetTranscript) => {
-    cleanupAudioSession();
-    setTranscript(preset.transcript);
-    setShowDemoOptions(false);
-    setUiState('TRANSCRIPT');
   };
 
   const handleAnalyze = () => {
@@ -487,13 +477,6 @@ export const VerbalAssessment: React.FC<VerbalAssessmentProps> = ({
             >
               Coba Rekam Lagi
             </button>
-            <button
-              type="button"
-              onClick={() => setShowDemoOptions(true)}
-              className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs"
-            >
-              Gunakan Contoh Suara Demo
-            </button>
           </div>
         </div>
       )}
@@ -511,13 +494,6 @@ export const VerbalAssessment: React.FC<VerbalAssessmentProps> = ({
               className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs"
             >
               Ulangi Izin
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowDemoOptions(true)}
-              className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs"
-            >
-              Pilih Contoh Suara Demo
             </button>
           </div>
         </div>
@@ -678,7 +654,6 @@ export const VerbalAssessment: React.FC<VerbalAssessmentProps> = ({
           disabled={!transcript.trim() && selectedChecklistIds.length === 0}
           className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition"
         >
-          <Sparkles className="w-4 h-4" />
           <span>
             {transcript.trim() && selectedChecklistIds.length > 0
               ? 'Analisis Triase (STT + Checklist Box)'
@@ -688,37 +663,6 @@ export const VerbalAssessment: React.FC<VerbalAssessmentProps> = ({
           </span>
           <span>→</span>
         </button>
-      </div>
-
-      {/* Demo Presets Drawer */}
-      <div className="pt-2 border-t border-slate-100 text-left">
-        <button
-          type="button"
-          onClick={() => setShowDemoOptions(!showDemoOptions)}
-          className="text-[11px] font-medium text-slate-400 hover:text-slate-700 transition"
-        >
-          {showDemoOptions ? '▾ Sembunyikan Contoh Suara Demo' : '▸ Pilihan Contoh Suara STT Demo'}
-        </button>
-
-        {showDemoOptions && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 mt-2 animate-in fade-in">
-            {PRESET_TRANSCRIPTS.slice(0, 3).map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => handleSelectDemoPreset(preset)}
-                className="p-2 rounded-lg text-left text-xs bg-slate-50 hover:bg-blue-50 border border-slate-200 transition"
-              >
-                <span className="font-bold text-slate-800 block text-[11px]">
-                  {preset.expectedZone === 'RED' ? '🔴 Merah (Kritis)' : preset.expectedZone === 'YELLOW' ? '🟡 Kuning' : '🟢 Hijau'}
-                </span>
-                <p className="text-[11px] text-slate-600 truncate italic">
-                  "{preset.transcript}"
-                </p>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
