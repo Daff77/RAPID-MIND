@@ -6,14 +6,16 @@ import {
   Save,
   RotateCcw,
   Check,
+  User as UserIcon,
 } from 'lucide-react';
-import { TriageAnalysisResult, LocationPost, AssessmentMethod } from '../../types/assessment';
+import { TriageAnalysisResult, LocationPost, AssessmentMethod, VictimData } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
 import { useAuth } from '../../context/AuthContext';
 
 interface TriageResultCardProps {
   victimId: string;
   location: LocationPost;
+  victimData?: VictimData;
   method: AssessmentMethod;
   analysis: TriageAnalysisResult;
   transcript?: string;
@@ -25,6 +27,7 @@ interface TriageResultCardProps {
 export const TriageResultCard: React.FC<TriageResultCardProps> = ({
   victimId,
   location,
+  victimData,
   method,
   analysis,
   transcript,
@@ -83,18 +86,33 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
       checklistSelections,
       recommendedAction: analysis.recommendedAction,
       volunteerId: currentUser?.badgeNumber || 'VOL-042',
-      volunteerNotes: `Assessed via ${method.toLowerCase()} at ${location}.`,
+      volunteerNotes: `Asesmen ${method.toLowerCase()} di ${location}. Korban: ${victimData?.name || victimId}.`,
+      victimName: victimData?.name,
+      victimAge: victimData?.age,
+      victimGender: victimData?.gender,
+      victimCategory: victimData?.category,
     });
 
     setIsSaved(true);
-    setSaveMessage(result.isOfflineSaved ? 'Saved locally (pending sync)' : 'Synced to Command Center');
+    setSaveMessage(result.isOfflineSaved ? 'Tersimpan lokal di HP (siap sinkronisasi)' : 'Tersinkronisasi ke Pusat Komando & Portal RS');
   };
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-2xs animate-in fade-in">
-      {/* Context info */}
+      {/* Context info with Victim Profile */}
       <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
-        <span className="font-mono font-bold text-slate-800">{victimId}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono font-bold text-slate-800">{victimId}</span>
+          {victimData?.name && (
+            <>
+              <span className="text-slate-300">·</span>
+              <span className="font-bold text-slate-800 flex items-center gap-1">
+                <UserIcon className="w-3 h-3 text-blue-600" />
+                {victimData.name} ({victimData.age ? `${victimData.age} th` : ''} {victimData.gender ? `• ${victimData.gender}` : ''})
+              </span>
+            </>
+          )}
+        </div>
         <span>{location} · {method}</span>
       </div>
 
@@ -112,7 +130,7 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
           </div>
           <span className="text-xs font-semibold block">{zoneConfig.subtitle}</span>
           <span className="text-[11px] text-slate-600 block">
-            {analysis.indicators.length} indicator{analysis.indicators.length !== 1 ? 's' : ''} detected
+            {analysis.indicators.length} indikator terdeteksi
           </span>
         </div>
       </div>
@@ -121,7 +139,7 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
       {analysis.indicators.length > 0 && (
         <div className="space-y-1.5">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-            Indicators
+            Indikator Gejala Terdeteksi
           </span>
           <div className="flex flex-wrap gap-1.5">
             {analysis.indicators.map((ind, idx) => (
@@ -129,7 +147,34 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
                 key={idx}
                 className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-xs font-medium"
               >
-                {ind}
+                ✓ {ind}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Transcript or Checklist Summary */}
+      {transcript && (
+        <div className="space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+            Transkrip STT (Perekaman Suara)
+          </span>
+          <p className="text-xs text-slate-800 bg-slate-50 p-2.5 rounded-xl border border-slate-200 italic leading-relaxed">
+            "{transcript}"
+          </p>
+        </div>
+      )}
+
+      {checklistSelections && checklistSelections.length > 0 && (
+        <div className="space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+            Checklist Pilihan Observasi ({checklistSelections.length})
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {checklistSelections.map((cId) => (
+              <span key={cId} className="px-2 py-0.5 rounded bg-blue-50 text-blue-800 text-[10px] font-semibold border border-blue-200">
+                {cId}
               </span>
             ))}
           </div>
@@ -139,7 +184,7 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
       {/* Next Action */}
       <div className="space-y-1">
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-          Recommended Action
+          Protokol Tindakan Yang Direkomendasikan
         </span>
         <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-200">
           {analysis.recommendedAction}
@@ -163,7 +208,7 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
             className="w-full h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
           >
             <ShieldAlert className="w-4 h-4" />
-            <span>View PFA Guidance</span>
+            <span>Lihat Panduan PFA Lapangan</span>
           </button>
         )}
 
@@ -174,7 +219,7 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
             className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
           >
             <Save className="w-4 h-4" />
-            <span>Save Assessment</span>
+            <span>Simpan Hasil Asesmen</span>
           </button>
         ) : (
           <button
@@ -183,7 +228,7 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
             className="w-full h-11 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 transition"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Start New Assessment</span>
+            <span>Mulai Asesmen Baru</span>
           </button>
         )}
       </div>

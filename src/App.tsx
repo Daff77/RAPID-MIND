@@ -3,6 +3,7 @@ import { AssessmentProvider, useAssessment } from './context/AssessmentContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { VolunteerPage } from './pages/VolunteerPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { HospitalPage } from './pages/HospitalPage';
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedCard } from './components/auth/UnauthorizedCard';
 import { Smartphone } from 'lucide-react';
@@ -10,15 +11,20 @@ import { DemoPresetsPanel } from './components/volunteer/DemoPresetsPanel';
 import { DemoScenario } from './data/demoScenarios';
 import { UserRole } from './types/auth';
 
+type RouteType = 'volunteer' | 'dashboard' | 'hospital' | 'login';
+
 const PageRouter: React.FC = () => {
   const { currentUser, isAuthenticated } = useAuth();
 
-  const getTargetRouteFromUrl = (): 'volunteer' | 'dashboard' | 'login' => {
+  const getTargetRouteFromUrl = (): RouteType => {
     if (typeof window === 'undefined') return 'volunteer';
     const hash = window.location.hash.toLowerCase();
     const pathname = window.location.pathname.toLowerCase();
     if (hash.includes('dashboard') || pathname.endsWith('/dashboard')) {
       return 'dashboard';
+    }
+    if (hash.includes('hospital') || pathname.endsWith('/hospital')) {
+      return 'hospital';
     }
     if (hash.includes('login') || pathname.endsWith('/login')) {
       return 'login';
@@ -26,7 +32,7 @@ const PageRouter: React.FC = () => {
     return 'volunteer';
   };
 
-  const [currentRoute, setCurrentRoute] = useState<'volunteer' | 'dashboard' | 'login'>(() => {
+  const [currentRoute, setCurrentRoute] = useState<RouteType>(() => {
     return getTargetRouteFromUrl();
   });
 
@@ -49,10 +55,12 @@ const PageRouter: React.FC = () => {
     };
   }, []);
 
-  const navigateTo = (route: 'volunteer' | 'dashboard' | 'login') => {
+  const navigateTo = (route: RouteType) => {
     setCurrentRoute(route);
     if (route === 'dashboard') {
       window.location.hash = '/dashboard';
+    } else if (route === 'hospital') {
+      window.location.hash = '/hospital';
     } else if (route === 'login') {
       window.location.hash = '/login';
     } else {
@@ -64,6 +72,8 @@ const PageRouter: React.FC = () => {
   const handleLoginSuccess = (role: UserRole) => {
     if (role === 'admin') {
       navigateTo('dashboard');
+    } else if (role === 'hospital') {
+      navigateTo('hospital');
     } else {
       navigateTo('volunteer');
     }
@@ -76,7 +86,13 @@ const PageRouter: React.FC = () => {
 
   // If NOT authenticated, show the Login Page
   if (!isAuthenticated) {
-    const defaultRole: UserRole = currentRoute === 'dashboard' ? 'admin' : 'volunteer';
+    const defaultRole: UserRole =
+      currentRoute === 'dashboard'
+        ? 'admin'
+        : currentRoute === 'hospital'
+        ? 'hospital'
+        : 'volunteer';
+
     return (
       <LoginPage
         onLoginSuccess={handleLoginSuccess}
@@ -89,6 +105,8 @@ const PageRouter: React.FC = () => {
   if (currentRoute === 'login') {
     if (currentUser?.role === 'admin') {
       navigateTo('dashboard');
+    } else if (currentUser?.role === 'hospital') {
+      navigateTo('hospital');
     } else {
       navigateTo('volunteer');
     }
@@ -96,7 +114,7 @@ const PageRouter: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F6F8FB] text-slate-900 font-sans">
-      {/* SEPARATE PAGE 1: VOLUNTEER FIELD APP */}
+      {/* 1. VOLUNTEER FIELD APP */}
       {currentRoute === 'volunteer' && (
         <>
           {usePhoneFrame ? (
@@ -131,18 +149,33 @@ const PageRouter: React.FC = () => {
         </>
       )}
 
-      {/* SEPARATE PAGE 2: COMMAND CENTER DASHBOARD */}
+      {/* 2. COMMAND CENTER DASHBOARD (Admin Only) */}
       {currentRoute === 'dashboard' && (
         <>
           {currentUser?.role === 'admin' ? (
-            <DashboardPage onGoToVolunteer={() => navigateTo('volunteer')} />
+            <DashboardPage
+              onGoToVolunteer={() => navigateTo('volunteer')}
+              onGoToHospital={() => navigateTo('hospital')}
+            />
           ) : (
             <UnauthorizedCard
-              onGoBack={() => navigateTo('volunteer')}
+              onGoBack={() =>
+                navigateTo(currentUser?.role === 'hospital' ? 'hospital' : 'volunteer')
+              }
               onSwitchAccount={() => navigateTo('login')}
             />
           )}
         </>
+      )}
+
+      {/* 3. HOSPITAL REFERRAL INTAKE PORTAL (Hospital & Admin) */}
+      {currentRoute === 'hospital' && (
+        <HospitalPage
+          onGoToVolunteer={() => navigateTo('volunteer')}
+          onGoToDashboard={
+            currentUser?.role === 'admin' ? () => navigateTo('dashboard') : undefined
+          }
+        />
       )}
 
       {/* Demo Modal Triggered on Demand */}

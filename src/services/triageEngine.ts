@@ -163,6 +163,60 @@ export function analyzeChecklist(selectedItemIds: string[]): TriageAnalysisResul
   };
 }
 
+/**
+ * Combined STT + Checklist Triage Evaluator
+ * Evaluates spoken voice transcript from STT along with any observed checklist indicators.
+ */
+export function analyzeCombined(
+  transcript: string,
+  selectedItemIds: string[] = []
+): TriageAnalysisResult {
+  const verbalRes = transcript.trim() ? analyzeTranscript(transcript) : null;
+  const checklistRes = selectedItemIds.length > 0 ? analyzeChecklist(selectedItemIds) : null;
+
+  if (!verbalRes && !checklistRes) {
+    return {
+      zone: 'GREEN',
+      score: 0,
+      indicators: [],
+      criticalTriggered: false,
+      recommendedAction: getRecommendedAction('GREEN'),
+      explanation: getZoneExplanation('GREEN', 0, false),
+    };
+  }
+
+  if (verbalRes && !checklistRes) return verbalRes;
+  if (!verbalRes && checklistRes) return checklistRes;
+
+  // Merge unique indicators
+  const mergedIndicatorsSet = new Set<string>([
+    ...(verbalRes?.indicators || []),
+    ...(checklistRes?.indicators || []),
+  ]);
+  const indicators = Array.from(mergedIndicatorsSet);
+  const criticalTriggered = !!(verbalRes?.criticalTriggered || checklistRes?.criticalTriggered);
+
+  // Highest severity zone wins: RED > YELLOW > GREEN
+  let zone: TriageZone = 'GREEN';
+  if (criticalTriggered || verbalRes?.zone === 'RED' || checklistRes?.zone === 'RED') {
+    zone = 'RED';
+  } else if (verbalRes?.zone === 'YELLOW' || checklistRes?.zone === 'YELLOW') {
+    zone = 'YELLOW';
+  }
+
+  const score = Math.max(verbalRes?.score || 0, checklistRes?.score || 0);
+
+  return {
+    zone,
+    score,
+    indicators,
+    criticalTriggered,
+    recommendedAction: getRecommendedAction(zone),
+    explanation: getZoneExplanation(zone, indicators.length, criticalTriggered),
+  };
+}
+
+
 export function getRecommendedAction(zone: TriageZone): string {
   switch (zone) {
     case 'RED':

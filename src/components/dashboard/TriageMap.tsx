@@ -1,12 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { MOCK_LOCATIONS } from '../../data/mockLocations';
 import { useAssessment } from '../../context/AssessmentContext';
-import { MapPin, Info } from 'lucide-react';
+import { MapPin, Info, Layers } from 'lucide-react';
 
 export const TriageMap: React.FC = () => {
   const { centralAssessments } = useAssessment();
+  const [mapProvider, setMapProvider] = useState<'osm' | 'carto'>('osm');
 
   const poskoData = useMemo(() => {
     return MOCK_LOCATIONS.map((loc) => {
@@ -77,19 +78,49 @@ export const TriageMap: React.FC = () => {
           </p>
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-3 text-xs text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span>Stable</span>
+        {/* Layer Selector & Legend */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Map Layer Switcher */}
+          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setMapProvider('osm')}
+              className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                mapProvider === 'osm'
+                  ? 'bg-white text-blue-600 shadow-xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Layers className="w-3 h-3" />
+              <span>OSM Standard</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMapProvider('carto')}
+              className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                mapProvider === 'carto'
+                  ? 'bg-white text-blue-600 shadow-xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>Clean Light</span>
+            </button>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span>Moderate</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
-            <span>Critical Load</span>
+
+          {/* Legend */}
+          <div className="flex items-center gap-2.5 text-xs text-slate-600">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span>Stable</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <span>Moderate</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+              <span>Critical</span>
+            </div>
           </div>
         </div>
       </div>
@@ -102,11 +133,22 @@ export const TriageMap: React.FC = () => {
           scrollWheelZoom={false}
           className="w-full h-full"
         >
-          {/* CartoDB Positron: Crisp, clean, professional light theme map tiles */}
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          />
+          {/* Tile Layer: OpenStreetMap (OSM) Standard or CartoDB Positron */}
+          {mapProvider === 'osm' ? (
+            <TileLayer
+              key="osm"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+            />
+          ) : (
+            <TileLayer
+              key="carto"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              maxZoom={19}
+            />
+          )}
 
           {poskoData.map((posko) => (
             <Marker

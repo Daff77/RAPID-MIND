@@ -13,7 +13,9 @@ interface VolunteerHeaderProps {
 export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
   currentTab,
   onSelectTab,
+  onGoToDashboard,
 }) => {
+
   const { currentUser, logout } = useAuth();
   const {
     isOnline,
@@ -73,6 +75,28 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
               <span className="text-xs font-semibold text-slate-700 hidden sm:inline">
                 {currentUser.badgeNumber}
               </span>
+              {currentUser.role === 'admin' && onGoToDashboard && (
+                <button
+                  type="button"
+                  onClick={onGoToDashboard}
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 font-bold text-indigo-700 border border-indigo-200"
+                  title="Ke Command Center"
+                >
+                  Admin
+                </button>
+              )}
+              {currentUser.role === 'hospital' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.hash = '/hospital';
+                  }}
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 font-bold text-emerald-800 border border-emerald-200"
+                  title="Ke Portal RS"
+                >
+                  Portal RS
+                </button>
+              )}
               <button
                 type="button"
                 onClick={logout}

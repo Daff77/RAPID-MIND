@@ -3,6 +3,8 @@ import {
   Smartphone,
   RefreshCw,
   LogOut,
+  Building2,
+  Users,
 } from 'lucide-react';
 import { useAssessment } from '../../context/AssessmentContext';
 import { useAuth } from '../../context/AuthContext';
@@ -11,12 +13,14 @@ interface DashboardHeaderProps {
   activeSection: string;
   onSelectSection: (section: string) => void;
   onGoToVolunteer: () => void;
+  onGoToHospital?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   activeSection,
   onSelectSection,
   onGoToVolunteer,
+  onGoToHospital,
 }) => {
   const { currentUser, logout } = useAuth();
   const { offlineQueue, triggerSync, isSyncing } = useAssessment();
@@ -55,13 +59,24 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </button>
           )}
 
+          {onGoToHospital && (
+            <button
+              type="button"
+              onClick={onGoToHospital}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-semibold transition"
+            >
+              <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">Portal RS</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onGoToVolunteer}
             className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition"
           >
             <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-            <span>Volunteer App</span>
+            <span className="hidden sm:inline">Volunteer App</span>
           </button>
 
           {/* Admin Identity & Logout */}
@@ -83,18 +98,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </div>
       </div>
 
-      {/* Simplified 3 Navigation Sub-Tabs (Overview, Assessments, Locations) */}
+      {/* Navigation Sub-Tabs (Overview, Assessments, Locations, Kelola Pengguna) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-100 bg-white">
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'assessments', label: 'Assessments' },
           { id: 'locations', label: 'Locations' },
+          { id: 'users', label: 'Kelola Pengguna', icon: Users },
         ].map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => onSelectSection(tab.id)}
-            className={`py-2 px-3 text-xs font-semibold transition border-b-2 ${
+            className={`py-2 px-3 text-xs font-semibold transition border-b-2 flex items-center gap-1.5 ${
               activeSection === tab.id
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'

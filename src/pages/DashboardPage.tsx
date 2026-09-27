@@ -5,14 +5,19 @@ import { PriorityRedPanel } from '../components/dashboard/PriorityRedPanel';
 import { TriageCharts } from '../components/dashboard/TriageCharts';
 import { TriageMap } from '../components/dashboard/TriageMap';
 import { RecentAssessmentsTable } from '../components/dashboard/RecentAssessmentsTable';
+import { UserManagementSection } from '../components/dashboard/UserManagementSection';
 import { useAssessment } from '../context/AssessmentContext';
 import { MOCK_LOCATIONS } from '../data/mockLocations';
 
 interface DashboardPageProps {
   onGoToVolunteer: () => void;
+  onGoToHospital?: () => void;
 }
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({ onGoToVolunteer }) => {
+export const DashboardPage: React.FC<DashboardPageProps> = ({
+  onGoToVolunteer,
+  onGoToHospital,
+}) => {
   const [activeSection, setActiveSection] = useState('overview');
   const { centralAssessments } = useAssessment();
 
@@ -22,6 +27,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onGoToVolunteer })
         activeSection={activeSection}
         onSelectSection={(sec) => setActiveSection(sec)}
         onGoToVolunteer={onGoToVolunteer}
+        onGoToHospital={onGoToHospital}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
@@ -95,6 +101,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onGoToVolunteer })
 
             <TriageMap />
           </div>
+        )}
+
+        {/* 4. Kelola Pengguna (User Management - Admin Only) */}
+        {activeSection === 'users' && (
+          <UserManagementSection />
         )}
       </main>
     </div>
