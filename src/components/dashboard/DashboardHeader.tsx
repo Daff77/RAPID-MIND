@@ -98,14 +98,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs (Overview, Assessments, Locations, Data Longitudinal, Kelola Pengguna) */}
+      {/* Navigation Sub-Tabs (Role 3: Command Center, Data Longitudinal, Manajemen Relawan) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-100 bg-white">
         {[
-          { id: 'overview', label: 'Overview' },
-          { id: 'assessments', label: 'Assessments' },
-          { id: 'longitudinal', label: 'Data Longitudinal' },
-          { id: 'locations', label: 'Locations' },
-          { id: 'users', label: 'Kelola Pengguna', icon: Users },
+          { id: 'overview', label: 'Pusat Komando & Geospasial' },
+          { id: 'longitudinal', label: 'Data Longitudinal (30 Hari)' },
+          { id: 'users', label: 'Manajemen Relawan & Pengguna', icon: Users },
         ].map((tab) => (
           <button
             key={tab.id}

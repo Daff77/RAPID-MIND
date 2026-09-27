@@ -139,3 +139,19 @@ export interface KPIStats {
   redPct: number;
   pendingSync: number;
 }
+
+/**
+ * Otomatis mengelompokkan kategori usia:
+ * - < 12 th: Anak
+ * - 12 - 18 th: Remaja
+ * - 19 - 59 th: Dewasa
+ * - >= 60 th: Lansia
+ */
+export function getCategoryFromAge(ageVal: string | number): 'Anak' | 'Remaja' | 'Dewasa' | 'Lansia' {
+  const num = typeof ageVal === 'number' ? ageVal : parseInt(String(ageVal), 10);
+  if (isNaN(num) || num < 0) return 'Dewasa';
+  if (num < 12) return 'Anak';
+  if (num <= 18) return 'Remaja';
+  if (num < 60) return 'Dewasa';
+  return 'Lansia';
+}

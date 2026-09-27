@@ -3,7 +3,6 @@ import { VolunteerHeader } from '../components/volunteer/VolunteerHeader';
 import { AutoLookupHomeScreen } from '../components/volunteer/AutoLookupHomeScreen';
 import { PFAMenuSection } from '../components/volunteer/PFAMenuSection';
 import { SRQ20InterviewWizard } from '../components/volunteer/SRQ20InterviewWizard';
-import { NewAssessmentWizard } from '../components/volunteer/NewAssessmentWizard';
 import { VolunteerHistory } from '../components/volunteer/VolunteerHistory';
 import { FloatingRedFlagButton } from '../components/volunteer/FloatingRedFlagButton';
 import { SurvivorProfile } from '../types/assessment';
@@ -12,7 +11,7 @@ interface VolunteerPageProps {
   onGoToDashboard: () => void;
 }
 
-type VolunteerActiveView = 'home' | 'pfa' | 'srq20' | 'new_triase' | 'history';
+type VolunteerActiveView = 'home' | 'pfa' | 'srq20' | 'history';
 
 export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard }) => {
   const [activeView, setActiveView] = useState<VolunteerActiveView>('home');
@@ -31,12 +30,8 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
     <div className="min-h-screen bg-[#F6F8FB] text-slate-900 flex flex-col font-sans relative">
       {/* Sticky Volunteer Header */}
       <VolunteerHeader
-        currentTab={activeView === 'history' ? 'history' : activeView === 'new_triase' ? 'new' : 'home'}
-        onSelectTab={(tab) => {
-          if (tab === 'home') setActiveView('home');
-          else if (tab === 'new') setActiveView('new_triase');
-          else if (tab === 'history') setActiveView('history');
-        }}
+        currentTab={activeView === 'history' ? 'history' : 'home'}
+        onSelectTab={(tab) => setActiveView(tab)}
         onGoToDashboard={onGoToDashboard}
       />
 
@@ -74,15 +69,6 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
               // Stay on result screen or return home
             }}
             onBack={() => setActiveView('home')}
-          />
-        )}
-
-        {/* METODE TRIASE LAPANGAN STT + CHECKLIST */}
-        {activeView === 'new_triase' && (
-          <NewAssessmentWizard
-            initialMethod="VERBAL"
-            onAssessmentSaved={() => setActiveView('history')}
-            onCancel={() => setActiveView('home')}
           />
         )}
 

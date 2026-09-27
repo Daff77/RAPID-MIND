@@ -8,8 +8,7 @@ import { RecentAssessmentsTable } from '../components/dashboard/RecentAssessment
 import { UserManagementSection } from '../components/dashboard/UserManagementSection';
 import { LongitudinalDataSection } from '../components/dashboard/LongitudinalDataSection';
 import { useAssessment } from '../context/AssessmentContext';
-import { MOCK_LOCATIONS } from '../data/mockLocations';
-import { Download, Calendar, Filter } from 'lucide-react';
+import { Download, Filter } from 'lucide-react';
 
 interface DashboardPageProps {
   onGoToVolunteer: () => void;
@@ -97,7 +96,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
         )}
 
-        {/* 1. Overview */}
+        {/* 1. Pusat Komando & Geospasial (Overview) */}
         {activeSection === 'overview' && (
           <div className="space-y-5 animate-in fade-in duration-150">
             <KPICards />
@@ -108,71 +107,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
         )}
 
-        {/* 2. Assessments Archive */}
-        {activeSection === 'assessments' && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between px-1">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">
-                  Assessments Archive
-                </h2>
-                <span className="text-xs text-slate-500">
-                  {centralAssessments.length} total records
-                </span>
-              </div>
-            </div>
-            <RecentAssessmentsTable />
-          </div>
-        )}
-
-        {/* 3. Response Posts (Locations) */}
-        {activeSection === 'locations' && (
-          <div className="space-y-5 animate-in fade-in duration-150">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {MOCK_LOCATIONS.map((loc) => {
-                const records = centralAssessments.filter((r) => r.location === loc.name);
-                const green = records.filter((r) => r.zone === 'GREEN').length;
-                const yellow = records.filter((r) => r.zone === 'YELLOW').length;
-                const red = records.filter((r) => r.zone === 'RED').length;
-                const total = records.length;
-
-                return (
-                  <div
-                    key={loc.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-2"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900">{loc.name}</h3>
-                        <span className="text-[11px] text-slate-500">{loc.coordinator}</span>
-                      </div>
-                      <span className="text-base font-mono font-bold text-slate-900">{total}</span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-1 text-center text-[11px] font-semibold pt-1 border-t border-slate-100">
-                      <span className="text-emerald-700 bg-emerald-50 py-0.5 rounded">
-                        {green} 🟢
-                      </span>
-                      <span className="text-amber-800 bg-amber-50 py-0.5 rounded">
-                        {yellow} 🟡
-                      </span>
-                      <span className="text-red-700 bg-red-50 py-0.5 rounded">
-                        {red} 🔴
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <TriageMap />
-          </div>
-        )}
-
-        {/* 4. Data Longitudinal Penapisan Penyintas (Hari 1 - 30) */}
+        {/* 2. Data Longitudinal Penapisan Penyintas (Hari 1 - 30) */}
         {activeSection === 'longitudinal' && <LongitudinalDataSection />}
 
-        {/* 5. Kelola Pengguna (User Management - Admin Only) */}
+        {/* 3. Manajemen Relawan & Pengguna (Admin BPBD / Dinkes) */}
         {activeSection === 'users' && <UserManagementSection />}
       </main>
     </div>

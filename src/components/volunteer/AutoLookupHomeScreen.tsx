@@ -9,7 +9,7 @@ import {
   Users,
   Check,
 } from 'lucide-react';
-import { SurvivorProfile, LocationPost } from '../../types/assessment';
+import { SurvivorProfile, LocationPost, getCategoryFromAge } from '../../types/assessment';
 import {
   findSurvivorByQuery,
   searchSurvivors,
@@ -17,7 +17,6 @@ import {
   generateSurvivorId,
   updateSurvivorNik,
 } from '../../data/mockSurvivors';
-import { getCategoryFromAge } from './NewAssessmentWizard';
 
 interface AutoLookupHomeScreenProps {
   onSelectSurvivor: (survivor: SurvivorProfile, targetFlow: 'pfa' | 'srq20') => void;

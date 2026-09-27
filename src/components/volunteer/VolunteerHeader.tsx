@@ -4,8 +4,8 @@ import { useAssessment } from '../../context/AssessmentContext';
 import { useAuth } from '../../context/AuthContext';
 
 interface VolunteerHeaderProps {
-  currentTab: 'home' | 'new' | 'history';
-  onSelectTab: (tab: 'home' | 'new' | 'history') => void;
+  currentTab: 'home' | 'history';
+  onSelectTab: (tab: 'home' | 'history') => void;
   onGoToDashboard?: () => void;
 }
 
@@ -154,35 +154,24 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
         <button
           type="button"
           onClick={() => onSelectTab('home')}
-          className={`py-2 px-3 text-xs font-semibold border-b-2 transition ${
+          className={`flex-1 py-2 px-3 text-xs font-semibold text-center border-b-2 transition ${
             currentTab === 'home'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          Home
-        </button>
-        <button
-          type="button"
-          onClick={() => onSelectTab('new')}
-          className={`py-2 px-3 text-xs font-semibold border-b-2 transition ${
-            currentTab === 'new'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          New Assessment
+          Screen 2: Identitas / Auto-Lookup
         </button>
         <button
           type="button"
           onClick={() => onSelectTab('history')}
-          className={`py-2 px-3 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 ${
+          className={`flex-1 py-2 px-3 text-xs font-semibold text-center border-b-2 transition flex items-center justify-center gap-1.5 ${
             currentTab === 'history'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>History</span>
+          <span>Riwayat Skrining</span>
           {offlineQueue.length > 0 && (
             <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
               {offlineQueue.length}
