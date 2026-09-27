@@ -54,18 +54,30 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
       setIsRegisteringNew(false);
     } else {
       setLookupResult(null);
-      setNewNik(q);
-      setNewName('');
+      // Deteksi cerdas: jika input berupa angka (NIK/ID), masukkan ke NIK.
+      // Jika input mengandung huruf (nama orang seperti "afrizal"), masukkan ke Nama Lengkap.
+      const isNumericOrId = /^\d+$/.test(q) || /^VCT-/i.test(q);
+      if (isNumericOrId) {
+        setNewNik(q);
+        setNewName('');
+      } else {
+        setNewName(q);
+        setNewNik('');
+      }
       setIsRegisteringNew(true);
     }
   };
 
   const handleRegisterNewSurvivor = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newNik.trim() || !newName.trim()) return;
+    if (!newName.trim()) return;
+
+    // Buat NIK darurat sementara jika belum ada NIK KTP
+    const fallbackNik = `3501${Math.floor(Math.random() * 900000000000 + 100000000000)}`;
+    const effectiveNik = newNik.trim() || fallbackNik;
 
     const newSurvivor: SurvivorProfile = {
-      nik: newNik.trim(),
+      nik: effectiveNik,
       id: `VCT-${String(Math.floor(Math.random() * 800) + 100).padStart(3, '0')}`,
       name: newName.trim(),
       age: parseInt(newAge) || 28,
@@ -78,7 +90,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
     };
 
     saveSurvivorToRegistry(newSurvivor);
-    // NIK Baru -> Direct to Menu PFA (Fase Akut Hari 1-3)
+    // Penyintas Baru -> Direct to Menu PFA (Fase Akut Hari 1-3)
     onSelectSurvivor(newSurvivor, 'pfa');
   };
 
@@ -209,7 +221,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-                    Auto-Lookup: NIK Baru Ditemukan
+                    Auto-Lookup: Penyintas Belum Terdaftar
                   </span>
                   <h3 className="text-sm font-bold text-slate-900">
                     Pendaftaran Penyintas Baru (Fase Akut Hari 1–3)
@@ -219,13 +231,16 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 block">NIK</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-slate-700 block">NIK</label>
+                    <span className="text-[10px] text-slate-400">Opsional</span>
+                  </div>
                   <input
                     type="text"
                     value={newNik}
                     onChange={(e) => setNewNik(e.target.value)}
+                    placeholder="16 digit NIK (jika ada)..."
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900"
-                    required
                   />
                 </div>
 
