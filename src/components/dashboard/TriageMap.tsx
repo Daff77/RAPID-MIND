@@ -12,24 +12,37 @@ export const TriageMap: React.FC = () => {
   const poskoData = useMemo(() => {
     return MOCK_LOCATIONS.map((loc) => {
       const records = centralAssessments.filter((r) => r.location === loc.name);
-      const green = records.filter((r) => r.zone === 'GREEN').length;
-      const yellow = records.filter((r) => r.zone === 'YELLOW').length;
-      const red = records.filter((r) => r.zone === 'RED').length;
+      const t0 = records.filter((r) => r.triageTier === 'T0' || (r.zone === 'RED' && r.criticalTriggered)).length;
+      const t1 = records.filter((r) => r.triageTier === 'T1' || (r.zone === 'RED' && !r.criticalTriggered)).length;
+      const t2 = records.filter((r) => r.triageTier === 'T2' || r.zone === 'YELLOW').length;
+      const t3 = records.filter((r) => r.triageTier === 'T3' || r.zone === 'GREEN').length;
       const total = records.length;
 
-      let markerBorder = '#16A34A';
-      if (red > 5) {
-        markerBorder = '#DC2626';
-      } else if (yellow > 10) {
-        markerBorder = '#EAB308';
+      let markerBorder = '#16A34A'; // T3 Hijau
+      let dominantTier: 'T0' | 'T1' | 'T2' | 'T3' = 'T3';
+
+      if (t0 > 0) {
+        markerBorder = '#DC2626'; // T0 Merah
+        dominantTier = 'T0';
+      } else if (t1 > 0) {
+        markerBorder = '#EA580C'; // T1 Oranye
+        dominantTier = 'T1';
+      } else if (t2 > 0) {
+        markerBorder = '#EAB308'; // T2 Kuning
+        dominantTier = 'T2';
+      } else {
+        markerBorder = '#16A34A'; // T3 Hijau
+        dominantTier = 'T3';
       }
 
       return {
         ...loc,
         total,
-        green,
-        yellow,
-        red,
+        t0,
+        t1,
+        t2,
+        t3,
+        dominantTier,
         markerBorder,
       };
     });
@@ -108,18 +121,22 @@ export const TriageMap: React.FC = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-2.5 text-xs text-slate-600">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-              <span>Stable</span>
+          <div className="flex items-center gap-2 text-[11px] text-slate-600 font-semibold">
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+              <span className="text-red-700">T0 Merah</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-              <span>Moderate</span>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-orange-600"></span>
+              <span className="text-orange-700">T1 Oranye</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
-              <span>Critical</span>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span className="text-amber-800">T2 Kuning</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+              <span className="text-emerald-700">T3 Hijau</span>
             </div>
           </div>
         </div>
@@ -154,7 +171,7 @@ export const TriageMap: React.FC = () => {
             <Marker
               key={posko.id}
               position={[posko.lat, posko.lng]}
-              icon={createLightCustomIcon(posko.name, posko.total, posko.markerBorder, posko.red)}
+              icon={createLightCustomIcon(posko.name, posko.total, posko.markerBorder, posko.t0 + posko.t1)}
             >
               <Popup className="custom-light-popup">
                 <div className="p-1 space-y-2 min-w-[170px] text-xs text-slate-800 font-sans">
@@ -164,28 +181,32 @@ export const TriageMap: React.FC = () => {
                       <span className="text-[10px] text-slate-500 font-medium">{posko.sector}</span>
                     </div>
                     <div className="text-[11px] text-slate-600 mt-0.5">
-                      Total Screenings: <strong className="text-slate-900 font-mono">{posko.total}</strong>
+                      Total Penapisan: <strong className="text-slate-900 font-mono">{posko.total}</strong>
                     </div>
                   </div>
 
                   <div className="space-y-1 font-mono text-xs">
-                    <div className="flex items-center justify-between text-emerald-700">
-                      <span>🟢 Green:</span>
-                      <strong>{posko.green}</strong>
-                    </div>
-                    <div className="flex items-center justify-between text-amber-800">
-                      <span>🟡 Yellow:</span>
-                      <strong>{posko.yellow}</strong>
-                    </div>
                     <div className="flex items-center justify-between text-red-700 font-bold">
-                      <span>🔴 Red:</span>
-                      <strong>{posko.red}</strong>
+                      <span>🚨 T0 Emergency:</span>
+                      <strong>{posko.t0}</strong>
+                    </div>
+                    <div className="flex items-center justify-between text-orange-700 font-semibold">
+                      <span>🔴 T1 High Risk:</span>
+                      <strong>{posko.t1}</strong>
+                    </div>
+                    <div className="flex items-center justify-between text-amber-800 font-semibold">
+                      <span>🟡 T2 Moderate:</span>
+                      <strong>{posko.t2}</strong>
+                    </div>
+                    <div className="flex items-center justify-between text-emerald-700 font-semibold">
+                      <span>🟢 T3 Low Risk:</span>
+                      <strong>{posko.t3}</strong>
                     </div>
                   </div>
 
                   <div className="pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
-                    <div>Lead: {posko.coordinator}</div>
-                    <div>Staff: {posko.activeVolunteers} volunteers</div>
+                    <div>Koordinator: {posko.coordinator}</div>
+                    <div>Personel: {posko.activeVolunteers} relawan aktif</div>
                   </div>
                 </div>
               </Popup>

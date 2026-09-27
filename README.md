@@ -166,7 +166,3 @@ Untuk penjelasan mendalam tentang diagram alur, tahapan dari Screen 1 s.d. Scree
 
 ---
 
-## 📄 Lisensi & Kontributor
-
-Dibuat dengan ❤️ untuk kemanusiaan dan penguatan resiliensi kesehatan mental masyarakat di wilayah bencana.
-Dikembangkan oleh **Daff77** ([https://github.com/Daff77](https://github.com/Daff77)).

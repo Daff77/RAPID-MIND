@@ -6,6 +6,7 @@ import { TriageCharts } from '../components/dashboard/TriageCharts';
 import { TriageMap } from '../components/dashboard/TriageMap';
 import { RecentAssessmentsTable } from '../components/dashboard/RecentAssessmentsTable';
 import { UserManagementSection } from '../components/dashboard/UserManagementSection';
+import { LongitudinalDataSection } from '../components/dashboard/LongitudinalDataSection';
 import { useAssessment } from '../context/AssessmentContext';
 import { MOCK_LOCATIONS } from '../data/mockLocations';
 import { Download, Calendar, Filter } from 'lucide-react';
@@ -168,7 +169,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
         )}
 
-        {/* 4. Kelola Pengguna (User Management - Admin Only) */}
+        {/* 4. Data Longitudinal Penapisan Penyintas (Hari 1 - 30) */}
+        {activeSection === 'longitudinal' && <LongitudinalDataSection />}
+
+        {/* 5. Kelola Pengguna (User Management - Admin Only) */}
         {activeSection === 'users' && <UserManagementSection />}
       </main>
     </div>

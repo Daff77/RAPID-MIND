@@ -20,7 +20,7 @@ import {
 import { SurvivorProfile, TriageAnalysisResult, TriageTier } from '../../types/assessment';
 import { SRQ20_QUESTIONS } from '../../data/srq20Questions';
 import { FUNCTIONAL_IMPAIRMENT_ITEMS } from '../../data/pfaProtocol';
-import { evaluateSRQ20, matchSRQ20Keywords } from '../../services/triageEngine';
+import { evaluateSRQ20, matchSRQ20Keywords, calculateTriage } from '../../services/triageEngine';
 import {
   isSpeechRecognitionSupported,
   isMicrophoneSupported,
@@ -30,6 +30,7 @@ import {
   SpeechSession,
 } from '../../services/speechRecognition';
 import { useAssessment } from '../../context/AssessmentContext';
+import { Screen4EmergencyAlert } from './Screen4EmergencyAlert';
 
 interface SRQ20InterviewWizardProps {
   survivor: SurvivorProfile;
@@ -46,6 +47,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
   const [wizardStep, setWizardStep] = useState<'interview' | 'functional' | 'result'>('interview');
   const [interviewMode, setInterviewMode] = useState<'verbal' | 'non_verbal'>('verbal');
+  const [showItem17Alert, setShowItem17Alert] = useState<boolean>(false);
 
   // Answer state: Map of question id to boolean (true = Ya, false = Tidak)
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
@@ -149,6 +151,38 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       ...prev,
       [id]: val,
     }));
+
+    // SECTION 9 ATURAN: Jika Item #17 = YA -> T0 Emergency. Jangan menunggu perhitungan skor akhir!
+    if (id === 17 && val === true) {
+      const now = new Date();
+      const timeHours = String(now.getHours()).padStart(2, '0');
+      const timeMins = String(now.getMinutes()).padStart(2, '0');
+      const timeString = `${timeHours}:${timeMins}`;
+
+      addAssessment({
+        id: survivor.id,
+        nik: survivor.nik,
+        timestamp: timeString,
+        location: survivor.posko,
+        method: interviewMode === 'verbal' ? 'VERBAL' : 'CHECKLIST',
+        phase: 'followup_srq20',
+        zone: 'RED',
+        triageTier: 'T0',
+        t0Status: 'T0-Suspect',
+        score: 1,
+        indicators: ['SRQ-20 Butir #17: Pikiran mengakhiri hidup / bunuh diri (Ideasi Suisida)'],
+        criticalTriggered: true,
+        victimName: survivor.name,
+        victimAge: survivor.age,
+        victimGender: survivor.gender,
+        victimCategory: survivor.category,
+        recommendedAction:
+          'T0 EMERGENCY (SRQ #17): Terdeteksi pikiran mengakhiri hidup. Sinyal T0-Suspect aktif. Dampingi penyintas 100% tanpa jeda dan siagakan panggilan Tele-Emergency nakes.',
+        volunteerNotes: `SRQ-20 Butir #17 dijawab YA oleh penyintas di ${survivor.posko}. Otomatis masuk status T0-Suspect.`,
+      });
+
+      setShowItem17Alert(true);
+    }
   };
 
   const toggleFunctional = (id: string) => {
@@ -628,6 +662,32 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             >
               <span>Selesai & Kembali ke Homescreen</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 7 & 9: SCREEN 4 EMERGENCY MODAL FOR ITEM #17 (IDEASI SUISIDA) */}
+      {showItem17Alert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto">
+            <Screen4EmergencyAlert
+              survivorId={survivor.id}
+              survivorName={survivor.name}
+              survivorAge={survivor.age}
+              survivorGender={survivor.gender}
+              posko={survivor.posko}
+              timestamp={new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+              emergencyReasons={[
+                'SRQ-20 Butir #17: Apakah Anda mempunyai pikiran untuk mengakhiri hidup Anda? (JAWABAN: YA)',
+                'Sesuai protokol keselamatan RAPID-MIND, terdeteksinya pikiran mengakhiri hidup seketika mengunci status pasien ke T0-SUSPECT tanpa menunggu perhitungan skor akhir.',
+              ]}
+              volunteerNotes="Penyintas mengonfirmasi adanya pikiran untuk mengakhiri hidup pada saat penapisan SRQ-20."
+              onClose={() => setShowItem17Alert(false)}
+              onGoToHospitalPortal={() => {
+                setShowItem17Alert(false);
+                window.location.hash = '/hospital';
+              }}
+            />
           </div>
         </div>
       )}

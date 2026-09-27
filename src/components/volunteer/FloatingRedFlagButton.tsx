@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { LocationPost } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
+import { Screen4EmergencyAlert } from './Screen4EmergencyAlert';
 
 interface FloatingRedFlagButtonProps {
   currentVictimId?: string;
@@ -32,6 +33,8 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
   const [gate3, setGate3] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [notes, setNotes] = useState('');
+  const [emergencyReasons, setEmergencyReasons] = useState<string[]>([]);
+  const [recordedTimestamp, setRecordedTimestamp] = useState<string>('');
 
   const canSubmit = gate1 || gate2 || gate3;
 
@@ -44,18 +47,22 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
     if (!canSubmit) return;
 
     const reasons: string[] = [];
-    if (gate1) reasons.push('Ancaman bunuh diri / menyakiti orang lain');
-    if (gate2) reasons.push('Psikosis akut / tidak merespons verbal');
-    if (gate3) reasons.push('Kegawatdaruratan medis / cedera fisik berat');
+    if (gate1) reasons.push('1. Ancaman membahayakan diri sendiri (ideasi bunuh diri) atau orang lain (agresi akut)');
+    if (gate2) reasons.push('2. Psikosis akut / halusinasi berat / kondisi unresponsive');
+    if (gate3) reasons.push('3. Kegawatdaruratan medis / cedera fisik berat yang menyertai distres');
 
     const now = new Date();
     const timeHours = String(now.getHours()).padStart(2, '0');
     const timeMins = String(now.getMinutes()).padStart(2, '0');
+    const timeString = `${timeHours}:${timeMins}`;
+
+    setEmergencyReasons(reasons);
+    setRecordedTimestamp(timeString);
 
     // Create a T0-Suspect emergency record
     addAssessment({
       id: currentVictimId,
-      timestamp: `${timeHours}:${timeMins}`,
+      timestamp: timeString,
       location: currentLocation,
       method: 'VERBAL',
       zone: 'RED',
@@ -66,8 +73,8 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
       criticalTriggered: true,
       victimName: currentVictimName,
       recommendedAction:
-        'T0 EMERGENCY (RED FLAG): Peringatan dini instan terkirim ke PSC 119 dan RS Rujukan. Dampingi tanpa jeda!',
-      volunteerNotes: `RED FLAG TRIGGERED: ${notes || 'Kondisi kegawatdaruratan di lapangan'}. Lokasi GPS terkunci.`,
+        'T0 EMERGENCY (RED FLAG): Peringatan dini instan tersimpan di basis data. Dampingi penyintas 100% tanpa jeda, amankan benda berbahaya, dan siagakan panggilan Tele-Emergency nakes.',
+      volunteerNotes: `RED FLAG TRIGGERED: ${notes || 'Kondisi kegawatdaruratan di lapangan'}. Lokasi GPS terkunci di ${currentLocation}.`,
       volunteerId: 'VOL-RED-ALERT',
     });
 
@@ -273,46 +280,19 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                 </>
               ) : (
                 /* SCREEN 4: ALERT & NOTIFIKASI RUJUKAN DARURAT (T0 - EMERGENCY) */
-                <div className="py-4 text-center space-y-4 animate-in fade-in">
-                  <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto border-4 border-red-500/20">
-                    <Ambulance className="w-8 h-8 animate-pulse" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white font-mono font-bold text-xs uppercase tracking-wider">
-                      Status Terkunci: T0-SUSPECT
-                    </span>
-                    <h4 className="text-base font-black text-slate-900 mt-2">
-                      Sinyal Rujukan Darurat Berhasil Dikirim!
-                    </h4>
-                    <p className="text-xs text-slate-600 max-w-sm mx-auto">
-                      Notifikasi darurat dan koordinat <strong>{currentLocation}</strong> telah disiarkan ke <strong>PSC 119</strong>, <strong>Dinas Kesehatan</strong>, dan <strong>Rumah Sakit Rujukan</strong>.
-                    </p>
-                  </div>
-
-                  {/* Immediate Action Checklist for Volunteer */}
-                  <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-left space-y-1.5 text-xs text-red-950">
-                    <span className="font-bold block uppercase text-[11px] text-red-900">
-                      Tindakan Wajib Relawan Sekarang:
-                    </span>
-                    <ul className="space-y-1 text-[11px] list-disc list-inside">
-                      <li><strong>Dampingi tanpa jeda:</strong> Jangan pernah tinggalkan penyintas seorang diri.</li>
-                      <li><strong>Amankan benda berbahaya:</strong> Jauhkan benda tajam, tali, atau tepian jurang reruntuhan.</li>
-                      <li><strong>Siapkan HP:</strong> Tenaga medis Faskes/PSC 119 akan menghubungi Anda untuk verifikasi Tele-Emergency dalam 1-2 menit.</li>
-                    </ul>
-                  </div>
-
-                  <div className="pt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleClose}
-                      className="flex-1 h-11 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      <span>Kembali & Lanjutkan Pendampingan</span>
-                    </button>
-                  </div>
-                </div>
+                <Screen4EmergencyAlert
+                  survivorId={currentVictimId}
+                  survivorName={currentVictimName}
+                  posko={currentLocation}
+                  timestamp={recordedTimestamp || 'Sekarang'}
+                  emergencyReasons={emergencyReasons}
+                  volunteerNotes={notes}
+                  onClose={handleClose}
+                  onGoToHospitalPortal={() => {
+                    handleClose();
+                    window.location.hash = '/hospital';
+                  }}
+                />
               )}
             </div>
           </div>

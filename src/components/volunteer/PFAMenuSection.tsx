@@ -19,16 +19,19 @@ import {
   PFA_LINK_ITEMS,
 } from '../../data/pfaProtocol';
 import { useAssessment } from '../../context/AssessmentContext';
+import { saveSurvivorToRegistry } from '../../data/mockSurvivors';
 
 interface PFAMenuSectionProps {
   survivor: SurvivorProfile;
   onComplete: (updatedSurvivor: SurvivorProfile) => void;
+  onProceedToSRQ20?: (updatedSurvivor: SurvivorProfile) => void;
   onBack: () => void;
 }
 
 export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
   survivor,
   onComplete,
+  onProceedToSRQ20,
   onBack,
 }) => {
   const { addAssessment } = useAssessment();
@@ -60,7 +63,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     );
   };
 
-  const handleFinishPFA = () => {
+  const handleFinishPFA = (andProceedToSRQ: boolean = false) => {
     const now = new Date();
     const timeHours = String(now.getHours()).padStart(2, '0');
     const timeMins = String(now.getMinutes()).padStart(2, '0');
@@ -77,6 +80,9 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       },
     };
 
+    // Save survivor to persistent registry
+    saveSurvivorToRegistry(updatedProfile);
+
     // Save as assessment record
     addAssessment({
       id: survivor.id,
@@ -91,7 +97,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       indicators: [...selectedLook, ...selectedLink],
       criticalTriggered: false,
       recommendedAction:
-        'Intervensi PFA selesai. Pantau kestabilan emosi dan jadwalkan Wawancara SRQ-20 pada Fase Lanjutan (Hari 4-30).',
+        'Intervensi PFA Look-Listen-Link selesai. Pantau kestabilan emosi dan jadwalkan Wawancara SRQ-20 pada Fase Lanjutan (Hari 4-30).',
       volunteerNotes: `PFA Look-Listen-Link selesai di ${survivor.posko}. Catatan: ${listenNotes || '-'}`,
       victimName: survivor.name,
       victimAge: survivor.age,
@@ -100,7 +106,12 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     });
 
     setIsSaved(true);
-    onComplete(updatedProfile);
+
+    if (andProceedToSRQ && onProceedToSRQ20) {
+      onProceedToSRQ20(updatedProfile);
+    } else {
+      onComplete(updatedProfile);
+    }
   };
 
   return (
@@ -375,24 +386,35 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
           </div>
 
           {/* Action to Complete PFA */}
-          <div className="pt-2 flex justify-between items-center">
+          <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5">
             <button
               type="button"
               onClick={() => setActiveStep('listen')}
-              className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+              className="w-full sm:w-auto px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali</span>
             </button>
 
-            <button
-              type="button"
-              onClick={handleFinishPFA}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold flex items-center gap-2 shadow-xs transition"
-            >
-              <Save className="w-4 h-4" />
-              <span>Simpan & Selesai PFA</span>
-            </button>
+            <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleFinishPFA(false)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Simpan PFA & Selesai</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleFinishPFA(true)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition"
+              >
+                <span>Simpan & Lanjut ke SRQ-20 (Screen 5)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}

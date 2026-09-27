@@ -66,6 +66,10 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
               setSelectedSurvivor(updated);
               setActiveView('home');
             }}
+            onProceedToSRQ20={(updated) => {
+              setSelectedSurvivor(updated);
+              setActiveView('srq20');
+            }}
             onBack={() => setActiveView('home')}
           />
         )}

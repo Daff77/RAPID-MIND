@@ -100,35 +100,40 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
   };
 
   const handleConfirmRujukan = (recordId: string) => {
+    const decider = currentUser?.name || 'dr. Budi Santoso, Sp.KJ';
+    const timestamp = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     setPatientStatuses((prev) => ({
       ...prev,
       [recordId]: {
         t0Status: 'T0-Confirmed',
         transportStage: 'dispatch',
-        doctor: currentUser?.name || 'dr. Budi Santoso, Sp.KJ',
+        doctor: decider,
         bed: 'IGD Psikiatri Bed 02',
-        teleNotes: teleNotesInput || 'Terverifikasi via Tele-Emergency: Pasien dalam kondisi distres akut valid.',
+        teleNotes: teleNotesInput || `Terverifikasi via Tele-Emergency oleh ${decider} (${timestamp} WIB): Pasien dalam kondisi distres akut valid.`,
       },
     }));
 
     setActionSuccessMessage(
-      `✓ [T0-CONFIRMED]: Rujukan darurat pasien ${recordId} terkonfirmasi! Perintah ambulans/PSC 119 menuju lokasi telah diterbitkan.`
+      `✓ [T0-CONFIRMED] (Simulasi Rujukan): Pasien ${recordId} divalidasi oleh ${decider} (${timestamp} WIB). Simulasi perintah armada PSC 119 diterbitkan.`
     );
     setIsTeleModalOpen(false);
     setTimeout(() => setActionSuccessMessage(null), 6000);
   };
 
   const handleDowngradeStatus = (recordId: string, targetTier: 'T1' | 'T2') => {
+    const decider = currentUser?.name || 'dr. Budi Santoso, Sp.KJ';
+    const timestamp = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     setPatientStatuses((prev) => ({
       ...prev,
       [recordId]: {
         t0Status: 'Downgraded',
-        teleNotes: teleNotesInput || `Diturunkan status ke ${targetTier} pasca verifikasi klinis relawan.`,
+        doctor: decider,
+        teleNotes: teleNotesInput || `Diturunkan status ke ${targetTier} oleh ${decider} (${timestamp} WIB) pasca verifikasi klinis relawan.`,
       },
     }));
 
     setActionSuccessMessage(
-      `✓ Status pasien ${recordId} berhasil diturunkan ke ${targetTier} (bukan kegawatdaruratan darurat nyawa). Tim pendampingan posko ditugaskan.`
+      `✓ [DOWNGRADE] (Validasi Medis): Status pasien ${recordId} diturunkan ke ${targetTier} oleh ${decider} (tidak ada bahaya darurat nyawa). Ditangani oleh tim posko.`
     );
     setIsTeleModalOpen(false);
     setTimeout(() => setActionSuccessMessage(null), 6000);

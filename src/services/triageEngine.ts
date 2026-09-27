@@ -76,13 +76,72 @@ export function matchSRQ20Keywords(transcript: string): number[] {
   return matchedIds;
 }
 
+export interface CentralTriageDecision {
+  tier: TriageTier;
+  zone: TriageZone;
+  reason: string;
+  recommendation: string;
+  emergencyStatus?: 'T0-Suspect' | 'T0-Confirmed' | 'Downgraded';
+}
+
+/**
+ * SATU SUMBER LOGIKA TRIASE TERPUSAT (Single Source of Truth)
+ * Sesuai spesifikasi Section 11:
+ * calculateTriage(srqScore, item17, functionalScore, redFlag)
+ *
+ * Aturan:
+ * - T0 (EMERGENCY): Red Flag = true OR SRQ-20 Item #17 = YES
+ * - T1 (HIGH RISK): SRQ-20 >= 11 OR Functional impairment >= 3
+ * - T2 (MODERATE RISK): (SRQ-20 = 6–10) OR (Functional impairment = 1–2)
+ * - T3 (LOW RISK): SRQ-20 = 0–5 AND Functional impairment = 0
+ */
+export function calculateTriage(
+  srqScore: number,
+  item17: boolean,
+  functionalScore: number,
+  redFlag: boolean
+): CentralTriageDecision {
+  if (redFlag || item17) {
+    return {
+      tier: 'T0',
+      zone: 'RED',
+      reason: redFlag
+        ? 'Red Flag Emergency terverifikasi via 3 Verification Gates. Otomatis masuk status T0-Suspect.'
+        : 'SRQ-20 Butir #17 bernilai YA (Ideasi Bunuh Diri / Mengakhiri Hidup). Otomatis masuk status T0-Suspect tanpa menunggu skor akhir.',
+      recommendation: getTierRecommendedAction('T0'),
+      emergencyStatus: 'T0-Suspect',
+    };
+  }
+
+  if (srqScore >= 11 || functionalScore >= 3) {
+    return {
+      tier: 'T1',
+      zone: 'RED',
+      reason: `Tingkat Risiko Tinggi (T1): Skor SRQ-20 = ${srqScore} (≥ 11) atau Hendaya Fungsi Harian = ${functionalScore} (≥ 3). Menunjukkan distres psikologis berat / risiko PTSD.`,
+      recommendation: getTierRecommendedAction('T1'),
+    };
+  }
+
+  if ((srqScore >= 6 && srqScore <= 10) || (functionalScore >= 1 && functionalScore <= 2)) {
+    return {
+      tier: 'T2',
+      zone: 'YELLOW',
+      reason: `Tingkat Risiko Sedang (T2): Skor SRQ-20 = ${srqScore} (6–10) atau Hendaya Fungsi Harian = ${functionalScore} (1–2). Memerlukan pendampingan PFA berkala.`,
+      recommendation: getTierRecommendedAction('T2'),
+    };
+  }
+
+  return {
+    tier: 'T3',
+    zone: 'GREEN',
+    reason: `Tingkat Risiko Rendah (T3): Skor SRQ-20 = ${srqScore} (0–5) dan fungsi harian terpelihara. Reaksi adaptasi stres bencana stabil.`,
+    recommendation: getTierRecommendedAction('T3'),
+  };
+}
+
 /**
  * Evaluator for SRQ-20 (Fase Lanjutan Hari 4-30) + Functional Impairments
- * Thresholds according to RencanaBaru.md:
- * - T0 (Emergency): Red Flag triggered OR Question 17 (Suicide ideation) is Yes
- * - T1 (High Risk): SRQ-20 score >= 11 OR severe functional impairment
- * - T2 (Moderate Risk): SRQ-20 score 6 - 10
- * - T3 (Low Risk): SRQ-20 score 0 - 5
+ * Uses calculateTriage as the single source of truth.
  */
 export function evaluateSRQ20(
   yesQuestionIds: number[] = [],
@@ -108,31 +167,17 @@ export function evaluateSRQ20(
     indicators.push(`Hendaya: ${fId.replace('func_', '')}`);
   }
 
-  let tier: TriageTier = 'T3';
-  let zone: TriageZone = 'GREEN';
-
-  if (criticalTriggered) {
-    tier = 'T0';
-    zone = 'RED';
-  } else if (score >= 11 || functionalIds.length >= 3) {
-    tier = 'T1';
-    zone = 'RED';
-  } else if (score >= 6 || functionalIds.length >= 1) {
-    tier = 'T2';
-    zone = 'YELLOW';
-  } else {
-    tier = 'T3';
-    zone = 'GREEN';
-  }
+  // Centralized triage calculation
+  const decision = calculateTriage(score, isQuestion17Yes, functionalIds.length, isManualRedFlag);
 
   return {
-    zone,
-    triageTier: tier,
+    zone: decision.zone,
+    triageTier: decision.tier,
     score,
     indicators,
     criticalTriggered,
-    recommendedAction: getTierRecommendedAction(tier),
-    explanation: getTierExplanation(tier, score, criticalTriggered),
+    recommendedAction: decision.recommendation,
+    explanation: decision.reason,
   };
 }
 
