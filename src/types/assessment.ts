@@ -1,13 +1,63 @@
 export type TriageZone = 'GREEN' | 'YELLOW' | 'RED';
 
+/**
+ * Two-Tiered Triage Tiers according to RencanaBaru.md:
+ * - T0: Emergency (Red Flag / Suisida / Psikosis / Agitasi Akut) -> PSC 119 & RS
+ * - T1: High Risk (SRQ-20 >= 11) -> Rujukan Spesialis / Psikolog
+ * - T2: Moderate Risk (SRQ-20 6-10) -> Pendampingan PFA Berlanjut / Coach
+ * - T3: Low Risk (SRQ-20 0-5) -> Edukasi Kesehatan Jiwa & Komunitas
+ */
+export type TriageTier = 'T0' | 'T1' | 'T2' | 'T3';
+
+export type T0EmergencyStatus = 'T0-Suspect' | 'T0-Confirmed' | 'Downgraded';
+
+export type AssessmentPhase = 'acute_pfa' | 'followup_srq20';
+
 export type AssessmentMethod = 'VERBAL' | 'CHECKLIST';
 
 export type LocationPost = 'Posko A' | 'Posko B' | 'Posko C' | 'Posko D';
 
 export type SyncStatus = 'synced' | 'pending';
 
+export interface SRQ20Question {
+  id: number;
+  text: string;
+  category: 'somatic' | 'anxiety' | 'depressive' | 'cognitive' | 'energy' | 'safety';
+  volunteerInstruction: string;
+  keywords: string[];
+  isRedFlag?: boolean;
+}
+
+export interface PFARecord {
+  completedAt: string;
+  lookItems: string[];
+  listenNotes: string;
+  groundingUsed?: boolean;
+  linkItems: string[];
+  safetyFlags?: string[];
+}
+
+export interface SurvivorProfile {
+  nik: string;
+  id: string; // VCT-xxx
+  name: string;
+  age: number | string;
+  gender: 'L' | 'P';
+  category: 'Anak' | 'Remaja' | 'Dewasa' | 'Lansia';
+  posko: LocationPost;
+  phone?: string;
+  registeredAt: string;
+  currentPhase: AssessmentPhase;
+  pfaRecord?: PFARecord;
+  srq20Score?: number;
+  triageTier: TriageTier;
+  t0Status?: T0EmergencyStatus;
+  notes?: string;
+}
+
 export interface VictimData {
   id: string; // VCT-001
+  nik?: string;
   name: string;
   age?: number | string;
   gender?: 'L' | 'P';
@@ -19,15 +69,21 @@ export interface VictimData {
 
 export interface AssessmentRecord {
   id: string;
+  nik?: string;
   timestamp: string; // ISO string or human formatted
   location: LocationPost;
   method: AssessmentMethod;
+  phase?: AssessmentPhase;
   zone: TriageZone;
+  triageTier?: TriageTier;
+  t0Status?: T0EmergencyStatus;
   score: number;
   indicators: string[];
   criticalTriggered: boolean;
   transcript?: string;
   checklistSelections?: string[];
+  srq20YesList?: number[];
+  functionalSelections?: string[];
   recommendedAction: string;
   syncStatus: SyncStatus;
   volunteerNotes?: string;
@@ -37,15 +93,16 @@ export interface AssessmentRecord {
   victimAge?: number | string;
   victimGender?: 'L' | 'P';
   victimCategory?: 'Anak' | 'Remaja' | 'Dewasa' | 'Lansia';
-  // Hospital referral tracking
+  // Hospital & PSC 119 referral tracking
   hospitalReferralStatus?: 'pending' | 'in_transit' | 'admitted' | 'discharged';
   hospitalNotes?: string;
   hospitalBed?: string;
+  teleEmergencyNotes?: string;
 }
-
 
 export interface TriageAnalysisResult {
   zone: TriageZone;
+  triageTier: TriageTier;
   score: number;
   indicators: string[];
   criticalTriggered: boolean;
@@ -69,6 +126,10 @@ export interface KPIStats {
   green: number;
   yellow: number;
   red: number;
+  t0Count: number;
+  t1Count: number;
+  t2Count: number;
+  t3Count: number;
   greenPct: number;
   yellowPct: number;
   redPct: number;

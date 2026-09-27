@@ -1,4 +1,5 @@
-import { TriageZone, TriageAnalysisResult } from '../types/assessment';
+import { TriageZone, TriageTier, TriageAnalysisResult } from '../types/assessment';
+import { SRQ20_QUESTIONS } from '../data/srq20Questions';
 
 export interface KeywordRule {
   term: string;
@@ -54,6 +55,88 @@ export const DICTIONARY_INDICATORS: KeywordRule[] = [
 ];
 
 /**
+ * Scan transcript and detect matched SRQ-20 question IDs via NLP keywords
+ */
+export function matchSRQ20Keywords(transcript: string): number[] {
+  if (!transcript.trim()) return [];
+  const normalized = transcript.toLowerCase();
+  const matchedIds: number[] = [];
+
+  for (const q of SRQ20_QUESTIONS) {
+    for (const kw of q.keywords) {
+      if (normalized.includes(kw.toLowerCase())) {
+        if (!matchedIds.includes(q.id)) {
+          matchedIds.push(q.id);
+        }
+        break;
+      }
+    }
+  }
+
+  return matchedIds;
+}
+
+/**
+ * Evaluator for SRQ-20 (Fase Lanjutan Hari 4-30) + Functional Impairments
+ * Thresholds according to RencanaBaru.md:
+ * - T0 (Emergency): Red Flag triggered OR Question 17 (Suicide ideation) is Yes
+ * - T1 (High Risk): SRQ-20 score >= 11 OR severe functional impairment
+ * - T2 (Moderate Risk): SRQ-20 score 6 - 10
+ * - T3 (Low Risk): SRQ-20 score 0 - 5
+ */
+export function evaluateSRQ20(
+  yesQuestionIds: number[] = [],
+  functionalIds: string[] = [],
+  isManualRedFlag: boolean = false
+): TriageAnalysisResult {
+  const score = yesQuestionIds.length;
+  const isQuestion17Yes = yesQuestionIds.includes(17);
+  const criticalTriggered = isManualRedFlag || isQuestion17Yes;
+
+  const indicators: string[] = [];
+
+  // Add question indicator labels
+  for (const qId of yesQuestionIds) {
+    const qObj = SRQ20_QUESTIONS.find((item) => item.id === qId);
+    if (qObj) {
+      indicators.push(`SRQ-${qObj.id}: ${qObj.text.replace('Apakah Anda ', '').replace('?', '')}`);
+    }
+  }
+
+  // Add functional impairment indicators
+  for (const fId of functionalIds) {
+    indicators.push(`Hendaya: ${fId.replace('func_', '')}`);
+  }
+
+  let tier: TriageTier = 'T3';
+  let zone: TriageZone = 'GREEN';
+
+  if (criticalTriggered) {
+    tier = 'T0';
+    zone = 'RED';
+  } else if (score >= 11 || functionalIds.length >= 3) {
+    tier = 'T1';
+    zone = 'RED';
+  } else if (score >= 6 || functionalIds.length >= 1) {
+    tier = 'T2';
+    zone = 'YELLOW';
+  } else {
+    tier = 'T3';
+    zone = 'GREEN';
+  }
+
+  return {
+    zone,
+    triageTier: tier,
+    score,
+    indicators,
+    criticalTriggered,
+    recommendedAction: getTierRecommendedAction(tier),
+    explanation: getTierExplanation(tier, score, criticalTriggered),
+  };
+}
+
+/**
  * Deterministic Verbal Transcript Triage Evaluator
  */
 export function analyzeTranscript(transcript: string): TriageAnalysisResult {
@@ -78,26 +161,32 @@ export function analyzeTranscript(transcript: string): TriageAnalysisResult {
 
   const indicators = Array.from(detectedLabels);
   let zone: TriageZone = 'GREEN';
+  let tier: TriageTier = 'T3';
   let score = yellowScore;
 
   if (hasCritical) {
     zone = 'RED';
+    tier = 'T0';
     score = Math.max(score, 4);
   } else if (score >= 4) {
     zone = 'RED';
+    tier = 'T1';
   } else if (score >= 2) {
     zone = 'YELLOW';
+    tier = 'T2';
   } else {
     zone = 'GREEN';
+    tier = 'T3';
   }
 
   return {
     zone,
+    triageTier: tier,
     score,
     indicators,
     criticalTriggered: hasCritical,
-    recommendedAction: getRecommendedAction(zone),
-    explanation: getZoneExplanation(zone, indicators.length, hasCritical),
+    recommendedAction: getTierRecommendedAction(tier),
+    explanation: getTierExplanation(tier, score, hasCritical),
   };
 }
 
@@ -113,15 +202,12 @@ export function analyzeChecklist(selectedItemIds: string[]): TriageAnalysisResul
   ];
 
   const itemLabelMap: Record<string, string> = {
-    // Emotional
     emo_crying: 'Persistent crying (Menangis terus-menerus)',
     emo_anxiety: 'Severe anxiety/panic (Kecemasan/panik parah)',
     emo_agitation: 'Extreme agitation (Kegelisahan ekstrem)',
-    // Cognitive
     cog_confusion: 'Confusion/disorientation (Disorientasi/kebingungan)',
     cog_unresponsive: 'Unresponsive (Tidak merespons kontak verbal)',
     cog_loss_control: 'Loss of behavioral control (Kehilangan kendali perilaku)',
-    // Safety
     safe_harm_self: 'Risk of harm to self (Risiko membahayakan diri)',
     safe_harm_others: 'Risk of harm to others (Risiko membahayakan orang lain)',
   };
@@ -142,30 +228,36 @@ export function analyzeChecklist(selectedItemIds: string[]): TriageAnalysisResul
   }
 
   let zone: TriageZone = 'GREEN';
+  let tier: TriageTier = 'T3';
+
   if (hasCritical) {
     zone = 'RED';
+    tier = 'T0';
     score = Math.max(score, 4);
   } else if (score >= 4) {
     zone = 'RED';
+    tier = 'T1';
   } else if (score >= 2) {
     zone = 'YELLOW';
+    tier = 'T2';
   } else {
     zone = 'GREEN';
+    tier = 'T3';
   }
 
   return {
     zone,
+    triageTier: tier,
     score,
     indicators: detectedLabels,
     criticalTriggered: hasCritical,
-    recommendedAction: getRecommendedAction(zone),
-    explanation: getZoneExplanation(zone, detectedLabels.length, hasCritical),
+    recommendedAction: getTierRecommendedAction(tier),
+    explanation: getTierExplanation(tier, score, hasCritical),
   };
 }
 
 /**
  * Combined STT + Checklist Triage Evaluator
- * Evaluates spoken voice transcript from STT along with any observed checklist indicators.
  */
 export function analyzeCombined(
   transcript: string,
@@ -177,18 +269,18 @@ export function analyzeCombined(
   if (!verbalRes && !checklistRes) {
     return {
       zone: 'GREEN',
+      triageTier: 'T3',
       score: 0,
       indicators: [],
       criticalTriggered: false,
-      recommendedAction: getRecommendedAction('GREEN'),
-      explanation: getZoneExplanation('GREEN', 0, false),
+      recommendedAction: getTierRecommendedAction('T3'),
+      explanation: getTierExplanation('T3', 0, false),
     };
   }
 
   if (verbalRes && !checklistRes) return verbalRes;
   if (!verbalRes && checklistRes) return checklistRes;
 
-  // Merge unique indicators
   const mergedIndicatorsSet = new Set<string>([
     ...(verbalRes?.indicators || []),
     ...(checklistRes?.indicators || []),
@@ -196,50 +288,56 @@ export function analyzeCombined(
   const indicators = Array.from(mergedIndicatorsSet);
   const criticalTriggered = !!(verbalRes?.criticalTriggered || checklistRes?.criticalTriggered);
 
-  // Highest severity zone wins: RED > YELLOW > GREEN
   let zone: TriageZone = 'GREEN';
-  if (criticalTriggered || verbalRes?.zone === 'RED' || checklistRes?.zone === 'RED') {
+  let tier: TriageTier = 'T3';
+
+  if (criticalTriggered || verbalRes?.triageTier === 'T0' || checklistRes?.triageTier === 'T0') {
     zone = 'RED';
-  } else if (verbalRes?.zone === 'YELLOW' || checklistRes?.zone === 'YELLOW') {
+    tier = 'T0';
+  } else if (verbalRes?.triageTier === 'T1' || checklistRes?.triageTier === 'T1') {
+    zone = 'RED';
+    tier = 'T1';
+  } else if (verbalRes?.triageTier === 'T2' || checklistRes?.triageTier === 'T2') {
     zone = 'YELLOW';
+    tier = 'T2';
   }
 
   const score = Math.max(verbalRes?.score || 0, checklistRes?.score || 0);
 
   return {
     zone,
+    triageTier: tier,
     score,
     indicators,
     criticalTriggered,
-    recommendedAction: getRecommendedAction(zone),
-    explanation: getZoneExplanation(zone, indicators.length, criticalTriggered),
+    recommendedAction: getTierRecommendedAction(tier),
+    explanation: getTierExplanation(tier, score, criticalTriggered),
   };
 }
 
-
-export function getRecommendedAction(zone: TriageZone): string {
-  switch (zone) {
-    case 'RED':
-      return 'CRITICAL PROTOCOL: Immediate intervention under Psychological First Aid (PFA) and medical referral. Ensure physical safety, isolate from acute stressors, assign an escort, and alert Posko coordinator immediately.';
-    case 'YELLOW':
-      return 'PRIORITY FOLLOW-UP: Re-evaluate within 2-4 hours. Offer basic psychological grounding, hydration, verify shelter support, and connect with family members if accessible.';
-    case 'GREEN':
+export function getTierRecommendedAction(tier: TriageTier): string {
+  switch (tier) {
+    case 'T0':
+      return 'T0 EMERGENCY (RED FLAG): Peringatan dini instan terkirim ke PSC 119 dan RS Rujukan. Lakukan isolasi dari stresor akut, dampingi penyintas 100% tanpa jeda, koordinasikan penjemputan ambulans via tele-emergency.';
+    case 'T1':
+      return 'T1 HIGH RISK (SKOR SRQ-20 ≥ 11): Rujukan ke Psikolog Klinis atau Dokter Spesialis Kesehatan Jiwa (Sp.KJ). Dampingi dengan Psychological First Aid terstruktur dan jadwalkan evaluasi 24 jam.';
+    case 'T2':
+      return 'T2 MODERATE RISK (SKOR SRQ-20 6–10): Pendampingan PFA berlanjut oleh Resilience Coach / Relawan terlatih. Berikan teknik grounding pernapasan, pastikan kebutuhan dasar terpenuhi, re-evaluasi 3-7 hari.';
+    case 'T3':
     default:
-      return 'STANDARD MONITORING: Provide basic comfort and humanitarian supplies. Direct to general community center and inform volunteer station if acute symptoms emerge.';
+      return 'T3 LOW RISK (SKOR SRQ-20 0–5): Kondisi psikologis stabil dalam batas reaksi stres wajar pascabencana. Berikan edukasi kesehatan jiwa, libatkan dalam kegiatan gotong royong posko dan komunitas.';
   }
 }
 
-export function getZoneExplanation(zone: TriageZone, indicatorCount: number, hasCritical: boolean): string {
-  if (hasCritical) {
-    return 'Critical safety or acute unresponsiveness flag detected. Automatic override to RED protocol irrespective of cumulative score.';
+export function getTierExplanation(tier: TriageTier, score: number, hasCritical: boolean): string {
+  if (tier === 'T0' || hasCritical) {
+    return 'Terdeteksi tanda bahaya darurat (ideasi bunuh diri, psikosis akut, atau mutisme syok ekstrem). Otomatis dialihkan ke protokol rujukan darurat T0.';
   }
-  if (zone === 'RED') {
-    return `Severe psychological distress detected across multiple risk dimensions (${indicatorCount} active indicators).`;
+  if (tier === 'T1') {
+    return `Tingkat distres psikologis tinggi (${score} indikator SRQ-20 teridentifikasi). Menunjukkan risiko depresi akut atau gangguan stres pascatrauma (PTSD).`;
   }
-  if (zone === 'YELLOW') {
-    return `Moderate psychological distress indicators observed (${indicatorCount} indicators). Requires structured follow-up.`;
+  if (tier === 'T2') {
+    return `Tingkat distres psikologis sedang (${score} indikator SRQ-20 teridentifikasi). Membutuhkan intervensi pendampingan emosional terarah.`;
   }
-  return indicatorCount === 0
-    ? 'Baseline emotional state within standard acute stress response range.'
-    : `Mild stress indicators observed (${indicatorCount} indicator). Routine humanitarian support adequate.`;
+  return `Tingkat distres psikologis ringan/stabil (${score} indikator). Penyintas menunjukkan resiliensi yang baik dalam fase adaptasi bencana.`;
 }

@@ -12,12 +12,17 @@ import {
   Clock,
   AlertTriangle,
   X,
-  FileText,
-  UserCheck,
+  PhoneCall,
+  Video,
+  Radio,
+  MapPin,
+  ArrowDownRight,
+  ShieldAlert,
+  Activity,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAssessment } from '../context/AssessmentContext';
-import { AssessmentRecord, TriageZone } from '../types/assessment';
+import { AssessmentRecord, TriageZone, TriageTier, T0EmergencyStatus } from '../types/assessment';
 
 interface HospitalPageProps {
   onGoToVolunteer?: () => void;
@@ -31,133 +36,187 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
   const { currentUser, logout } = useAuth();
   const { centralAssessments } = useAssessment();
 
-  // Local state for referral statuses
+  // Local state for two-tiered triage validations and transport tracking
   const [patientStatuses, setPatientStatuses] = useState<
-    Record<string, { status: 'pending' | 'in_transit' | 'admitted' | 'discharged'; bed?: string; doctor?: string }>
+    Record<
+      string,
+      {
+        t0Status: T0EmergencyStatus;
+        transportStage?: 'dispatch' | 'on_site' | 'en_route_hospital' | 'admitted';
+        bed?: string;
+        doctor?: string;
+        teleNotes?: string;
+      }
+    >
   >({});
 
   const [search, setSearch] = useState('');
-  const [filterZone, setFilterZone] = useState<'ALL' | 'RED' | 'YELLOW'>('ALL');
+  const [filterTier, setFilterTier] = useState<'ALL' | 'T0' | 'T1' | 'T2'>('ALL');
   const [selectedRecord, setSelectedRecord] = useState<AssessmentRecord | null>(null);
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [modalDoctor, setModalDoctor] = useState('dr. Budi Santoso, Sp.KJ');
-  const [modalBed, setModalBed] = useState('Bed Jiwa 04 (Ruang Flamboyan)');
+
+  // Tele-Emergency verification modal
+  const [isTeleModalOpen, setIsTeleModalOpen] = useState(false);
+  const [teleCallActive, setTeleCallActive] = useState(false);
+  const [teleNotesInput, setTeleNotesInput] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
-  // Relevant patients for hospital: primarily RED (critical medical referral) and YELLOW (priority follow-up)
-  const hospitalCandidates = centralAssessments.filter(
-    (r) => r.zone === 'RED' || r.zone === 'YELLOW'
+  // Candidates for Faskes/Hospital: T0 (Red Flag Emergency), T1 (High Risk), T2 (Moderate)
+  const faskesCandidates = centralAssessments.filter(
+    (r) => r.triageTier === 'T0' || r.zone === 'RED' || r.triageTier === 'T1' || r.triageTier === 'T2'
   );
 
-  const filtered = hospitalCandidates.filter((r) => {
+  const getRecordTier = (r: AssessmentRecord): TriageTier => {
+    if (r.triageTier) return r.triageTier;
+    if (r.zone === 'RED') return 'T1';
+    if (r.zone === 'YELLOW') return 'T2';
+    return 'T3';
+  };
+
+  const getRecordT0Status = (r: AssessmentRecord): T0EmergencyStatus => {
+    return patientStatuses[r.id]?.t0Status || r.t0Status || (r.zone === 'RED' && r.criticalTriggered ? 'T0-Suspect' : 'T0-Confirmed');
+  };
+
+  const filtered = faskesCandidates.filter((r) => {
+    const tier = getRecordTier(r);
     const matchesSearch =
       r.id.toLowerCase().includes(search.toLowerCase()) ||
       r.location.toLowerCase().includes(search.toLowerCase()) ||
-      (r.transcript && r.transcript.toLowerCase().includes(search.toLowerCase())) ||
-      (r.volunteerNotes && r.volunteerNotes.toLowerCase().includes(search.toLowerCase()));
+      (r.victimName && r.victimName.toLowerCase().includes(search.toLowerCase())) ||
+      (r.transcript && r.transcript.toLowerCase().includes(search.toLowerCase()));
 
-    const matchesZone = filterZone === 'ALL' || r.zone === filterZone;
-    return matchesSearch && matchesZone;
+    const matchesTier = filterTier === 'ALL' || tier === filterTier;
+    return matchesSearch && matchesTier;
   });
 
-  const redCount = centralAssessments.filter((r) => r.zone === 'RED').length;
-  const yellowCount = centralAssessments.filter((r) => r.zone === 'YELLOW').length;
+  const t0PendingList = centralAssessments.filter(
+    (r) => (getRecordTier(r) === 'T0' || (r.zone === 'RED' && r.criticalTriggered)) && getRecordT0Status(r) === 'T0-Suspect'
+  );
 
-  const getStatus = (id: string) => {
-    return patientStatuses[id]?.status || 'pending';
+  const handleOpenTeleEmergency = (record: AssessmentRecord) => {
+    setSelectedRecord(record);
+    setTeleCallActive(false);
+    setTeleNotesInput('');
+    setIsTeleModalOpen(true);
   };
 
-  const handleUpdateStatus = (
-    id: string,
-    newStatus: 'pending' | 'in_transit' | 'admitted' | 'discharged',
-    bed?: string,
-    doctor?: string
-  ) => {
+  const handleConfirmRujukan = (recordId: string) => {
     setPatientStatuses((prev) => ({
       ...prev,
-      [id]: {
-        status: newStatus,
-        bed: bed || prev[id]?.bed,
-        doctor: doctor || prev[id]?.doctor,
+      [recordId]: {
+        t0Status: 'T0-Confirmed',
+        transportStage: 'dispatch',
+        doctor: currentUser?.name || 'dr. Budi Santoso, Sp.KJ',
+        bed: 'IGD Psikiatri Bed 02',
+        teleNotes: teleNotesInput || 'Terverifikasi via Tele-Emergency: Pasien dalam kondisi distres akut valid.',
       },
     }));
-    setActionSuccessMessage(`✓ Status pasien ${id} berhasil diperbarui menjadi "${newStatus === 'admitted' ? 'Diterima di IGD / Rawat Inap Jiwa' : newStatus === 'in_transit' ? 'Dalam Ambulans Penjemputan' : 'Menunggu Rujukan'}"`);
-    setIsActionModalOpen(false);
-    setTimeout(() => setActionSuccessMessage(null), 5000);
+
+    setActionSuccessMessage(
+      `✓ [T0-CONFIRMED]: Rujukan darurat pasien ${recordId} terkonfirmasi! Perintah ambulans/PSC 119 menuju lokasi telah diterbitkan.`
+    );
+    setIsTeleModalOpen(false);
+    setTimeout(() => setActionSuccessMessage(null), 6000);
   };
 
-  const renderZoneBadge = (zone: TriageZone) => {
-    if (zone === 'RED') {
+  const handleDowngradeStatus = (recordId: string, targetTier: 'T1' | 'T2') => {
+    setPatientStatuses((prev) => ({
+      ...prev,
+      [recordId]: {
+        t0Status: 'Downgraded',
+        teleNotes: teleNotesInput || `Diturunkan status ke ${targetTier} pasca verifikasi klinis relawan.`,
+      },
+    }));
+
+    setActionSuccessMessage(
+      `✓ Status pasien ${recordId} berhasil diturunkan ke ${targetTier} (bukan kegawatdaruratan darurat nyawa). Tim pendampingan posko ditugaskan.`
+    );
+    setIsTeleModalOpen(false);
+    setTimeout(() => setActionSuccessMessage(null), 6000);
+  };
+
+  const handleAdvanceTransportStage = (recordId: string) => {
+    const current = patientStatuses[recordId]?.transportStage || 'dispatch';
+    const nextMap: Record<string, 'on_site' | 'en_route_hospital' | 'admitted'> = {
+      dispatch: 'on_site',
+      on_site: 'en_route_hospital',
+      en_route_hospital: 'admitted',
+    };
+    const nextStage = nextMap[current] || 'admitted';
+
+    setPatientStatuses((prev) => ({
+      ...prev,
+      [recordId]: {
+        ...prev[recordId],
+        t0Status: 'T0-Confirmed',
+        transportStage: nextStage,
+      },
+    }));
+  };
+
+  const renderTierBadge = (tier: TriageTier, t0Status?: T0EmergencyStatus) => {
+    if (tier === 'T0' || t0Status === 'T0-Suspect') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
-          RED ZONE · Kritis
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-600 text-white animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-white"></span>
+          T0-SUSPECT · RED FLAG
+        </span>
+      );
+    }
+    if (t0Status === 'T0-Confirmed') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
+          <CheckCircle className="w-3 h-3 text-emerald-600" />
+          T0-CONFIRMED RUJUKAN
+        </span>
+      );
+    }
+    if (tier === 'T1') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+          T1 · High Risk
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-        YELLOW · Prioritas
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+        T2 · Moderate
       </span>
     );
   };
 
-  const renderStatusBadge = (id: string) => {
-    const s = getStatus(id);
-    switch (s) {
-      case 'admitted':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <CheckCircle className="w-3 h-3 text-emerald-600" />
-            Diterima di RS
-          </span>
-        );
-      case 'in_transit':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
-            <Ambulance className="w-3 h-3 text-blue-600 animate-pulse" />
-            Dalam Ambulans
-          </span>
-        );
-      case 'pending':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
-            <Clock className="w-3 h-3 text-amber-600" />
-            Menunggu Rujukan
-          </span>
-        );
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#F6F8FB] text-slate-900 flex flex-col font-sans">
-      {/* Hospital Top Navigation Header */}
+      {/* 1. TOP BAR DASHBOARD ROLE 2 */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
-          {/* Brand & Hospital Unit */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-xs">
-              <Building2 className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center font-black shadow-xs">
+              <Ambulance className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-slate-900 tracking-tight">
                   RAPID-MIND
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Portal Rumah Sakit
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
+                  Role 2: Faskes & PSC 119 Tele-Emergency
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium">
-                {currentUser?.assignedHospital || 'RSUD Dr. Soetomo — Pusat Rujukan Jiwa Bencana'}
+                {currentUser?.assignedHospital || 'RSUD Dr. Soetomo — Public Safety Center (PSC 119)'}
               </p>
             </div>
           </div>
 
-          {/* Action Links & Profile */}
           <div className="flex items-center gap-2">
+            {t0PendingList.length > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white font-black text-xs animate-bounce shadow-md">
+                <Radio className="w-3.5 h-3.5 animate-spin" />
+                <span>{t0PendingList.length} T0-SUSPECT PENDING!</span>
+              </div>
+            )}
+
             {onGoToVolunteer && (
               <button
                 type="button"
@@ -165,7 +224,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
               >
                 <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-                <span className="hidden sm:inline">Volunteer App</span>
+                <span className="hidden sm:inline">PWA Relawan</span>
               </button>
             )}
 
@@ -176,26 +235,17 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
               >
                 <Shield className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="hidden sm:inline">Command Center</span>
+                <span className="hidden sm:inline">Dashboard BPBD</span>
               </button>
             )}
 
-            {/* Doctor Profile & Sign Out */}
             {currentUser && (
               <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                <div className="text-right hidden md:block">
-                  <div className="text-xs font-bold text-slate-800 leading-tight">
-                    {currentUser.name}
-                  </div>
-                  <div className="text-[10px] text-emerald-700 font-medium">
-                    {currentUser.badgeNumber} · Petugas RS
-                  </div>
-                </div>
                 <button
                   type="button"
                   onClick={logout}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
-                  title="Keluar (Sign Out)"
+                  title="Keluar"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -205,11 +255,10 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
         </div>
       </header>
 
-      {/* Main Hospital Portal Body */}
+      {/* Main Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
-        {/* Success Banner */}
         {actionSuccessMessage && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-semibold flex items-center justify-between shadow-2xs">
+          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-950 font-semibold flex items-center justify-between shadow-2xs">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{actionSuccessMessage}</span>
@@ -224,329 +273,345 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
           </div>
         )}
 
-        {/* 1. Hospital Capacity & Status KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-1">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider">Pasien Rujukan Merah</span>
-              <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4" />
+        {/* 2. THREE-PANEL CLINICAL LAYOUT ACCORDING TO RENCANABARU.MD */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          {/* PANEL KIRI (5 Cols): Emergency Queue & Panggilan Darurat T0-Suspect */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-4 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></div>
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Emergency Call Queue (T0-Suspect)
+                  </h3>
+                </div>
+                <span className="text-[11px] font-mono font-bold text-red-600">
+                  {t0PendingList.length} Panggilan Aktif
+                </span>
               </div>
-            </div>
-            <div className="text-2xl font-black font-mono text-red-600">{redCount}</div>
-            <p className="text-[11px] text-slate-500">Butuh intervensi psikiatri darurat</p>
-          </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-1">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider">Kapasitas Bed Jiwa</span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <Bed className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black font-mono text-emerald-800">
-              8 <span className="text-xs font-normal text-slate-400">/ 15 Tersedia</span>
-            </div>
-            <p className="text-[11px] text-emerald-700">Bangsal Flamboyan & Teratai siap</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-1">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider">Tim Medis Psikiatri</span>
-              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                <Users className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black font-mono text-slate-900">4</div>
-            <p className="text-[11px] text-slate-500">Dokter Spesialis Jiwa siaga IGD</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-1">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider">Ambulans Rujukan</span>
-              <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <Ambulance className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black font-mono text-indigo-900">2 Unit</div>
-            <p className="text-[11px] text-slate-500">Siap mobilisasi ke posko evakuasi</p>
-          </div>
-        </div>
-
-        {/* 2. Referral Patient Queue Section */}
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-2xs p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                Daftar Korban Rujukan Masuk Dari Posko Lapangan
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Daftar korban hasil skrining triase psikologis yang direkomendasikan rujukan medis ke rumah sakit.
-              </p>
-            </div>
-
-            <div className="text-xs text-slate-500">
-              Menampilkan <strong className="text-slate-900 font-mono">{filtered.length}</strong> pasien
-            </div>
-          </div>
-
-          {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row gap-2.5">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari ID korban, posko pengirim, gejala, transkrip..."
-                className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-emerald-600 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-900 outline-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
-              <button
-                type="button"
-                onClick={() => setFilterZone('ALL')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-                  filterZone === 'ALL'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Semua ({hospitalCandidates.length})
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFilterZone('RED')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
-                  filterZone === 'RED'
-                    ? 'bg-white text-red-700 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <span>🔴</span>
-                <span>Kritis ({redCount})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFilterZone('YELLOW')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
-                  filterZone === 'YELLOW'
-                    ? 'bg-white text-amber-800 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <span>🟡</span>
-                <span>Prioritas ({yellowCount})</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200 text-[11px]">
-                <tr>
-                  <th className="py-3 px-3.5">ID Korban</th>
-                  <th className="py-3 px-3.5">Asal Posko & Waktu</th>
-                  <th className="py-3 px-3.5">Zona Triase</th>
-                  <th className="py-3 px-3.5">Indikator Gejala / STT</th>
-                  <th className="py-3 px-3.5">Status RS</th>
-                  <th className="py-3 px-3.5 text-right">Tindakan Medis</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.length > 0 ? (
-                  filtered.slice(0, 15).map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/70 transition">
-                      <td className="py-3 px-3.5 font-mono font-bold text-slate-900">
-                        {row.id}
-                      </td>
-                      <td className="py-3 px-3.5">
-                        <div className="font-semibold text-slate-800">{row.location}</div>
-                        <div className="text-[11px] text-slate-400 font-mono">{row.timestamp}</div>
-                      </td>
-                      <td className="py-3 px-3.5">{renderZoneBadge(row.zone)}</td>
-                      <td className="py-3 px-3.5 max-w-xs">
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {row.indicators.slice(0, 2).map((ind, i) => (
-                            <span
-                              key={i}
-                              className="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] text-slate-700 font-medium truncate"
-                            >
-                              {ind}
+              {/* Pulsing Red Emergency Cards */}
+              <div className="space-y-2.5">
+                {t0PendingList.length > 0 ? (
+                  t0PendingList.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-3.5 rounded-2xl border-2 border-red-500 bg-red-50/70 shadow-sm space-y-2.5 animate-pulse"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-bold text-red-950 text-xs">
+                              {item.id}
                             </span>
-                          ))}
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-red-600 text-white font-extrabold uppercase">
+                              T0-SUSPECT
+                            </span>
+                          </div>
+                          <span className="text-xs font-bold text-slate-900 block mt-0.5">
+                            {item.victimName || 'Penyintas Darurat'}
+                          </span>
                         </div>
-                        {row.transcript && (
-                          <p className="text-[11px] text-slate-500 italic truncate max-w-xs">
-                            "{row.transcript}"
-                          </p>
-                        )}
-                      </td>
-                      <td className="py-3 px-3.5">{renderStatusBadge(row.id)}</td>
-                      <td className="py-3 px-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedRecord(row);
-                              setIsActionModalOpen(true);
-                            }}
-                            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold transition flex items-center gap-1"
-                          >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            <span>Proses</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+
+                        <span className="text-[11px] font-mono text-slate-500 font-semibold">
+                          {item.timestamp}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] text-red-900 flex items-center gap-1 font-semibold">
+                        <MapPin className="w-3 h-3 text-red-600 shrink-0" />
+                        <span>Lokasi Terkunci: <strong>{item.location}</strong></span>
+                      </div>
+
+                      <div className="text-[11px] text-slate-700 bg-white p-2 rounded-xl border border-red-200 space-y-0.5">
+                        <strong className="text-red-900 block text-[10px] uppercase">
+                          Gejala Red Flag Terdeteksi:
+                        </strong>
+                        <p className="truncate italic">
+                          {item.indicators.join(', ') || item.transcript || 'Bahaya kegawatdaruratan nyawa.'}
+                        </p>
+                      </div>
+
+                      {/* Quick Action Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenTeleEmergency(item)}
+                        className="w-full h-10 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition"
+                      >
+                        <PhoneCall className="w-3.5 h-3.5 animate-bounce" />
+                        <span>Buka Tele-Emergency & Validasi Sekunder</span>
+                      </button>
+                    </div>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400">
-                      Tidak ada pasien yang sesuai kriteria pencarian.
-                    </td>
-                  </tr>
+                  <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                    ✓ Tidak ada panggilan darurat T0-Suspect aktif saat ini.
+                  </div>
                 )}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            {/* Capacity & Resource Cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xs space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Kapasitas Bed IGD Jiwa
+                </span>
+                <span className="text-xl font-bold font-mono text-emerald-800">8 / 15 Bed</span>
+                <span className="text-[10px] text-emerald-700 block">Tersedia Siap Rawat</span>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xs space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Ambulans PSC Siaga
+                </span>
+                <span className="text-xl font-bold font-mono text-blue-800">2 Unit</span>
+                <span className="text-[10px] text-blue-700 block">Tim Reaksi Cepat</span>
+              </div>
+            </div>
+          </div>
+
+          {/* PANEL KANAN (7 Cols): Daftar Seluruh Pasien Rujukan & Transport Tracking */}
+          <div className="lg:col-span-7 space-y-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Daftar Rujukan Pasien Klinis (T0, T1, T2)
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Pemantauan alur rujukan medis terstruktur dari posko lapangan.
+                  </p>
+                </div>
+
+                {/* Filter Buttons */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setFilterTier('ALL')}
+                    className={`px-2.5 py-1 rounded-lg transition ${
+                      filterTier === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+                    }`}
+                  >
+                    Semua
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterTier('T0')}
+                    className={`px-2 py-1 rounded-lg transition ${
+                      filterTier === 'T0' ? 'bg-white text-red-700 shadow-2xs' : 'text-slate-500'
+                    }`}
+                  >
+                    T0
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterTier('T1')}
+                    className={`px-2 py-1 rounded-lg transition ${
+                      filterTier === 'T1' ? 'bg-white text-red-700 shadow-2xs' : 'text-slate-500'
+                    }`}
+                  >
+                    T1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterTier('T2')}
+                    className={`px-2 py-1 rounded-lg transition ${
+                      filterTier === 'T2' ? 'bg-white text-amber-800 shadow-2xs' : 'text-slate-500'
+                    }`}
+                  >
+                    T2
+                  </button>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200 text-[10px]">
+                    <tr>
+                      <th className="py-3 px-3.5">ID / Nama</th>
+                      <th className="py-3 px-3.5">Posko</th>
+                      <th className="py-3 px-3.5">Klasifikasi</th>
+                      <th className="py-3 px-3.5">Status Rujukan</th>
+                      <th className="py-3 px-3.5 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filtered.slice(0, 10).map((r) => {
+                      const tier = getRecordTier(r);
+                      const t0Stat = getRecordT0Status(r);
+                      const transport = patientStatuses[r.id]?.transportStage;
+
+                      return (
+                        <tr key={r.id} className="hover:bg-slate-50/70 transition">
+                          <td className="py-3 px-3.5">
+                            <span className="font-mono font-bold text-slate-900 block">{r.id}</span>
+                            <span className="text-[11px] text-slate-600">{r.victimName || '-'}</span>
+                          </td>
+                          <td className="py-3 px-3.5 font-medium">{r.location}</td>
+                          <td className="py-3 px-3.5">{renderTierBadge(tier, t0Stat)}</td>
+                          <td className="py-3 px-3.5">
+                            {transport ? (
+                              <button
+                                type="button"
+                                onClick={() => handleAdvanceTransportStage(r.id)}
+                                className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-[10px] hover:bg-blue-100"
+                                title="Klik untuk memajukan status armada"
+                              >
+                                {transport === 'dispatch' && '🚑 Menuju Posko'}
+                                {transport === 'on_site' && '📍 Tiba di Posko'}
+                                {transport === 'en_route_hospital' && '🏥 Menuju RS'}
+                                {transport === 'admitted' && '✓ Rawat Inap IGD'}
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 text-[11px]">-</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3.5 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenTeleEmergency(r)}
+                              className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[11px] transition"
+                            >
+                              Validasi
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </main>
 
-      {/* MODAL: Intake Pasien Rumah Sakit & Alokasi Bed */}
-      {isActionModalOpen && selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      {/* MODAL: TELE-EMERGENCY VERIFICATION & TWO-TIERED ACTION (RencanaBaru.md) */}
+      {isTeleModalOpen && selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
-                  <Building2 className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center">
+                  <PhoneCall className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Penerimaan Pasien Rujukan RS
+                  <h3 className="text-sm font-bold">
+                    Workspace Tele-Emergency (Two-Tiered Triage)
                   </h3>
-                  <span className="text-[11px] text-slate-500 font-mono">
-                    {selectedRecord.id} · {selectedRecord.location}
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {selectedRecord.id} · {selectedRecord.victimName || 'Penyintas'} · {selectedRecord.location}
                   </span>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsActionModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+                onClick={() => setIsTeleModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-5 space-y-4 overflow-y-auto text-xs">
-              {/* Patient Quick Context */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 overflow-y-auto text-xs text-slate-700">
+              {/* Tele-Emergency Call Simulator Widget */}
+              <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800">
-                    Hasil Triase Lapangan
+                  <div className="flex items-center gap-2">
+                    <Video className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold text-xs">Simulasi Panggilan Cepat Relawan HP Lapangan</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-800">
+                    {teleCallActive ? '● TERSAMBUNG (01:14)' : 'SIAP TERHUBUNG'}
                   </span>
-                  {renderZoneBadge(selectedRecord.zone)}
                 </div>
-                <div className="text-[11px] text-slate-600">
-                  <strong>Indikator:</strong> {selectedRecord.indicators.join(', ') || 'N/A'}
+
+                {!teleCallActive ? (
+                  <button
+                    type="button"
+                    onClick={() => setTeleCallActive(true)}
+                    className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-xs flex items-center justify-center gap-2 transition"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5" />
+                    <span>Mulai Panggilan Audio/Visual ke Relawan di {selectedRecord.location}</span>
+                  </button>
+                ) : (
+                  <div className="p-3 bg-slate-800 rounded-xl space-y-2 border border-slate-700">
+                    <p className="text-[11px] text-slate-300 italic">
+                      "Halo Dokter, di Posko A korban sedang kami amankan. Korban tampak menatap kosong dan sempat histeris saat ada suara gemuruh susulan."
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setTeleCallActive(false)}
+                      className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-[10px]"
+                    >
+                      Akhiri Panggilan
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Rekam Medis Singkat */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <strong className="text-slate-800">Indikator Gejala Posko:</strong>
+                  {renderTierBadge(getRecordTier(selectedRecord))}
                 </div>
+                <p className="text-slate-600">
+                  {selectedRecord.indicators.join(', ') || 'N/A'}
+                </p>
                 {selectedRecord.transcript && (
-                  <div className="text-[11px] text-slate-600 bg-white p-2 rounded-lg border border-slate-200 italic">
+                  <div className="p-2 bg-white rounded-lg border border-slate-200 italic text-[11px]">
                     "{selectedRecord.transcript}"
                   </div>
                 )}
-                <div className="text-[11px] text-slate-500">
-                  <strong>Protokol Rekomendasi:</strong> {selectedRecord.recommendedAction}
-                </div>
               </div>
 
-              {/* Status Selector */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 block">
-                  Perbarui Status Pasien di Rumah Sakit
+              {/* Catatan Validasi Nakes */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800 block">
+                  Catatan Validasi Dokter / Nakes Tele-Emergency:
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateStatus(selectedRecord.id, 'in_transit')}
-                    className="py-2 px-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-900 font-bold flex flex-col items-center gap-1 transition"
-                  >
-                    <Ambulance className="w-4 h-4 text-blue-600" />
-                    <span>Jemput Ambulans</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateStatus(selectedRecord.id, 'admitted', modalBed, modalDoctor)}
-                    className="py-2 px-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-bold flex flex-col items-center gap-1 transition"
-                  >
-                    <CheckCircle className="w-4 h-4 text-emerald-600" />
-                    <span>Terima di IGD Jiwa</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateStatus(selectedRecord.id, 'pending')}
-                    className="py-2 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold flex flex-col items-center gap-1 transition"
-                  >
-                    <Clock className="w-4 h-4 text-slate-500" />
-                    <span>Antrian Rujukan</span>
-                  </button>
-                </div>
+                <textarea
+                  value={teleNotesInput}
+                  onChange={(e) => setTeleNotesInput(e.target.value)}
+                  rows={2}
+                  placeholder="Kondisi pupil normal, agitasi mereda setelah diajak bicara. Disetujui rujukan rawat / atau diturunkan ke T1..."
+                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 rounded-xl p-2.5 text-xs text-slate-900 outline-none"
+                />
               </div>
 
-              {/* Doctor & Bed Assignment Form */}
-              <div className="space-y-3 pt-2 border-t border-slate-100">
-                <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 block">
-                    Dokter Penanggung Jawab Pasien (DPJP)
-                  </label>
-                  <input
-                    type="text"
-                    value={modalDoctor}
-                    onChange={(e) => setModalDoctor(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-emerald-600 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
-                  />
-                </div>
+              {/* Two-Tiered Execution Action Buttons */}
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block text-center">
+                  Keputusan Triase Sekunder (Two-Tiered Decision)
+                </span>
 
-                <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 block">
-                    Alokasi Ruang / Tempat Tidur RS
-                  </label>
-                  <select
-                    value={modalBed}
-                    onChange={(e) => setModalBed(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-emerald-600 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleConfirmRujukan(selectedRecord.id)}
+                    className="p-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-sm transition"
                   >
-                    <option value="Bed Jiwa 04 (Ruang Flamboyan)">Bed Jiwa 04 (Ruang Flamboyan)</option>
-                    <option value="Bed Jiwa 05 (Ruang Flamboyan)">Bed Jiwa 05 (Ruang Flamboyan)</option>
-                    <option value="Bed Isolasi Akut 01 (IGD Psikiatri)">Bed Isolasi Akut 01 (IGD Psikiatri)</option>
-                    <option value="Bangsal Trauma Bencana Teratai">Bangsal Trauma Bencana Teratai</option>
-                  </select>
-                </div>
-              </div>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Konfirmasi Rujukan (T0-Confirmed)</span>
+                    <span className="text-[9px] font-normal opacity-90">Kirim Perintah Ambulans</span>
+                  </button>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsActionModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50"
-                >
-                  Tutup
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleUpdateStatus(selectedRecord.id, 'admitted', modalBed, modalDoctor)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs transition"
-                >
-                  Konfirmasi Penerimaan Pasien
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDowngradeStatus(selectedRecord.id, 'T1')}
+                    className="p-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-sm transition"
+                  >
+                    <ArrowDownRight className="w-4 h-4" />
+                    <span>Downgrade ke T1 / T2</span>
+                    <span className="text-[9px] font-normal opacity-90">Bukan Bahaya Darurat Nyawa</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

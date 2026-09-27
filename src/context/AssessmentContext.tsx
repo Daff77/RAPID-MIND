@@ -115,11 +115,20 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     let green = 0;
     let yellow = 0;
     let red = 0;
+    let t0Count = 0;
+    let t1Count = 0;
+    let t2Count = 0;
+    let t3Count = 0;
 
     for (const r of centralAssessments) {
       if (r.zone === 'GREEN') green++;
       else if (r.zone === 'YELLOW') yellow++;
       else if (r.zone === 'RED') red++;
+
+      if (r.triageTier === 'T0' || (r.zone === 'RED' && r.criticalTriggered)) t0Count++;
+      else if (r.triageTier === 'T1' || (r.zone === 'RED' && !r.criticalTriggered)) t1Count++;
+      else if (r.triageTier === 'T2' || r.zone === 'YELLOW') t2Count++;
+      else t3Count++;
     }
 
     const greenPct = total > 0 ? Math.round((green / total) * 100) : 0;
@@ -131,12 +140,17 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       green,
       yellow,
       red,
+      t0Count,
+      t1Count,
+      t2Count,
+      t3Count,
       greenPct,
       yellowPct,
       redPct,
       pendingSync: offlineQueue.length,
     };
   }, [centralAssessments, offlineQueue]);
+
 
   const value = useMemo(
     () => ({

@@ -1,60 +1,108 @@
 import React, { useState } from 'react';
 import { VolunteerHeader } from '../components/volunteer/VolunteerHeader';
-import { VolunteerHome } from '../components/volunteer/VolunteerHome';
+import { AutoLookupHomeScreen } from '../components/volunteer/AutoLookupHomeScreen';
+import { PFAMenuSection } from '../components/volunteer/PFAMenuSection';
+import { SRQ20InterviewWizard } from '../components/volunteer/SRQ20InterviewWizard';
 import { NewAssessmentWizard } from '../components/volunteer/NewAssessmentWizard';
 import { VolunteerHistory } from '../components/volunteer/VolunteerHistory';
+import { FloatingRedFlagButton } from '../components/volunteer/FloatingRedFlagButton';
 import { DemoPresetsPanel } from '../components/volunteer/DemoPresetsPanel';
 import { DemoScenario } from '../data/demoScenarios';
-import { AssessmentMethod } from '../types/assessment';
+import { AssessmentMethod, SurvivorProfile } from '../types/assessment';
 
 interface VolunteerPageProps {
   onGoToDashboard: () => void;
 }
 
+type VolunteerActiveView = 'home' | 'pfa' | 'srq20' | 'new_triase' | 'history';
+
 export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard }) => {
-  const [currentTab, setCurrentTab] = useState<'home' | 'new' | 'history'>('home');
-  const [selectedInitialMethod, setSelectedInitialMethod] = useState<AssessmentMethod>('VERBAL');
+  const [activeView, setActiveView] = useState<VolunteerActiveView>('home');
+  const [selectedSurvivor, setSelectedSurvivor] = useState<SurvivorProfile | null>(null);
   const [isDemoDrawerOpen, setIsDemoDrawerOpen] = useState(false);
 
-  const handleStartNewAssessment = (method?: AssessmentMethod) => {
-    if (method) setSelectedInitialMethod(method);
-    setCurrentTab('new');
+  const handleSelectSurvivorFromLookup = (survivor: SurvivorProfile, targetFlow: 'pfa' | 'srq20') => {
+    setSelectedSurvivor(survivor);
+    if (targetFlow === 'pfa') {
+      setActiveView('pfa');
+    } else {
+      setActiveView('srq20');
+    }
   };
 
   const handleScenarioActivated = (_scenario: DemoScenario) => {
-    setCurrentTab('new');
+    setActiveView('new_triase');
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F8FB] text-slate-900 flex flex-col">
-      {/* Sticky Light Header */}
+    <div className="min-h-screen bg-[#F6F8FB] text-slate-900 flex flex-col font-sans relative">
+      {/* Sticky Volunteer Header */}
       <VolunteerHeader
-        currentTab={currentTab}
-        onSelectTab={(tab) => setCurrentTab(tab)}
+        currentTab={activeView === 'history' ? 'history' : activeView === 'new_triase' ? 'new' : 'home'}
+        onSelectTab={(tab) => {
+          if (tab === 'home') setActiveView('home');
+          else if (tab === 'new') setActiveView('new_triase');
+          else if (tab === 'history') setActiveView('history');
+        }}
         onGoToDashboard={onGoToDashboard}
         onOpenDemoDrawer={() => setIsDemoDrawerOpen(true)}
       />
 
       {/* Main Container */}
-      <main className="flex-1 px-3 sm:px-4 py-5 max-w-2xl mx-auto w-full pb-16">
-        {currentTab === 'home' && (
-          <VolunteerHome
-            onStartNewAssessment={handleStartNewAssessment}
-            onViewHistory={() => setCurrentTab('history')}
-            onGoToDashboard={onGoToDashboard}
+      <main className="flex-1 px-3 sm:px-4 py-5 max-w-2xl mx-auto w-full pb-24">
+        {/* SCREEN 2: HOMESCREEN & IDENTITAS PENYINTAS (AUTO-LOOKUP SYSTEM) */}
+        {activeView === 'home' && (
+          <AutoLookupHomeScreen
+            onSelectSurvivor={handleSelectSurvivorFromLookup}
+            onOpenHistory={() => setActiveView('history')}
           />
         )}
 
-        {currentTab === 'new' && (
+        {/* SCREEN 3: MENU PFA (FASE AKUT: HARI 1–3) */}
+        {activeView === 'pfa' && selectedSurvivor && (
+          <PFAMenuSection
+            survivor={selectedSurvivor}
+            onComplete={(updated) => {
+              setSelectedSurvivor(updated);
+              setActiveView('home');
+            }}
+            onBack={() => setActiveView('home')}
+          />
+        )}
+
+        {/* SCREEN 5, 6, 7: MENU WAWANCARA SRQ-20 (HARI 4–30) & FUNGSI HARIAN */}
+        {activeView === 'srq20' && selectedSurvivor && (
+          <SRQ20InterviewWizard
+            survivor={selectedSurvivor}
+            onComplete={() => {
+              // Stay on result screen or return home
+            }}
+            onBack={() => setActiveView('home')}
+          />
+        )}
+
+        {/* SCREEN METODE TRIASE LAPANGAN STT + CHECKLIST */}
+        {activeView === 'new_triase' && (
           <NewAssessmentWizard
-            initialMethod={selectedInitialMethod}
-            onAssessmentSaved={() => setCurrentTab('history')}
-            onCancel={() => setCurrentTab('home')}
+            initialMethod="VERBAL"
+            onAssessmentSaved={() => setActiveView('history')}
+            onCancel={() => setActiveView('home')}
           />
         )}
 
-        {currentTab === 'history' && <VolunteerHistory />}
+        {/* RIWAYAT & DATABASE REKAM MEDIS PENYINTAS */}
+        {activeView === 'history' && <VolunteerHistory />}
       </main>
+
+      {/* 🚨 ALWAYS-ON FLOATING SHORTCUT: RED FLAG EMERGENCY (Screen 2 s.d. Screen 7) */}
+      <FloatingRedFlagButton
+        currentVictimId={selectedSurvivor?.id || 'VCT-ACTIVE'}
+        currentVictimName={selectedSurvivor?.name || 'Penyintas Lapangan'}
+        currentLocation={selectedSurvivor?.posko || 'Posko A'}
+        onEmergencyTriggered={() => {
+          // Keep floating or notify
+        }}
+      />
 
       {/* Discreet Demo Presets Drawer */}
       <DemoPresetsPanel
