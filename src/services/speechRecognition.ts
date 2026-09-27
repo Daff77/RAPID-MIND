@@ -69,7 +69,7 @@ export function startLiveSpeechRecognition(
   recognition.lang = options.language || 'id-ID';
   recognition.maxAlternatives = 1;
 
-  let accumulatedFinal = '';
+  let previousFinal = '';
   let isManuallyStopped = false;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,7 +90,8 @@ export function startLiveSpeechRecognition(
     const currentCombined = [finalTranscript, interimTranscript].filter(Boolean).join(' ');
     options.onInterim?.(currentCombined);
 
-    if (finalTranscript) {
+    if (finalTranscript && finalTranscript !== previousFinal) {
+      previousFinal = finalTranscript;
       options.onFinal?.(finalTranscript);
     }
   };

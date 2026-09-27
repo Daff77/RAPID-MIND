@@ -67,6 +67,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
   const activeStreamRef = useRef<MediaStream | null>(null);
   const activeSessionRef = useRef<SpeechSession | null>(null);
   const capturedTextRef = useRef<string>('');
+  const baseTranscriptRef = useRef<string>('');
 
   const isBrowserSTTAvailable = isSpeechRecognitionSupported() && isMicrophoneSupported();
 
@@ -93,6 +94,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
     setLiveInterim('');
     capturedTextRef.current = '';
     setNewlyDetectedIds([]);
+    baseTranscriptRef.current = transcript.trim();
 
     if (!isBrowserSTTAvailable) {
       alert('Mikrofon Speech-to-Text tidak didukung di browser ini.');
@@ -107,7 +109,10 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
         language: 'id-ID',
         onInterim: (interim) => {
           setLiveInterim(interim);
-          const detected = matchSRQ20Keywords(interim);
+          const fullInterim = baseTranscriptRef.current
+            ? `${baseTranscriptRef.current} ${interim.trim()}`
+            : interim.trim();
+          const detected = matchSRQ20Keywords(fullInterim);
           if (detected.length > 0) {
             setNewlyDetectedIds(detected);
             // Auto-check detected questions (Human in the loop: volunteer can still uncheck)
@@ -122,8 +127,11 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
         },
         onFinal: (finalText) => {
           capturedTextRef.current = finalText;
-          setTranscript((prev) => (prev ? `${prev} ${finalText}` : finalText));
-          const detected = matchSRQ20Keywords(finalText);
+          const fullFinal = baseTranscriptRef.current
+            ? `${baseTranscriptRef.current} ${finalText.trim()}`
+            : finalText.trim();
+          setTranscript(fullFinal);
+          const detected = matchSRQ20Keywords(fullFinal);
           if (detected.length > 0) {
             setAnswers((prev) => {
               const updated = { ...prev };
@@ -145,6 +153,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
   const handleStopSTT = () => {
     cleanupAudioSession();
+    setLiveInterim('');
   };
 
   const handleAnswerToggle = (id: number, val: boolean) => {
@@ -400,9 +409,25 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               )}
 
               {transcript && (
-                <div className="p-2 bg-white/80 border border-blue-200 rounded-xl text-[11px] text-slate-700">
-                  <strong className="text-blue-900 block text-[10px] uppercase font-bold">Transkrip Suara:</strong>
-                  "{transcript}"
+                <div className="p-2.5 bg-white border border-blue-200 rounded-xl text-[11px] text-slate-700 flex items-start justify-between gap-3">
+                  <div className="space-y-0.5 flex-1">
+                    <strong className="text-blue-900 block text-[10px] uppercase font-bold">Transkrip Suara:</strong>
+                    <p className="leading-relaxed text-slate-800">"{transcript}"</p>
+                  </div>
+                  {!isRecording && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTranscript('');
+                        baseTranscriptRef.current = '';
+                        capturedTextRef.current = '';
+                      }}
+                      className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold shrink-0 transition"
+                      title="Hapus transkrip jika ingin mengulang dari awal"
+                    >
+                      Hapus Transkrip
+                    </button>
+                  )}
                 </div>
               )}
             </div>
