@@ -5,6 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646cff?style=for-the-badge&logo=vite)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![Standard](https://img.shields.io/badge/Standard-WHO_SRQ--20-0085ca?style=for-the-badge&logo=world-health-organization)](https://www.who.int/)
 
 ---
@@ -61,13 +62,14 @@ Bencana alam sering kali menyisakan luka psikologis mendalam bagi penyintas. Di 
 
 * **Frontend Framework**: React 19 + TypeScript + Vite
 * **Styling**: TailwindCSS v4 + Lucide React Icons
+* **Cloud Database**: Supabase (PostgreSQL) dengan Row Level Security (RLS)
+* **Offline-First Resilience**: LocalStorage / IndexedDB dengan background synchronization saat online
 * **Geospatial Mapping**: Leaflet & React-Leaflet (CartoDB Positron & OpenStreetMap)
 * **Speech Recognition**: Web Speech API (dengan deteksi kata kunci NLP lokal dan simulasi audio)
-* **Local Storage & Session Engine**: IndexedDB & LocalStorage (Offline-First Ready)
 
 ---
 
-## 💻 Panduan Instalasi & Menjalankan Lokal
+## 💻 Panduan Instalasi & Menjalankan Aplikasi
 
 Pastikan Anda telah menginstal [Node.js](https://nodejs.org/) (versi 18 atau lebih baru).
 
@@ -78,15 +80,47 @@ cd RAPID-MIND
 
 # 2. Install dependensi
 npm install
-
-# 3. Jalankan server pengembangan lokal
-npm run dev
-
-# 4. Bangun berkas bundle produksi
-npm run build
 ```
 
-Aplikasi dapat dibuka melalui browser di: `http://localhost:5173` (atau port berikutnya jika port sedang digunakan).
+RAPID-MIND mendukung 2 mode pengoperasian:
+
+### Opsi A: Mode Cepat (Penyimpanan Lokal / Offline-First)
+Tidak memerlukan setup database eksternal. Aplikasi langsung berjalan menggunakan penyimpanan lokal browser (*LocalStorage*):
+```bash
+npm run dev
+```
+Buka `http://localhost:5173` di browser. Header akan menampilkan badge **`💾 Lokal`**.
+
+---
+
+### Opsi B: Mode Cloud Database (Supabase PostgreSQL)
+Untuk menyinkronkan data rekam medis penyintas dan log asesmen secara *real-time* ke cloud:
+
+1. **Buat Project di Supabase (Gratis)**:
+   * Kunjungi [supabase.com](https://supabase.com) dan buat project baru.
+2. **Eksekusi Skrip Database**:
+   * Buka menu **SQL Editor** pada dashboard Supabase Anda.
+   * Salin seluruh isi berkas [`supabase_schema.sql`](supabase_schema.sql) ke editor, lalu klik **Run**.
+   * Tabel `survivors` dan `assessments` beserta indeks dan aturan RLS akan langsung aktif.
+3. **Konfigurasi Environment Variable (`.env`)**:
+   * Salin berkas template `.env.example` menjadi `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   * Buka dashboard Supabase ➔ **Project Settings** ➔ **API**.
+   * Salin **Project URL** dan **anon public key**, lalu masukkan ke file `.env`:
+     ```env
+     VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+     VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+     ```
+4. **Jalankan Aplikasi**:
+   ```bash
+   npm run dev
+   ```
+   Buka `http://localhost:5173`. Header aplikasi akan menampilkan badge hijau **`☁️ Supabase`**, menandakan seluruh data penyintas dan asesmen tersinkronisasi langsung ke cloud PostgreSQL.
+
+> **💡 Catatan Resiliensi Lapangan (Offline-First)**:
+> Meskipun menggunakan Supabase, jika relawan di lokasi bencana kehilangan koneksi internet (mode offline), data tetap tersimpan aman di antrean lokal (*offline queue*). Ketika koneksi pulih, cukup tekan tombol **Sync** untuk mengunggah otomatis semua data ke Supabase tanpa ada data yang hilang.
 
 ---
 
@@ -145,12 +179,16 @@ RAPID-MIND/
 │   ├── services/
 │   │   ├── offlineStorage.ts                # Penyimpanan lokal offline-first
 │   │   ├── speechRecognition.ts             # Web Speech Recognition API wrapper
+│   │   ├── supabaseClient.ts                # Inisialisasi aman client Supabase
+│   │   ├── supabaseService.ts               # Sinkronisasi cloud PostgreSQL Supabase
 │   │   └── triageEngine.ts                  # Engine penilai skor SRQ-20 & tiering
 │   ├── types/
 │   │   ├── assessment.ts                    # Tipe data asesmen, PFA, SRQ-20, & penyintas
 │   │   └── auth.ts                          # Tipe data pengguna & hak akses
 │   ├── App.tsx                              # Pengarah rute aplikasi (Router)
 │   └── main.tsx                             # Entry point aplikasi
+├── .env.example                             # Template environment variable Supabase
+├── supabase_schema.sql                      # DDL skrip database PostgreSQL Supabase
 ├── ALUR_SISTEM.md                           # Dokumen lengkap seluruh alur sistem
 ├── RencanaBaru.md                           # Dokumen spesifikasi acuan arsitektur
 ├── package.json
