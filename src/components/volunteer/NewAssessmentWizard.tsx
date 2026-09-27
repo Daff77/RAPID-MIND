@@ -26,6 +26,15 @@ interface NewAssessmentWizardProps {
   onCancel?: () => void;
 }
 
+export function getCategoryFromAge(ageVal: string | number): 'Anak' | 'Remaja' | 'Dewasa' | 'Lansia' {
+  const num = typeof ageVal === 'number' ? ageVal : parseInt(ageVal, 10);
+  if (isNaN(num) || num < 0) return 'Dewasa';
+  if (num < 12) return 'Anak';
+  if (num <= 18) return 'Remaja';
+  if (num < 60) return 'Dewasa';
+  return 'Lansia';
+}
+
 export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
   initialMethod = 'VERBAL',
   onAssessmentSaved,
@@ -44,6 +53,11 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
   const [victimGender, setVictimGender] = useState<'L' | 'P'>('P');
   const [victimCategory, setVictimCategory] = useState<'Anak' | 'Remaja' | 'Dewasa' | 'Lansia'>('Dewasa');
   const [initialCondition, setInitialCondition] = useState<string>('Mengeluh pusing dan tampak cemas');
+
+  const handleAgeChange = (val: string) => {
+    setVictimAge(val);
+    setVictimCategory(getCategoryFromAge(val));
+  };
 
   const [location, setLocation] = useState<LocationPost>('Posko A');
   const [method, setMethod] = useState<AssessmentMethod>(initialMethod);
@@ -84,7 +98,7 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
     setVictimName('Ibu Ratna Wulandari');
     setVictimAge('38');
     setVictimGender('P');
-    setVictimCategory('Dewasa');
+    setVictimCategory(getCategoryFromAge(38));
     setInitialCondition('Tampak gemetar, mengeluh pusing dan sesak napas');
     setLocation('Posko A');
   };
@@ -271,16 +285,21 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
               <input
                 type="number"
                 value={victimAge}
-                onChange={(e) => setVictimAge(e.target.value)}
+                onChange={(e) => handleAgeChange(e.target.value)}
                 placeholder="34"
                 className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 outline-none transition"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 block">
-                Kelompok
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-700 block">
+                  Kelompok
+                </label>
+                <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
+                  Otomatis
+                </span>
+              </div>
               <select
                 value={victimCategory}
                 onChange={(e) => setVictimCategory(e.target.value as any)}

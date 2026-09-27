@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { SurvivorProfile, LocationPost } from '../../types/assessment';
 import { findSurvivorByQuery, saveSurvivorToRegistry } from '../../data/mockSurvivors';
+import { getCategoryFromAge } from './NewAssessmentWizard';
 
 interface AutoLookupHomeScreenProps {
   onSelectSurvivor: (survivor: SurvivorProfile, targetFlow: 'pfa' | 'srq20') => void;
@@ -33,8 +34,14 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
   const [newNik, setNewNik] = useState('');
   const [newName, setNewName] = useState('');
   const [newAge, setNewAge] = useState('28');
+  const [newCategory, setNewCategory] = useState<'Anak' | 'Remaja' | 'Dewasa' | 'Lansia'>('Dewasa');
   const [newGender, setNewGender] = useState<'L' | 'P'>('P');
   const [newPosko, setNewPosko] = useState<LocationPost>('Posko A');
+
+  const handleNewAgeChange = (val: string) => {
+    setNewAge(val);
+    setNewCategory(getCategoryFromAge(val));
+  };
 
   const handleSearch = (queryOverride?: string) => {
     const q = (queryOverride !== undefined ? queryOverride : searchQuery).trim();
@@ -64,7 +71,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
       name: newName.trim(),
       age: parseInt(newAge) || 28,
       gender: newGender,
-      category: 'Dewasa',
+      category: newCategory,
       posko: newPosko,
       registeredAt: new Date().toLocaleString(),
       currentPhase: 'acute_pfa',
@@ -278,11 +285,16 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
 
               <div className="grid grid-cols-3 gap-2.5 text-xs">
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 block">Usia (Th)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-slate-700 block">Usia (Th)</label>
+                    <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-1 py-0.2 rounded border border-blue-200">
+                      {newCategory}
+                    </span>
+                  </div>
                   <input
                     type="number"
                     value={newAge}
-                    onChange={(e) => setNewAge(e.target.value)}
+                    onChange={(e) => handleNewAgeChange(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900"
                   />
                 </div>
