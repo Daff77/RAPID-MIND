@@ -75,6 +75,7 @@ export const TriageResultCard: React.FC<TriageResultCardProps> = ({
 
     const result = addAssessment({
       id: victimId,
+      victimId,
       timestamp: `${timeHours}:${timeMins}`,
       location,
       method,

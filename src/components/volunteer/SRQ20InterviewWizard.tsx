@@ -48,6 +48,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
   const [wizardStep, setWizardStep] = useState<'interview' | 'functional' | 'result'>('interview');
   const [interviewMode, setInterviewMode] = useState<'verbal' | 'non_verbal'>('verbal');
   const [showItem17Alert, setShowItem17Alert] = useState<boolean>(false);
+  const [activeSessionRecordId, setActiveSessionRecordId] = useState<string | null>(null);
 
   // Answer state: Map of question id to boolean (true = Ya, false = Tidak)
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
@@ -159,8 +160,10 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       const timeMins = String(now.getMinutes()).padStart(2, '0');
       const timeString = `${timeHours}:${timeMins}`;
 
-      addAssessment({
+      const res = addAssessment({
+        recordId: activeSessionRecordId || undefined,
         id: survivor.id,
+        victimId: survivor.id,
         nik: survivor.nik,
         timestamp: timeString,
         location: survivor.posko,
@@ -180,6 +183,10 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
           'T0 EMERGENCY (SRQ #17): Terdeteksi pikiran mengakhiri hidup. Sinyal T0-Suspect aktif. Dampingi penyintas 100% tanpa jeda dan siagakan panggilan Tele-Emergency nakes.',
         volunteerNotes: `SRQ-20 Butir #17 dijawab YA oleh penyintas di ${survivor.posko}. Otomatis masuk status T0-Suspect.`,
       });
+
+      if (res?.record?.recordId) {
+        setActiveSessionRecordId(res.record.recordId);
+      }
 
       setShowItem17Alert(true);
     }
@@ -210,9 +217,11 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
     const timeHours = String(now.getHours()).padStart(2, '0');
     const timeMins = String(now.getMinutes()).padStart(2, '0');
 
-    // Save to central assessments
-    addAssessment({
+    // Save or update central assessments for this interview session
+    const saveRes = addAssessment({
+      recordId: activeSessionRecordId || undefined,
       id: survivor.id,
+      victimId: survivor.id,
       nik: survivor.nik,
       timestamp: `${timeHours}:${timeMins}`,
       location: survivor.posko,
@@ -234,6 +243,10 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       victimGender: survivor.gender,
       victimCategory: survivor.category,
     });
+
+    if (saveRes?.record?.recordId) {
+      setActiveSessionRecordId(saveRes.record.recordId);
+    }
 
     setWizardStep('result');
     onComplete(result);

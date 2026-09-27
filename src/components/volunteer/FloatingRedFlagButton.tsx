@@ -62,6 +62,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
     // Create a T0-Suspect emergency record
     addAssessment({
       id: currentVictimId,
+      victimId: currentVictimId,
       timestamp: timeString,
       location: currentLocation,
       method: 'VERBAL',

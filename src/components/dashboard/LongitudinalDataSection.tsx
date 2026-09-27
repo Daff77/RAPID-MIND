@@ -65,17 +65,23 @@ export const LongitudinalDataSection: React.FC = () => {
 
     // Then group central assessments
     centralAssessments.forEach((r) => {
-      const key = r.id || 'UNKNOWN';
+      const key = r.victimId || r.id || 'UNKNOWN';
       const existing = map.get(key);
 
       if (existing) {
-        existing.records.push(r);
+        // Prevent duplicate assessment entry by recordId
+        const isDuplicate = existing.records.some((rec) =>
+          rec.recordId && r.recordId ? rec.recordId === r.recordId : false
+        );
+        if (!isDuplicate) {
+          existing.records.push(r);
+        }
       } else {
         map.set(key, {
           profile: {
-            id: r.id,
+            id: key,
             nik: r.nik || 'NIK Belum Terdata',
-            name: r.victimName || `Penyintas ${r.id}`,
+            name: r.victimName || `Penyintas ${key}`,
             age: r.victimAge,
             gender: r.victimGender,
             posko: r.location,
@@ -291,9 +297,14 @@ export const LongitudinalDataSection: React.FC = () => {
                   {item.records.length > 0 ? (
                     <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
                       {item.records.map((rec, rIdx) => (
-                        <div key={rec.id + rIdx} className="p-3 text-xs bg-white space-y-1">
+                        <div key={rec.recordId || (rec.id + '-' + rIdx)} className="p-3 text-xs bg-white space-y-1">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
+                              {rec.recordId && (
+                                <span className="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                  {rec.recordId}
+                                </span>
+                              )}
                               <span className="font-mono text-[10px] text-slate-500">
                                 {rec.timestamp}
                               </span>

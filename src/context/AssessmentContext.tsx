@@ -54,12 +54,16 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (!isOnline) {
       const savedQueue = saveAssessmentLocally(recordData as AssessmentRecord);
       setOfflineQueue([...savedQueue]);
-      const savedRecord = savedQueue[0];
+      const savedRecord = (recordData as any).recordId
+        ? savedQueue.find((r) => r.recordId === (recordData as any).recordId) || savedQueue[0]
+        : savedQueue[0];
       return { record: savedRecord, isOfflineSaved: true };
     } else {
       const updatedCentral = saveCentralAssessment(recordData as AssessmentRecord);
       setCentralAssessments([...updatedCentral]);
-      const savedRecord = updatedCentral[0];
+      const savedRecord = (recordData as any).recordId
+        ? updatedCentral.find((r) => r.recordId === (recordData as any).recordId) || updatedCentral[0]
+        : updatedCentral[0];
       return { record: savedRecord, isOfflineSaved: false };
     }
   }, [isOnline]);
@@ -84,9 +88,20 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return [...offlineQueue, ...centralAssessments];
   }, [offlineQueue, centralAssessments]);
 
-  // Derived KPI Stats from central assessments
+  // Derived KPI Stats from central assessments calculated per unique survivor's latest status
   const kpiStats = useMemo<KPIStats>(() => {
-    const total = centralAssessments.length;
+    const totalAssessments = centralAssessments.length;
+    // centralAssessments has newest records first; group by unique survivor (victimId || id)
+    const latestSurvivorMap = new Map<string, AssessmentRecord>();
+    for (const r of centralAssessments) {
+      const key = r.victimId || r.id;
+      if (key && !latestSurvivorMap.has(key)) {
+        latestSurvivorMap.set(key, r);
+      }
+    }
+
+    const uniqueSurvivors = Array.from(latestSurvivorMap.values());
+    const total = uniqueSurvivors.length;
     let green = 0;
     let yellow = 0;
     let red = 0;
@@ -95,7 +110,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     let t2Count = 0;
     let t3Count = 0;
 
-    for (const r of centralAssessments) {
+    for (const r of uniqueSurvivors) {
       if (r.zone === 'GREEN') green++;
       else if (r.zone === 'YELLOW') yellow++;
       else if (r.zone === 'RED') red++;
@@ -112,6 +127,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     return {
       total,
+      totalAssessments,
       green,
       yellow,
       red,

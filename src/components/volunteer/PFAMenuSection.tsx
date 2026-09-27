@@ -86,6 +86,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     // Save as assessment record
     addAssessment({
       id: survivor.id,
+      victimId: survivor.id,
       nik: survivor.nik,
       timestamp: `${timeHours}:${timeMins}`,
       location: survivor.posko,

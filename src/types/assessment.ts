@@ -69,7 +69,9 @@ export interface VictimData {
 }
 
 export interface AssessmentRecord {
-  id: string;
+  recordId?: string; // Unique Assessment Log ID (e.g. ASM-2026-000001)
+  id: string; // Identifier referensi penyintas (e.g. RM-2026-000001)
+  victimId?: string; // Explicit Victim / Survivor ID alias (RM-2026-000001)
   nik?: string;
   timestamp: string; // ISO string or human formatted
   location: LocationPost;
@@ -124,6 +126,7 @@ export interface LocationPostInfo {
 
 export interface KPIStats {
   total: number;
+  totalAssessments?: number;
   green: number;
   yellow: number;
   red: number;

@@ -4,26 +4,16 @@ import { useAuth } from '../../context/AuthContext';
 import { ShieldAlert, AlertTriangle, Activity, CheckCircle, Users, UserCheck } from 'lucide-react';
 
 export const KPICards: React.FC = () => {
-  const { centralAssessments } = useAssessment();
+  const { centralAssessments, kpiStats } = useAssessment();
   const { allUsers } = useAuth();
 
-  const t0Count = centralAssessments.filter(
-    (r) => r.triageTier === 'T0' || (r.zone === 'RED' && r.criticalTriggered)
-  ).length;
-
-  const t1Count = centralAssessments.filter(
-    (r) => r.triageTier === 'T1' || (r.zone === 'RED' && !r.criticalTriggered)
-  ).length;
-
-  const t2Count = centralAssessments.filter(
-    (r) => r.triageTier === 'T2' || r.zone === 'YELLOW'
-  ).length;
-
-  const t3Count = centralAssessments.filter(
-    (r) => r.triageTier === 'T3' || r.zone === 'GREEN'
-  ).length;
-
-  const total = centralAssessments.length || 1;
+  const totalSurvivors = kpiStats.total;
+  const totalAssessments = kpiStats.totalAssessments || centralAssessments.length;
+  const t0Count = kpiStats.t0Count;
+  const t1Count = kpiStats.t1Count;
+  const t2Count = kpiStats.t2Count;
+  const t3Count = kpiStats.t3Count;
+  const total = totalSurvivors || 1;
   const activeVolunteersCount = allUsers.filter((u) => u.role === 'volunteer').length;
 
   return (
@@ -38,12 +28,12 @@ export const KPICards: React.FC = () => {
         </div>
         <div className="flex items-baseline gap-1.5 mt-1">
           <span className="text-xl sm:text-2xl font-black text-slate-900 font-mono">
-            {centralAssessments.length}
+            {totalSurvivors}
           </span>
           <span className="text-[10px] text-slate-400">Jiwa</span>
         </div>
         <span className="text-[10px] text-slate-500 block truncate">
-          Terdata di Semua Posko
+          {totalAssessments} rekam skrining aktif
         </span>
       </div>
 

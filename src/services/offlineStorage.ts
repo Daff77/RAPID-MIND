@@ -24,17 +24,70 @@ export function getCentralAssessments(): AssessmentRecord[] {
     return INITIAL_ASSESSMENTS;
   }
   try {
-    return JSON.parse(stored);
+    const list: AssessmentRecord[] = JSON.parse(stored);
+    let dirty = false;
+    const year = new Date().getFullYear();
+    const migrated = list.map((r, idx) => {
+      let changed = false;
+      const rec = { ...r };
+      if (!rec.victimId) {
+        rec.victimId = rec.id;
+        changed = true;
+      }
+      if (!rec.recordId) {
+        rec.recordId = `ASM-${year}-${String(idx + 1).padStart(6, '0')}`;
+        changed = true;
+      }
+      if (changed) dirty = true;
+      return rec;
+    });
+    if (dirty) {
+      localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(migrated));
+    }
+    return migrated;
   } catch (e) {
     console.error('Failed to parse central assessments from storage', e);
     return INITIAL_ASSESSMENTS;
   }
 }
 
+/**
+ * Generate unique assessment record identifier (e.g. ASM-2026-000001).
+ */
+export function generateAssessmentRecordId(): string {
+  const current = getCentralAssessments();
+  const year = new Date().getFullYear();
+  let maxSeq = 0;
+  current.forEach((r) => {
+    const match = (r.recordId || '').match(/ASM-\d{4}-(\d+)/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxSeq) maxSeq = num;
+    }
+  });
+  return `ASM-${year}-${String(maxSeq + 1).padStart(6, '0')}`;
+}
+
 export function saveCentralAssessment(record: AssessmentRecord): AssessmentRecord[] {
   const current = getCentralAssessments();
-  // Unshift so new items appear first
-  const updated = [{ ...record, syncStatus: 'synced' as const }, ...current];
+  const recordId = record.recordId || generateAssessmentRecordId();
+  const normalized: AssessmentRecord = {
+    ...record,
+    recordId,
+    victimId: record.victimId || record.id,
+    syncStatus: 'synced' as const,
+  };
+
+  const existingIdx = current.findIndex((r) => r.recordId === recordId);
+  let updated: AssessmentRecord[];
+  if (existingIdx >= 0) {
+    updated = [...current];
+    updated[existingIdx] = normalized;
+  } else {
+    // Unshift so newest item appears first
+    updated = [normalized, ...current];
+  }
+
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(updated));
   }
@@ -55,11 +108,23 @@ export function getPendingAssessments(): AssessmentRecord[] {
 
 export function saveAssessmentLocally(record: AssessmentRecord): AssessmentRecord[] {
   const current = getPendingAssessments();
+  const recordId = record.recordId || generateAssessmentRecordId();
   const pendingRecord: AssessmentRecord = {
     ...record,
-    syncStatus: 'pending',
+    recordId,
+    victimId: record.victimId || record.id,
+    syncStatus: 'pending' as const,
   };
-  const updated = [pendingRecord, ...current];
+
+  const existingIdx = current.findIndex((r) => r.recordId === recordId);
+  let updated: AssessmentRecord[];
+  if (existingIdx >= 0) {
+    updated = [...current];
+    updated[existingIdx] = pendingRecord;
+  } else {
+    updated = [pendingRecord, ...current];
+  }
+
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_OFFLINE_QUEUE, JSON.stringify(updated));
   }
