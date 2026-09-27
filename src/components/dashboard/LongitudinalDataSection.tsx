@@ -50,7 +50,7 @@ export const LongitudinalDataSection: React.FC = () => {
       map.set(s.id, {
         profile: {
           id: s.id,
-          nik: s.nik,
+          nik: s.nik || 'NIK Belum Terdata',
           name: s.name,
           age: s.age,
           gender: s.gender,
@@ -94,7 +94,7 @@ export const LongitudinalDataSection: React.FC = () => {
       const matchesSearch =
         item.profile.name.toLowerCase().includes(search.toLowerCase()) ||
         item.profile.id.toLowerCase().includes(search.toLowerCase()) ||
-        item.profile.nik.toLowerCase().includes(search.toLowerCase()) ||
+        (item.profile.nik ? item.profile.nik.toLowerCase().includes(search.toLowerCase()) : false) ||
         item.profile.posko.toLowerCase().includes(search.toLowerCase());
 
       const matchesPosko = filterPosko === 'ALL' || item.profile.posko === filterPosko;

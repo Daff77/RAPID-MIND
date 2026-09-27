@@ -2,7 +2,7 @@ import { SurvivorProfile } from '../types/assessment';
 
 /**
  * Initial empty survivor registry.
- * Starts clean with 0 survivors as per user request to delete all dummy data.
+ * Starts clean with 0 survivors.
  */
 export const INITIAL_MOCK_SURVIVORS: SurvivorProfile[] = [];
 
@@ -22,16 +22,59 @@ export function getStoredSurvivors(): SurvivorProfile[] {
   }
 }
 
+/**
+ * Generate standard Unique Survivor ID / Patient ID internal.
+ * Format: RM-YYYY-XXXXXX (e.g. RM-2026-000001)
+ */
+export function generateSurvivorId(): string {
+  const current = getStoredSurvivors();
+  const year = new Date().getFullYear();
+  let maxSeq = 0;
+
+  current.forEach((s) => {
+    const rmMatch = s.id?.match(/RM-\d{4}-(\d+)/);
+    if (rmMatch) {
+      const num = parseInt(rmMatch[1], 10);
+      if (num > maxSeq) maxSeq = num;
+    } else {
+      const vctMatch = s.id?.match(/VCT-(\d+)/);
+      if (vctMatch) {
+        const num = parseInt(vctMatch[1], 10);
+        if (num > maxSeq) maxSeq = num;
+      }
+    }
+  });
+
+  const nextSeq = maxSeq + 1;
+  return `RM-${year}-${String(nextSeq).padStart(6, '0')}`;
+}
+
+/**
+ * Save or update a survivor record.
+ * Uses internal Survivor ID as primary key.
+ * Also matches by NIK if provided (and non-empty) to prevent duplicates.
+ */
 export function saveSurvivorToRegistry(survivor: SurvivorProfile): SurvivorProfile[] {
   const current = getStoredSurvivors();
-  const existingIndex = current.findIndex(
-    (s) => s.nik === survivor.nik || s.id === survivor.id
-  );
+  const trimmedNik = survivor.nik?.trim();
+
+  const existingIndex = current.findIndex((s) => {
+    // 1. Primary check: unique internal ID
+    if (survivor.id && s.id === survivor.id) return true;
+    // 2. Secondary check: non-empty NIK
+    if (trimmedNik && s.nik && s.nik.trim().toLowerCase() === trimmedNik.toLowerCase()) return true;
+    return false;
+  });
 
   let updated: SurvivorProfile[];
   if (existingIndex >= 0) {
     updated = [...current];
-    updated[existingIndex] = { ...updated[existingIndex], ...survivor };
+    updated[existingIndex] = {
+      ...updated[existingIndex],
+      ...survivor,
+      // Retain existing NIK if the new object didn't specify one
+      nik: trimmedNik || updated[existingIndex].nik,
+    };
   } else {
     updated = [survivor, ...current];
   }
@@ -42,16 +85,68 @@ export function saveSurvivorToRegistry(survivor: SurvivorProfile): SurvivorProfi
   return updated;
 }
 
-export function findSurvivorByQuery(query: string): SurvivorProfile | null {
+/**
+ * Update NIK on an existing survivor record identified by Survivor ID.
+ * Does NOT create a duplicate record.
+ */
+export function updateSurvivorNik(id: string, newNik: string): SurvivorProfile | null {
+  const current = getStoredSurvivors();
+  const index = current.findIndex((s) => s.id === id);
+  if (index < 0) return null;
+
+  const updatedSurvivor: SurvivorProfile = {
+    ...current[index],
+    nik: newNik.trim(),
+  };
+
+  current[index] = updatedSurvivor;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(current));
+  }
+  return updatedSurvivor;
+}
+
+/**
+ * Search all survivors matching query by NIK, Survivor ID, ID Posko / ID gelang, or Name.
+ */
+export function searchSurvivors(query: string): SurvivorProfile[] {
   const q = query.trim().toLowerCase();
-  if (!q) return null;
+  if (!q) return [];
   const list = getStoredSurvivors();
-  return (
-    list.find(
-      (s) =>
-        s.nik.toLowerCase() === q ||
-        s.id.toLowerCase() === q ||
-        s.name.toLowerCase().includes(q)
-    ) || null
-  );
+
+  return list.filter((s) => {
+    const matchNik = Boolean(s.nik && s.nik.toLowerCase() === q);
+    const matchId = Boolean(s.id && s.id.toLowerCase() === q);
+    const matchPoskoId = Boolean(s.poskoId && s.poskoId.toLowerCase() === q);
+    const matchExactName = Boolean(s.name && s.name.toLowerCase() === q);
+    const matchPartialName = Boolean(s.name && s.name.toLowerCase().includes(q));
+    return matchNik || matchId || matchPoskoId || matchExactName || matchPartialName;
+  });
+}
+
+/**
+ * Find single best matching survivor by query.
+ */
+export function findSurvivorByQuery(query: string): SurvivorProfile | null {
+  const results = searchSurvivors(query);
+  if (results.length === 0) return null;
+
+  const q = query.trim().toLowerCase();
+  // Exact ID match takes highest precedence
+  const exactId = results.find((s) => s.id && s.id.toLowerCase() === q);
+  if (exactId) return exactId;
+
+  // Exact NIK match takes second precedence
+  const exactNik = results.find((s) => s.nik && s.nik.toLowerCase() === q);
+  if (exactNik) return exactNik;
+
+  // Exact ID posko match
+  const exactPosko = results.find((s) => s.poskoId && s.poskoId.toLowerCase() === q);
+  if (exactPosko) return exactPosko;
+
+  // Exact name match
+  const exactName = results.find((s) => s.name && s.name.toLowerCase() === q);
+  if (exactName) return exactName;
+
+  return results[0];
 }

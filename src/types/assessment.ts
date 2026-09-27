@@ -38,8 +38,9 @@ export interface PFARecord {
 }
 
 export interface SurvivorProfile {
-  nik: string;
-  id: string; // VCT-xxx
+  nik?: string; // Opsional jika belum tersedia saat tanggap darurat
+  id: string; // Unique Survivor ID / Patient ID internal (misal: RM-2026-000001)
+  poskoId?: string; // ID Posko / ID gelang jika tersedia
   name: string;
   age: number | string;
   gender: 'L' | 'P';
