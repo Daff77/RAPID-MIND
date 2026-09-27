@@ -300,16 +300,18 @@ export const NewAssessmentWizard: React.FC<NewAssessmentWizardProps> = ({
                   Otomatis
                 </span>
               </div>
-              <select
-                value={victimCategory}
-                onChange={(e) => setVictimCategory(e.target.value as any)}
-                className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 rounded-xl px-2 py-2 text-xs text-slate-900 outline-none transition"
-              >
-                <option value="Anak">Anak (&lt;12 th)</option>
-                <option value="Remaja">Remaja (12-18 th)</option>
-                <option value="Dewasa">Dewasa (19-59 th)</option>
-                <option value="Lansia">Lansia (60+ th)</option>
-              </select>
+              <input
+                type="text"
+                readOnly
+                value={
+                  victimCategory === 'Anak' ? 'Anak (<12 th)' :
+                  victimCategory === 'Remaja' ? 'Remaja (12-18 th)' :
+                  victimCategory === 'Dewasa' ? 'Dewasa (19-59 th)' :
+                  'Lansia (60+ th)'
+                }
+                className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none cursor-default select-none transition"
+                title="Kelompok otomatis ditentukan berdasarkan input usia"
+              />
             </div>
 
             <div className="space-y-1">
