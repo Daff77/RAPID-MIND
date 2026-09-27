@@ -11,7 +11,10 @@ import {
   saveCentralAssessment,
   saveAssessmentLocally,
   syncPendingAssessments,
+  syncAssessmentsWithSupabase,
 } from '../services/offlineStorage';
+import { isSupabaseConfigured } from '../services/supabaseClient';
+import { syncSurvivorsWithSupabase } from '../data/mockSurvivors';
 
 interface AssessmentContextValue {
   centralAssessments: AssessmentRecord[];
@@ -19,6 +22,7 @@ interface AssessmentContextValue {
   allAssessments: AssessmentRecord[];
   isOnline: boolean;
   isSyncing: boolean;
+  isUsingSupabase: boolean;
   syncSuccessBanner: string | null;
   toggleOnlineStatus: (explicitStatus?: boolean) => void;
   addAssessment: (record: Omit<AssessmentRecord, 'syncStatus'>) => { record: AssessmentRecord; isOfflineSaved: boolean };
@@ -34,13 +38,29 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncSuccessBanner, setSyncSuccessBanner] = useState<string | null>(null);
+  const isUsingSupabase = isSupabaseConfigured();
 
-  // Initialize from storage on mount
+  // Initialize from storage on mount & trigger cloud sync if Supabase is connected
   useEffect(() => {
     setCentralAssessments(getCentralAssessments());
     setOfflineQueue(getPendingAssessments());
-    setIsOnline(getOnlineStatus());
-  }, []);
+    const online = getOnlineStatus();
+    setIsOnline(online);
+
+    if (online && isUsingSupabase) {
+      Promise.all([
+        syncSurvivorsWithSupabase(),
+        syncAssessmentsWithSupabase(),
+      ])
+        .then(() => {
+          setCentralAssessments(getCentralAssessments());
+          setOfflineQueue(getPendingAssessments());
+        })
+        .catch((err) => {
+          console.warn('Initial Supabase sync skipped:', err);
+        });
+    }
+  }, [isUsingSupabase]);
 
   const toggleOnlineStatus = useCallback((explicitStatus?: boolean) => {
     setIsOnline((prev) => {
@@ -149,6 +169,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       allAssessments,
       isOnline,
       isSyncing,
+      isUsingSupabase,
       syncSuccessBanner,
       toggleOnlineStatus,
       addAssessment,
@@ -161,6 +182,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       allAssessments,
       isOnline,
       isSyncing,
+      isUsingSupabase,
       syncSuccessBanner,
       toggleOnlineStatus,
       addAssessment,

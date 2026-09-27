@@ -1,5 +1,5 @@
 import React from 'react';
-import { WifiOff, LogOut } from 'lucide-react';
+import { WifiOff, LogOut, Cloud, Database } from 'lucide-react';
 import { useAssessment } from '../../context/AssessmentContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -23,6 +23,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
     triggerSync,
     isSyncing,
     syncSuccessBanner,
+    isUsingSupabase,
   } = useAssessment();
 
   return (
@@ -67,6 +68,25 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
               </>
             )}
           </button>
+
+          {/* Database Mode Badge */}
+          {isUsingSupabase ? (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+              title="Terhubung ke Supabase Cloud PostgreSQL"
+            >
+              <Cloud className="w-3 h-3 text-emerald-600" />
+              <span>Supabase</span>
+            </span>
+          ) : (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200"
+              title="Mode Lokal (Data tersimpan di Browser/LocalStorage). Atur .env untuk koneksi Supabase."
+            >
+              <Database className="w-3 h-3 text-slate-500" />
+              <span>Lokal</span>
+            </span>
+          )}
 
           {/* Volunteer Profile & Sign Out */}
           {currentUser && (

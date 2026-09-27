@@ -1,5 +1,9 @@
 import { AssessmentRecord } from '../types/assessment';
 import { INITIAL_ASSESSMENTS } from '../data/mockAssessments';
+import {
+  upsertAssessmentToSupabase,
+  fetchAssessmentsFromSupabase,
+} from './supabaseService';
 
 const STORAGE_KEY_ASSESSMENTS = 'rapidmind_central_assessments_clean_v1';
 const STORAGE_KEY_OFFLINE_QUEUE = 'rapidmind_offline_pending_clean_v1';
@@ -91,6 +95,12 @@ export function saveCentralAssessment(record: AssessmentRecord): AssessmentRecor
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(updated));
   }
+
+  // Background sync to Supabase if configured
+  upsertAssessmentToSupabase(normalized).catch((err) => {
+    console.warn('Background Supabase assessment upsert failed:', err);
+  });
+
   return updated;
 }
 
@@ -150,6 +160,11 @@ export async function syncPendingAssessments(): Promise<{
 
   await new Promise((resolve) => setTimeout(resolve, 800));
 
+  // Push each pending record to Supabase
+  for (const item of pending) {
+    await upsertAssessmentToSupabase({ ...item, syncStatus: 'synced' });
+  }
+
   const central = getCentralAssessments();
   const markSynced = pending.map((item) => ({
     ...item,
@@ -166,4 +181,33 @@ export async function syncPendingAssessments(): Promise<{
     syncedCount: pending.length,
     syncedRecords: markSynced,
   };
+}
+
+/**
+ * Initial sync to pull assessments from Supabase on app start
+ */
+export async function syncAssessmentsWithSupabase(): Promise<AssessmentRecord[]> {
+  const remote = await fetchAssessmentsFromSupabase();
+  if (!remote || remote.length === 0) return getCentralAssessments();
+
+  const local = getCentralAssessments();
+  const map = new Map<string, AssessmentRecord>();
+
+  // Add remote records
+  remote.forEach((r) => map.set(r.recordId || r.id, r));
+  // Add local records if not present in remote
+  local.forEach((r) => {
+    const key = r.recordId || r.id;
+    if (!map.has(key)) {
+      map.set(key, r);
+      // Upload local to remote in background
+      upsertAssessmentToSupabase(r).catch(() => {});
+    }
+  });
+
+  const merged = Array.from(map.values());
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(merged));
+  }
+  return merged;
 }

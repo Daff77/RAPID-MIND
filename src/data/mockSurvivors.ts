@@ -1,4 +1,9 @@
 import { SurvivorProfile } from '../types/assessment';
+import {
+  fetchSurvivorsFromSupabase,
+  upsertSurvivorToSupabase,
+  updateSurvivorNikInSupabase,
+} from '../services/supabaseService';
 
 /**
  * Initial empty survivor registry.
@@ -82,6 +87,12 @@ export function saveSurvivorToRegistry(survivor: SurvivorProfile): SurvivorProfi
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(updated));
   }
+
+  // Background sync to Supabase if configured
+  upsertSurvivorToSupabase(survivor).catch((err) => {
+    console.warn('Background Supabase survivor upsert failed:', err);
+  });
+
   return updated;
 }
 
@@ -103,7 +114,41 @@ export function updateSurvivorNik(id: string, newNik: string): SurvivorProfile |
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(current));
   }
+
+  // Background sync to Supabase if configured
+  updateSurvivorNikInSupabase(id, newNik).catch((err) => {
+    console.warn('Background Supabase NIK update failed:', err);
+  });
+
   return updatedSurvivor;
+}
+
+/**
+ * Initial sync to pull survivors from Supabase on app start
+ */
+export async function syncSurvivorsWithSupabase(): Promise<SurvivorProfile[]> {
+  const remote = await fetchSurvivorsFromSupabase();
+  if (!remote || remote.length === 0) return getStoredSurvivors();
+
+  const local = getStoredSurvivors();
+  const map = new Map<string, SurvivorProfile>();
+
+  // Add remote first
+  remote.forEach((s) => map.set(s.id, s));
+  // Add local (can override or merge)
+  local.forEach((s) => {
+    if (!map.has(s.id)) {
+      map.set(s.id, s);
+      // Upload local survivor to Supabase in background
+      upsertSurvivorToSupabase(s).catch(() => {});
+    }
+  });
+
+  const merged = Array.from(map.values());
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(merged));
+  }
+  return merged;
 }
 
 /**
