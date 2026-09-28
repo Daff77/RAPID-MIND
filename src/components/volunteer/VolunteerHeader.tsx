@@ -24,6 +24,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
     isSyncing,
     syncSuccessBanner,
     isUsingSupabase,
+    isIndexedDBReady,
   } = useAssessment();
 
   return (
@@ -69,7 +70,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
             )}
           </button>
 
-          {/* Database Mode Badge */}
+          {/* Database Mode Badge: Supabase Cloud vs Native IndexedDB */}
           {isUsingSupabase ? (
             <span
               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -80,11 +81,19 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
             </span>
           ) : (
             <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200"
-              title="Mode Lokal (Data tersimpan di Browser/LocalStorage). Atur .env untuk koneksi Supabase."
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border transition ${
+                isIndexedDBReady
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : 'bg-slate-100 text-slate-600 border border-slate-200'
+              }`}
+              title={
+                isIndexedDBReady
+                  ? 'Database Browser: IndexedDB Aktif (RAPIDMIND_INDEXED_DB). Kapasitas tinggi tanpa batas 5MB.'
+                  : 'Mode Lokal: Menggunakan penyimpanan lokal browser.'
+              }
             >
-              <Database className="w-3 h-3 text-slate-500" />
-              <span>Lokal</span>
+              <Database className={`w-3 h-3 ${isIndexedDBReady ? 'text-blue-600' : 'text-slate-500'}`} />
+              <span>{isIndexedDBReady ? 'IndexedDB' : 'Lokal'}</span>
             </span>
           )}
 

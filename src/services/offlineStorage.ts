@@ -4,6 +4,15 @@ import {
   upsertAssessmentToSupabase,
   fetchAssessmentsFromSupabase,
 } from './supabaseService';
+import {
+  idbSaveAssessment,
+  idbBulkSaveAssessments,
+  idbGetAssessments,
+  idbSaveQueueItem,
+  idbGetQueue,
+  idbRemoveQueueItem,
+  idbClearQueue,
+} from './indexedDbService';
 
 const STORAGE_KEY_ASSESSMENTS = 'rapidmind_central_assessments_clean_v1';
 const STORAGE_KEY_OFFLINE_QUEUE = 'rapidmind_offline_pending_clean_v1';
@@ -96,6 +105,11 @@ export function saveCentralAssessment(record: AssessmentRecord): AssessmentRecor
     localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(updated));
   }
 
+  // Dual-Persistence: Asynchronous write to IndexedDB
+  idbSaveAssessment(normalized).catch((err) => {
+    console.warn('IndexedDB assessment save failed:', err);
+  });
+
   // Background sync to Supabase if configured
   upsertAssessmentToSupabase(normalized).catch((err) => {
     console.warn('Background Supabase assessment upsert failed:', err);
@@ -138,6 +152,12 @@ export function saveAssessmentLocally(record: AssessmentRecord): AssessmentRecor
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_OFFLINE_QUEUE, JSON.stringify(updated));
   }
+
+  // Dual-Persistence: Asynchronous write to IndexedDB Offline Queue
+  idbSaveQueueItem(pendingRecord).catch((err) => {
+    console.warn('IndexedDB offline queue item save failed:', err);
+  });
+
   return updated;
 }
 
@@ -147,6 +167,7 @@ export function removeSyncedAssessment(id: string): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_OFFLINE_QUEUE, JSON.stringify(filtered));
   }
+  idbRemoveQueueItem(id).catch(() => {});
 }
 
 export async function syncPendingAssessments(): Promise<{
@@ -177,10 +198,77 @@ export async function syncPendingAssessments(): Promise<{
     localStorage.removeItem(STORAGE_KEY_OFFLINE_QUEUE);
   }
 
+  // Sync to IndexedDB: Clear queue & bulk save central assessments
+  idbClearQueue().catch(() => {});
+  idbBulkSaveAssessments(updatedCentral).catch(() => {});
+
   return {
     syncedCount: pending.length,
     syncedRecords: markSynced,
   };
+}
+
+/**
+ * Hydrates data from IndexedDB into memory/localStorage on application startup.
+ * Ensures persistent, high-capacity client storage beyond the 5MB localStorage threshold.
+ */
+export async function hydrateFromIndexedDB(): Promise<{
+  assessments: AssessmentRecord[];
+  pending: AssessmentRecord[];
+}> {
+  try {
+    const [idbAssessments, idbQueue] = await Promise.all([
+      idbGetAssessments(),
+      idbGetQueue(),
+    ]);
+
+    let currentCentral = getCentralAssessments();
+    let currentQueue = getPendingAssessments();
+
+    if (idbAssessments.length > 0) {
+      const map = new Map<string, AssessmentRecord>();
+      idbAssessments.forEach((a) => map.set(a.recordId || a.id, a));
+      currentCentral.forEach((a) => {
+        if (!map.has(a.recordId || a.id)) {
+          map.set(a.recordId || a.id, a);
+        }
+      });
+      currentCentral = Array.from(map.values());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(currentCentral));
+      }
+    } else if (currentCentral.length > 0) {
+      // Seed initial mock records into IndexedDB
+      idbBulkSaveAssessments(currentCentral).catch(() => {});
+    }
+
+    if (idbQueue.length > 0) {
+      const map = new Map<string, AssessmentRecord>();
+      idbQueue.forEach((q) => map.set(q.recordId || q.id, q));
+      currentQueue.forEach((q) => {
+        if (!map.has(q.recordId || q.id)) {
+          map.set(q.recordId || q.id, q);
+        }
+      });
+      currentQueue = Array.from(map.values());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY_OFFLINE_QUEUE, JSON.stringify(currentQueue));
+      }
+    } else if (currentQueue.length > 0) {
+      currentQueue.forEach((item) => idbSaveQueueItem(item).catch(() => {}));
+    }
+
+    return {
+      assessments: currentCentral,
+      pending: currentQueue,
+    };
+  } catch (err) {
+    console.warn('Hydration from IndexedDB failed, using memory/localStorage fallback:', err);
+    return {
+      assessments: getCentralAssessments(),
+      pending: getPendingAssessments(),
+    };
+  }
 }
 
 /**

@@ -127,6 +127,31 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     }
   };
 
+  const handleBackWithDraft = () => {
+    // If any notes or checkboxes were marked, preserve draft in registry
+    if (selectedLook.length > 0 || listenNotes.trim() || selectedLink.length > 0 || groundingUsed) {
+      const now = new Date();
+      const timeHours = String(now.getHours()).padStart(2, '0');
+      const timeMins = String(now.getMinutes()).padStart(2, '0');
+
+      const draftProfile: SurvivorProfile = {
+        ...survivor,
+        currentPhase: 'acute_pfa',
+        pfaRecord: {
+          completedAt: survivor.pfaRecord?.completedAt?.startsWith('Draf')
+            ? survivor.pfaRecord.completedAt
+            : `Draf (${timeHours}:${timeMins})`,
+          lookItems: selectedLook,
+          listenNotes: listenNotes.trim(),
+          groundingUsed,
+          linkItems: selectedLink,
+        },
+      };
+      saveSurvivorToRegistry(draftProfile);
+    }
+    onBack();
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs space-y-5 animate-in fade-in">
       {/* Header Context */}
@@ -149,7 +174,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
 
         <button
           type="button"
-          onClick={onBack}
+          onClick={handleBackWithDraft}
           className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition"
           title="Kembali ke Homescreen"
         >

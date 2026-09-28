@@ -8,10 +8,10 @@ import {
   IdCard,
   Users,
   Check,
+  Eye,
 } from 'lucide-react';
 import { SurvivorProfile, LocationPost, getCategoryFromAge } from '../../types/assessment';
 import {
-  findSurvivorByQuery,
   searchSurvivors,
   saveSurvivorToRegistry,
   generateSurvivorId,
@@ -302,8 +302,8 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                 )}
               </div>
 
-              {/* Riwayat PFA Sebelumnya jika ada */}
-              {lookupResult.pfaRecord && (
+              {/* Status PFA & Rekam Medis Sebelumnya */}
+              {lookupResult.pfaRecord && lookupResult.pfaRecord.completedAt && !lookupResult.pfaRecord.completedAt.startsWith('Draf') ? (
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
                   <div className="flex items-center justify-between text-slate-500 text-[11px]">
                     <span className="font-semibold flex items-center gap-1">
@@ -313,33 +313,84 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                     <span className="font-mono">{lookupResult.pfaRecord.completedAt}</span>
                   </div>
 
-                  <p className="text-slate-700 italic leading-relaxed">
-                    "{lookupResult.pfaRecord.listenNotes}"
-                  </p>
+                  {lookupResult.pfaRecord.listenNotes && (
+                    <p className="text-slate-700 italic leading-relaxed">
+                      "{lookupResult.pfaRecord.listenNotes}"
+                    </p>
+                  )}
 
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {lookupResult.pfaRecord.lookItems.map((item, i) => (
-                      <span
-                        key={i}
-                        className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 text-[10px]"
-                      >
-                        ✓ {item}
-                      </span>
-                    ))}
+                  {lookupResult.pfaRecord.lookItems && lookupResult.pfaRecord.lookItems.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {lookupResult.pfaRecord.lookItems.map((item, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 text-[10px]"
+                        >
+                          ✓ {item}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-start gap-2.5 text-xs text-amber-950">
+                  <span className="text-base leading-none mt-0.5">⏳</span>
+                  <div>
+                    <span className="font-bold text-amber-900 block">
+                      Status: Fase Akut (Hari 1–3) — PFA Belum Selesai
+                    </span>
+                    <p className="text-[11px] text-amber-800 leading-relaxed mt-0.5">
+                      Penyintas ini belum menyelesaikan Pertolongan Pertama Psikologis (Look-Listen-Link). Silakan lanjutkan PFA atau beralih ke wawancara lanjutan jika diperlukan.
+                    </p>
                   </div>
                 </div>
               )}
 
-              {/* Action Button: Lanjut ke SRQ-20 atau PFA */}
-              <div className="pt-1 space-y-2">
-                <button
-                  type="button"
-                  onClick={() => onSelectSurvivor(lookupResult, 'srq20')}
-                  className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition"
-                >
-                  <span>Mulai Wawancara SRQ-20 (Fase Lanjutan Hari 4–30)</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+              {/* Action Buttons: Pilihan Lanjut ke PFA atau SRQ-20 */}
+              <div className="pt-1 space-y-2.5">
+                {!(lookupResult.pfaRecord && lookupResult.pfaRecord.completedAt && !lookupResult.pfaRecord.completedAt.startsWith('Draf')) ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onSelectSurvivor(lookupResult, 'pfa')}
+                      className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Lanjutkan Intervensi PFA (Fase Akut Hari 1–3)</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onSelectSurvivor(lookupResult, 'srq20')}
+                      className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition"
+                    >
+                      <span>Lewati PFA & Buka Wawancara SRQ-20 (Hari 4–30)</span>
+                      <ArrowRight className="w-3 h-3 text-slate-400" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onSelectSurvivor(lookupResult, 'srq20')}
+                      className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition"
+                    >
+                      <span>Mulai Wawancara SRQ-20 (Fase Lanjutan Hari 4–30)</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onSelectSurvivor(lookupResult, 'pfa')}
+                      className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Lihat / Perbarui Catatan PFA (Fase Akut)</span>
+                    </button>
+                  </>
+                )}
+
                 <p className="text-[10px] text-center text-slate-400">
                   Data profil otomatis diambil menggunakan Survivor ID {lookupResult.id}.
                 </p>
@@ -363,36 +414,62 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
               </div>
 
               <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
-                {multipleMatches.map((survivor) => (
-                  <div
-                    key={survivor.id}
-                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 transition"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-slate-900">{survivor.name}</span>
-                        <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                          {survivor.id}
+                {multipleMatches.map((survivor) => {
+                  const hasPfaCompleted = Boolean(
+                    survivor.pfaRecord &&
+                      survivor.pfaRecord.completedAt &&
+                      !survivor.pfaRecord.completedAt.startsWith('Draf')
+                  );
+                  return (
+                    <div
+                      key={survivor.id}
+                      className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900">{survivor.name}</span>
+                          <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                            {survivor.id}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              hasPfaCompleted
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {hasPfaCompleted ? 'PFA Selesai' : 'PFA Belum Selesai'}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 block mt-1">
+                          {survivor.posko} · Usia {survivor.age} th · {survivor.gender === 'L' ? 'Laki-laki' : 'Perempuan'}
+                          {survivor.nik ? ` · NIK: ${survivor.nik}` : ' · NIK: Belum ada'}
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-500 block mt-0.5">
-                        {survivor.posko} · Usia {survivor.age} th · {survivor.gender === 'L' ? 'Laki-laki' : 'Perempuan'}
-                        {survivor.nik ? ` · NIK: ${survivor.nik}` : ' · NIK: Belum ada'}
-                      </span>
-                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLookupResult(survivor);
-                        setMultipleMatches([]);
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shrink-0"
-                    >
-                      Pilih
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLookupResult(survivor);
+                            setMultipleMatches([]);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                        >
+                          Detail
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onSelectSurvivor(survivor, hasPfaCompleted ? 'srq20' : 'pfa')}
+                          className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center gap-1"
+                        >
+                          <span>{hasPfaCompleted ? 'Wawancara SRQ' : 'Mulai PFA'}</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="text-center pt-1">

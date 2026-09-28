@@ -12,9 +12,11 @@ import {
   saveAssessmentLocally,
   syncPendingAssessments,
   syncAssessmentsWithSupabase,
+  hydrateFromIndexedDB,
 } from '../services/offlineStorage';
 import { isSupabaseConfigured } from '../services/supabaseClient';
-import { syncSurvivorsWithSupabase } from '../data/mockSurvivors';
+import { syncSurvivorsWithSupabase, hydrateSurvivorsFromIndexedDB } from '../data/mockSurvivors';
+import { isIndexedDBSupported, openIndexedDB } from '../services/indexedDbService';
 
 interface AssessmentContextValue {
   centralAssessments: AssessmentRecord[];
@@ -23,6 +25,7 @@ interface AssessmentContextValue {
   isOnline: boolean;
   isSyncing: boolean;
   isUsingSupabase: boolean;
+  isIndexedDBReady: boolean;
   syncSuccessBanner: string | null;
   toggleOnlineStatus: (explicitStatus?: boolean) => void;
   addAssessment: (record: Omit<AssessmentRecord, 'syncStatus'>) => { record: AssessmentRecord; isOfflineSaved: boolean };
@@ -37,6 +40,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [offlineQueue, setOfflineQueue] = useState<AssessmentRecord[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isIndexedDBReady, setIsIndexedDBReady] = useState<boolean>(false);
   const [syncSuccessBanner, setSyncSuccessBanner] = useState<string | null>(null);
   const isUsingSupabase = isSupabaseConfigured();
 
@@ -46,6 +50,27 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setOfflineQueue(getPendingAssessments());
     const online = getOnlineStatus();
     setIsOnline(online);
+
+    // Hydrate from IndexedDB on startup for high-capacity offline persistence
+    if (isIndexedDBSupported()) {
+      openIndexedDB()
+        .then(() => {
+          setIsIndexedDBReady(true);
+          return Promise.all([
+            hydrateFromIndexedDB(),
+            hydrateSurvivorsFromIndexedDB(),
+          ]);
+        })
+        .then(([idbRes]) => {
+          if (idbRes) {
+            setCentralAssessments(idbRes.assessments);
+            setOfflineQueue(idbRes.pending);
+          }
+        })
+        .catch((err) => {
+          console.warn('IndexedDB startup initialization note:', err);
+        });
+    }
 
     if (online && isUsingSupabase) {
       Promise.all([
@@ -170,6 +195,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       isOnline,
       isSyncing,
       isUsingSupabase,
+      isIndexedDBReady,
       syncSuccessBanner,
       toggleOnlineStatus,
       addAssessment,
@@ -183,6 +209,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       isOnline,
       isSyncing,
       isUsingSupabase,
+      isIndexedDBReady,
       syncSuccessBanner,
       toggleOnlineStatus,
       addAssessment,

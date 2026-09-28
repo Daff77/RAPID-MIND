@@ -25,7 +25,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onGoToHospital,
 }) => {
   const { currentUser, logout } = useAuth();
-  const { offlineQueue, triggerSync, isSyncing, isUsingSupabase } = useAssessment();
+  const { offlineQueue, triggerSync, isSyncing, isUsingSupabase, isIndexedDBReady } = useAssessment();
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
@@ -49,9 +49,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   <span>Supabase</span>
                 </span>
               ) : (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200" title="Menggunakan LocalStorage (Atur .env untuk Supabase Cloud)">
-                  <Database className="w-3 h-3 text-slate-500" />
-                  <span>Local DB</span>
+                <span
+                  className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border transition ${
+                    isIndexedDBReady
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-slate-100 text-slate-600 border border-slate-200'
+                  }`}
+                  title={
+                    isIndexedDBReady
+                      ? 'Database Browser: IndexedDB Aktif (RAPIDMIND_INDEXED_DB). Kapasitas tinggi tanpa batas 5MB.'
+                      : 'Menggunakan penyimpanan lokal browser'
+                  }
+                >
+                  <Database className={`w-3 h-3 ${isIndexedDBReady ? 'text-blue-600' : 'text-slate-500'}`} />
+                  <span>{isIndexedDBReady ? 'IndexedDB' : 'Local DB'}</span>
                 </span>
               )}
             </div>

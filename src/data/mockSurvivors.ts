@@ -4,6 +4,11 @@ import {
   upsertSurvivorToSupabase,
   updateSurvivorNikInSupabase,
 } from '../services/supabaseService';
+import {
+  idbSaveSurvivor,
+  idbBulkSaveSurvivors,
+  idbGetSurvivors,
+} from '../services/indexedDbService';
 
 /**
  * Initial empty survivor registry.
@@ -88,6 +93,11 @@ export function saveSurvivorToRegistry(survivor: SurvivorProfile): SurvivorProfi
     localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(updated));
   }
 
+  // Dual-Persistence: Asynchronous write to IndexedDB
+  idbSaveSurvivor(survivor).catch((err) => {
+    console.warn('IndexedDB survivor save failed:', err);
+  });
+
   // Background sync to Supabase if configured
   upsertSurvivorToSupabase(survivor).catch((err) => {
     console.warn('Background Supabase survivor upsert failed:', err);
@@ -115,12 +125,49 @@ export function updateSurvivorNik(id: string, newNik: string): SurvivorProfile |
     localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(current));
   }
 
+  // Dual-Persistence: Asynchronous write to IndexedDB
+  idbSaveSurvivor(updatedSurvivor).catch((err) => {
+    console.warn('IndexedDB survivor update failed:', err);
+  });
+
   // Background sync to Supabase if configured
   updateSurvivorNikInSupabase(id, newNik).catch((err) => {
     console.warn('Background Supabase NIK update failed:', err);
   });
 
   return updatedSurvivor;
+}
+
+/**
+ * Hydrates survivors from IndexedDB into memory/localStorage on application startup.
+ */
+export async function hydrateSurvivorsFromIndexedDB(): Promise<SurvivorProfile[]> {
+  try {
+    const idbList = await idbGetSurvivors();
+    let current = getStoredSurvivors();
+
+    if (idbList.length > 0) {
+      const map = new Map<string, SurvivorProfile>();
+      idbList.forEach((s) => map.set(s.id, s));
+      current.forEach((s) => {
+        if (!map.has(s.id)) {
+          map.set(s.id, s);
+        }
+      });
+      current = Array.from(map.values());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(current));
+      }
+    } else if (current.length > 0) {
+      // Seed initial mock records into IndexedDB
+      idbBulkSaveSurvivors(current).catch(() => {});
+    }
+
+    return current;
+  } catch (err) {
+    console.warn('Hydration of survivors from IndexedDB failed:', err);
+    return getStoredSurvivors();
+  }
 }
 
 /**

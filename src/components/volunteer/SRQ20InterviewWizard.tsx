@@ -13,6 +13,7 @@ import {
   ShieldAlert,
   MessageSquare,
   Info,
+  AlertCircle,
 } from 'lucide-react';
 import { SurvivorProfile, TriageAnalysisResult, TriageTier } from '../../types/assessment';
 import { SRQ20_QUESTIONS, SRQ20_ONBOARDING_SCRIPT } from '../../data/srq20Questions';
@@ -222,12 +223,39 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
     }));
   };
 
+  // Validation state: melarang lanjut ke Screen 6 jika masih ada soal yang kosong
+  const [validationAttempted, setValidationAttempted] = useState<boolean>(false);
+
   const answeredYesIds = Object.entries(answers)
     .filter(([, val]) => val === true)
     .map(([id]) => Number(id));
 
   const totalSRQScore = answeredYesIds.length;
   const isQuestion17Yes = answers[17] === true;
+
+  // Track completeness of 20 questions
+  const answeredQuestionsCount = SRQ20_QUESTIONS.filter(
+    (q) => answers[q.id] !== undefined
+  ).length;
+  const isAllSRQAnswered = answeredQuestionsCount === SRQ20_QUESTIONS.length;
+  const unansweredQuestions = SRQ20_QUESTIONS.filter(
+    (q) => answers[q.id] === undefined
+  );
+  const unansweredQuestionIds = unansweredQuestions.map((q) => q.id);
+
+  // Helper untuk menandai sisa butir yang belum terisi dengan "Tidak"
+  const handleFillRemainingAsNo = () => {
+    setAnswers((prev) => {
+      const updated = { ...prev };
+      SRQ20_QUESTIONS.forEach((q) => {
+        if (updated[q.id] === undefined) {
+          updated[q.id] = false;
+        }
+      });
+      return updated;
+    });
+    setValidationAttempted(false);
+  };
 
   // Calculate live subscores
   const riskFactorScoreTotal = selectedRiskFactors.reduce((acc, rfId) => {
@@ -243,6 +271,19 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
   const liveIntegratedScore = totalSRQScore + riskFactorScoreTotal + functionalScoreTotal;
 
   const handleProceedToFunctional = () => {
+    if (!isAllSRQAnswered) {
+      setValidationAttempted(true);
+      // Auto-scroll ke butir pertanyaan pertama yang masih kosong
+      const firstMissingId = unansweredQuestionIds[0];
+      if (firstMissingId) {
+        const el = document.getElementById(`srq-question-${firstMissingId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      return;
+    }
+    setValidationAttempted(false);
     setWizardStep('functional');
   };
 
@@ -519,14 +560,57 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </div>
           )}
 
-          {/* Score Counter */}
-          <div className="flex items-center justify-between px-1 text-xs">
-            <span className="font-bold text-slate-700">
-              Daftar 20 Butir Soal Terstandar WHO SRQ-20
-            </span>
-            <span className="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-              Skor 'Ya': {totalSRQScore} / 20
-            </span>
+          {/* Progress & Completion Status Bar */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-800">
+                  Daftar 20 Butir Soal Terstandar WHO SRQ-20
+                </span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] transition ${
+                    isAllSRQAnswered
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-amber-100 text-amber-800 border border-amber-300'
+                  }`}
+                >
+                  {isAllSRQAnswered
+                    ? '✓ 20/20 Terjawab Lengkap'
+                    : `${answeredQuestionsCount} / 20 Terjawab`}
+                </span>
+              </div>
+              <span className="font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200 text-xs">
+                Skor 'Ya': {totalSRQScore} / 20
+              </span>
+            </div>
+
+            {/* Visual Progress Bar */}
+            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  isAllSRQAnswered ? 'bg-emerald-500' : 'bg-blue-600'
+                }`}
+                style={{ width: `${(answeredQuestionsCount / 20) * 100}%` }}
+              />
+            </div>
+
+            {!isAllSRQAnswered && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-[11px]">
+                <span className="text-amber-800 font-medium">
+                  ⚠️ <strong>Wajib dijawab semua:</strong> Masih ada{' '}
+                  <strong className="text-amber-950">{unansweredQuestionIds.length}</strong> butir
+                  soal yang kosong.
+                </span>
+                <button
+                  type="button"
+                  onClick={handleFillRemainingAsNo}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-[10px] transition shrink-0 self-start sm:self-center flex items-center gap-1 shadow-2xs"
+                  title="Tandai semua soal yang belum diisi menjadi Tidak"
+                >
+                  <span>⚡ Set Sisa ({unansweredQuestionIds.length}) Menjadi 'Tidak'</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* List of 20 SRQ Questions */}
@@ -534,15 +618,22 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             {SRQ20_QUESTIONS.map((q) => {
               const currentVal = answers[q.id];
               const isExpanded = expandedTooltipId === q.id;
+              const isUnanswered = currentVal === undefined;
+              const isFlaggedMissing = validationAttempted && isUnanswered;
 
               return (
                 <div
                   key={q.id}
+                  id={`srq-question-${q.id}`}
                   className={`p-3.5 rounded-2xl border transition ${
-                    q.isRedFlag && currentVal === true
+                    isFlaggedMissing
+                      ? 'bg-rose-50/70 border-rose-400 ring-2 ring-rose-200'
+                      : q.isRedFlag && currentVal === true
                       ? 'bg-red-50 border-red-500'
                       : currentVal === true
                       ? 'bg-blue-50/70 border-blue-300'
+                      : currentVal === false
+                      ? 'bg-slate-50/90 border-slate-200'
                       : 'bg-white border-slate-200'
                   }`}
                 >
@@ -552,14 +643,40 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                         {q.id}
                       </span>
                       <div className="min-w-0 space-y-1">
-                        <span className={`text-xs block ${currentVal === true ? 'font-bold text-slate-900' : 'text-slate-800'}`}>
-                          {q.text}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span
+                            className={`text-xs ${
+                              currentVal === true ? 'font-bold text-slate-900' : 'text-slate-800'
+                            }`}
+                          >
+                            {q.text}
+                          </span>
                           {q.isRedFlag && (
-                            <span className="ml-1 text-[10px] text-red-600 font-bold uppercase">
+                            <span className="text-[10px] text-red-600 font-bold uppercase">
                               (🚨 Red Flag)
                             </span>
                           )}
-                        </span>
+
+                          {/* Status Badge */}
+                          {isFlaggedMissing ? (
+                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1 animate-pulse">
+                              <AlertCircle className="w-3 h-3" />
+                              <span>Wajib Diisi (Kosong)</span>
+                            </span>
+                          ) : currentVal === true ? (
+                            <span className="px-2 py-0.2 rounded-md bg-blue-100 text-blue-800 font-bold text-[10px]">
+                              Pilihan: YA
+                            </span>
+                          ) : currentVal === false ? (
+                            <span className="px-2 py-0.2 rounded-md bg-slate-200 text-slate-700 font-semibold text-[10px]">
+                              Pilihan: TIDAK
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.2 rounded-md bg-slate-100 text-slate-400 text-[10px]">
+                              Belum Dijawab
+                            </span>
+                          )}
+                        </div>
 
                         {/* Conversational Script */}
                         {q.scriptQuestion && (
@@ -576,7 +693,9 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                             className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 pt-0.5"
                           >
                             <HelpCircle className="w-3 h-3" />
-                            <span>{isExpanded ? 'Sembunyikan Panduan Relawan' : 'Lihat Petunjuk Relawan'}</span>
+                            <span>
+                              {isExpanded ? 'Sembunyikan Panduan Relawan' : 'Lihat Petunjuk Relawan'}
+                            </span>
                           </button>
 
                           {isExpanded && (
@@ -588,7 +707,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                       </div>
                     </div>
 
-                    {/* Fat-Finger Friendly Yes/No Controls (Height >= 56px in mobile or prominent buttons) */}
+                    {/* Fat-Finger Friendly Yes/No Controls */}
                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                       <button
                         type="button"
@@ -625,19 +744,67 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
           </div>
 
           {/* Action to proceed to Screen 6 */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-xs text-slate-500">
-              Skor SRQ Sementara: <strong className="text-slate-900">{totalSRQScore}</strong> / 20
-            </span>
+          <div className="pt-3 border-t border-slate-100 space-y-3">
+            {validationAttempted && !isAllSRQAnswered && (
+              <div className="p-3.5 bg-rose-50 border border-rose-300 rounded-2xl flex items-start gap-2.5 text-rose-950 animate-in fade-in">
+                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <span className="font-bold block text-rose-900">
+                    Tidak dapat lanjut: Seluruh 20 butir soal SRQ-20 wajib dijawab!
+                  </span>
+                  <span className="text-[11px] text-rose-800 block mt-0.5">
+                    Tersisa <strong>{unansweredQuestionIds.length} butir</strong> yang masih kosong
+                    (Butir #{unansweredQuestionIds.slice(0, 8).join(', #')}
+                    {unansweredQuestionIds.length > 8 ? '...' : ''}). Harap pilih opsi "Ya" atau
+                    "Tidak" pada setiap pertanyaan sebelum melanjutkan ke Screen 6.
+                  </span>
+                </div>
+              </div>
+            )}
 
-            <button
-              type="button"
-              onClick={handleProceedToFunctional}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition min-h-[48px]"
-            >
-              <span>Lanjut ke Evaluasi Faktor Risiko & Fungsi</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-xs text-slate-500">
+                <div className="flex items-center gap-2">
+                  <span>
+                    Skor 'Ya': <strong className="text-slate-900">{totalSRQScore}</strong> / 20
+                  </span>
+                  <span>·</span>
+                  <span
+                    className={
+                      isAllSRQAnswered
+                        ? 'text-emerald-700 font-semibold'
+                        : 'text-amber-800 font-semibold'
+                    }
+                  >
+                    {isAllSRQAnswered
+                      ? '✓ 20 Terjawab Lengkap'
+                      : `${answeredQuestionsCount} / 20 Terjawab`}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleProceedToFunctional}
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition min-h-[48px] ${
+                  isAllSRQAnswered
+                    ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white shadow-xs cursor-pointer'
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700 border border-slate-300 cursor-pointer'
+                }`}
+                title={
+                  isAllSRQAnswered
+                    ? 'Lanjut ke Evaluasi Faktor Risiko & Fungsi'
+                    : `Harap lengkapi 20 soal (${answeredQuestionsCount}/20 terjawab)`
+                }
+              >
+                <span>
+                  {isAllSRQAnswered
+                    ? 'Lanjut ke Evaluasi Faktor Risiko & Fungsi'
+                    : `Lengkapi 20 Soal (${answeredQuestionsCount}/20 Terjawab)`}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}
