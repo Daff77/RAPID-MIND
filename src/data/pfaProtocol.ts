@@ -5,82 +5,107 @@ export interface PFACheckItem {
   isUrgent?: boolean;
 }
 
+export const PFA_PRINCIPLE =
+  'Prinsip Utama: Hadir Utuh, Dengarkan, Jangan Menghakimi, dan Berikan Rasa Aman.';
+
+/**
+ * 👁️ TAHAP 1: LOOK (AMATI)
+ * Lakukan pemindaian visual singkat selama 10–15 detik sebelum mendekati penyintas.
+ */
 export const PFA_LOOK_ITEMS: PFACheckItem[] = [
   {
-    id: 'look_safety',
+    id: 'look_safety_environment',
     label: 'Keamanan Lingkungan Posko',
-    subtext: 'Penyintas berada di area yang aman dari reruntuhan, tanah longsor, atau bahaya fisik lain.',
+    subtext: 'Area sekitar aman dari bahaya fisik susulan (reruntuhan, cuaca ekstrem, jalanan licin).',
   },
   {
     id: 'look_physical_injury',
-    label: 'Cedera Fisik yang Memerlukan Medis Darurat',
-    subtext: 'Periksa adanya perdarahan, patah tulang, atau luka bakar yang butuh penanganan tenaga medis segera.',
+    label: 'Luka Fisik / Cedera Berat',
+    subtext: 'Perhatikan apakah penyintas mengalami luka berdarah atau cedera berat. (Jika ada: Segera arahkan ke Tenda Medis/Faskes).',
     isUrgent: true,
   },
   {
-    id: 'look_severe_distress',
-    label: 'Tanda Distres Ekstrem / Pembekuan Emosi (Shock)',
-    subtext: 'Penyintas tampak menatap kosong (mutisme), tidak merespons panggilan, atau gemetar hebat tak terkendali.',
+    id: 'look_shock_mutism',
+    label: 'Reaksi Shock / Mutisme',
+    subtext: 'Tatapan mata kosong, mematung, atau tidak merespons saat disapa.',
     isUrgent: true,
   },
   {
-    id: 'look_children_elderly',
-    label: 'Kelompok Rentan (Anak / Lansia / Ibu Hamil)',
-    subtext: 'Perhatikan anak tanpa pendamping orang tua atau lansia yang terpisah dari keluarga inti.',
+    id: 'look_hysteria',
+    label: 'Reaksi Histeria / Hiperventilasi',
+    subtext: 'Menangis tanpa henti, gemetar hebat, atau napas sangat cepat (hyperventilation).',
+    isUrgent: true,
+  },
+  {
+    id: 'look_agitation',
+    label: 'Reaksi Agitasi / Amuk',
+    subtext: 'Ngamuk, berteriak-teriak, atau berperilaku membahayakan diri/orang lain.',
+    isUrgent: true,
   },
 ];
 
-export const PFA_LISTEN_GUIDELINES = [
+export const PFA_VOLUNTEER_LOOK_TIP =
+  '💡 Petunjuk Relawan: Jika Anda melihat tanda distres di atas, dekati secara perlahan. Gunakan suara yang lembut dan tenang.';
+
+/**
+ * 👂 TAHAP 2: LISTEN (DENGARKAN)
+ * Fokus utama: Menenangkan dan memfasilitasi emosi penyintas.
+ */
+export const PFA_LISTEN_GREETING_SCRIPT =
+  'Halo Ibu/Bapak, kenalkan saya [Nama], relawan pendamping di posko ini. Saya di sini untuk menemani Ibu/Bapak. Ada yang bisa saya bantu atau temani saat ini?';
+
+export const PFA_DOS_AND_DONTS = {
+  dos: [
+    'Duduk sejajar (posisi mata sama tinggi dengan penyintas).',
+    'Berikan kontak mata yang hangat dan anggukan kepala tanda Anda mendengarkan.',
+    'Sediakan air minum atau tisu jika penyintas menangis.',
+  ],
+  donts: [
+    'JANGAN memaksa penyintas menceritakan kronologi kejadian bencana.',
+    'JANGAN memberi janji palsu (Contoh salah: "Sabar ya, rumahnya pasti nanti diganti kok").',
+    'JANGAN memotong pembicaraan atau membandingkan musibah mereka dengan orang lain.',
+  ],
+};
+
+export const PFA_GROUNDING_STEPS = {
+  title: 'Teknik Grounding 5-4-3-2-1 (Gunakan Jika Penyintas Panik/Cemas)',
+  intro: 'Ajak penyintas melakukan latihan fokus fisik singkat berikut untuk mengembalikan kesadarannya:',
+  steps: [
+    { title: 'Napas', script: 'Ayo tarik napas pelan-pelan bersama saya... Tahan... Hembuskan...' },
+    { title: 'Lihat', script: 'Sebutkan 3 benda yang ada di sekitar Ibu/Bapak saat ini.' },
+    { title: 'Sentuh', script: 'Rasakan pijakan kedua kaki Ibu/Bapak di tanah dan pegang gelas air ini.' },
+  ],
+};
+
+/**
+ * 🔗 TAHAP 3: LINK (HUBUNGKAN)
+ * Bantu penyintas menemukan kembali rasa kendali atas kebutuhan dasarnya.
+ */
+export const PFA_LINK_LOGISTICS_ITEMS: PFACheckItem[] = [
   {
-    title: 'Sapa & Perkenalkan Diri',
-    instruction: 'Ucapkan salam dengan nada tenang: "Halo Bapak/Ibu, saya [Nama] relawan psikososial di sini. Saya hadir untuk menemani Anda."',
+    id: 'link_water_food',
+    label: 'Air Minum & Makanan Siap Saji',
+    subtext: 'Pemenuhan hidrasi dan makanan hangat paling mendesak detik ini.',
   },
   {
-    title: 'Dengarkan Tanpa Memaksa',
-    instruction: 'Jangan menanyakan detail kronologi saat rumah roboh. Cukup tanyakan: "Apa yang paling Anda butuhkan dan rasakan saat ini?"',
+    id: 'link_blanket_clothes',
+    label: 'Selimut Hangat & Pakaian Kering',
+    subtext: 'Perlindungan dari kedinginan atau pakaian basah/kotor.',
   },
   {
-    title: 'Validasi Emosi',
-    instruction: 'Katakan bahwa rasa sedih, syok, bingung, atau takut adalah reaksi yang sangat wajar terhadap peristiwa luar biasa ini.',
+    id: 'link_medication',
+    label: 'Obat-obatan Pribadi Hilang / Tercecer',
+    subtext: 'Identifikasi kebutuhan obat rutin (hipertensi, diabetes, asma, dll).',
   },
   {
-    title: 'Teknik Grounding / Penenangan (Jika Panik/Sesak)',
-    instruction: 'Ajak tarik napas dalam: Tarik napas 4 detik, tahan 4 detik, hembuskan perlahan 6 detik. Minta sebutkan 3 benda yang dilihat di tenda.',
+    id: 'link_baby_elderly',
+    label: 'Popok / Perlengkapan Bayi & Lansia',
+    subtext: 'Kebutuhan khusus untuk kelompok paling rentan.',
   },
 ];
 
-export const PFA_LINK_ITEMS: PFACheckItem[] = [
-  {
-    id: 'link_food_water',
-    label: 'Kebutuhan Pangan & Air Bersih',
-    subtext: 'Menghubungkan dengan dapur umum posko dan distribusi air minum bersih.',
-  },
-  {
-    id: 'link_shelter_blanket',
-    label: 'Tempat Bernaung & Selimut Hangat',
-    subtext: 'Memastikan korban memiliki tempat tidur terlindung dari hujan, alas tidur, dan selimut.',
-  },
-  {
-    id: 'link_family_search',
-    label: 'Reunifikasi / Pencarian Kontak Keluarga',
-    subtext: 'Membantu menghubungi keluarga via telepon/WhatsApp relawan atau posko pencarian orang hilang.',
-  },
-  {
-    id: 'link_health_post',
-    label: 'Layanan Medis Posko / Obat Rutin',
-    subtext: 'Menghubungkan ke pos kesehatan terdekat jika memiliki riwayat hipertensi, diabetes, atau asma.',
-  },
-  {
-    id: 'link_factual_info',
-    label: 'Informasi Resmi & Menangkal Hoaks',
-    subtext: 'Memberikan informasi resmi BMKG/BPBD agar penyintas tidak termakan kabar bohong tentang gempa susulan.',
-  },
-];
+export const PFA_LINK_SOCIAL_SCRIPT =
+  'Apakah ada anggota keluarga inti atau kerabat dekat yang ingin Ibu/Bapak hubungi saat ini? (Bantu sambungkan ke Posko Informasi / Pencarian Orang Hilang jika terpisah dari keluarga).';
 
-export const FUNCTIONAL_IMPAIRMENT_ITEMS = [
-  { id: 'func_sleep', label: 'Terganggu tidur berat (kurang dari 3 jam atau mimpi buruk terus-menerus)' },
-  { id: 'func_eating', label: 'Penurunan asupan makan/minum drastis selama > 48 jam' },
-  { id: 'func_selfcare', label: 'Tidak mampu merawat kebersihan diri dasar tanpa bantuan penuh orang lain' },
-  { id: 'func_social', label: 'Menarik diri total / menolak kontak dengan keluarga dan warga posko' },
-  { id: 'func_agitation', label: 'Ledakan amarah tak terkendali atau histeria saat dipicu suara sekitar' },
-];
+export const PFA_CLOSING_SCRIPT =
+  'Merasa sedih, cemas, atau bingung setelah kejadian ini adalah hal yang sangat wajar, Bu/Pak. Ibu/Bapak tidak sendiri. Saya dan tim relawan ada di sekitar posko ini jika Ibu/Bapak membutuhkan bantuan lagi ya.';

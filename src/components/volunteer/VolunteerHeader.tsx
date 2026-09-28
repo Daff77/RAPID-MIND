@@ -45,26 +45,26 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
 
         {/* Status & Profile */}
         <div className="flex items-center gap-2">
-          {/* Status Toggle Button */}
+          {/* Status Toggle Button (Fitur Efisiensi Garda Depan: [📶 OFF] / [📶 ON]) */}
           <button
             type="button"
             onClick={() => toggleOnlineStatus()}
-            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border transition ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition ${
               isOnline
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'bg-amber-50 border-amber-200 text-amber-800'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                : 'bg-amber-100 border-amber-300 text-amber-900 font-extrabold'
             }`}
-            title="Toggle online/offline mode"
+            title="Klik untuk beralih mode online / offline (IndexedDB Sync)"
           >
             {isOnline ? (
               <>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>ONLINE</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>[📶 ON]</span>
               </>
             ) : (
               <>
-                <WifiOff className="w-3 h-3 text-amber-600" />
-                <span>OFFLINE</span>
+                <WifiOff className="w-3.5 h-3.5 text-amber-700" />
+                <span>[📶 OFF]</span>
               </>
             )}
           </button>

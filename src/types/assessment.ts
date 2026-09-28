@@ -23,9 +23,34 @@ export interface SRQ20Question {
   id: number;
   text: string;
   category: 'somatic' | 'anxiety' | 'depressive' | 'cognitive' | 'energy' | 'safety';
+  scriptQuestion?: string; // Percakapan santai yang diucapkan relawan ke penyintas
   volunteerInstruction: string;
   keywords: string[];
   isRedFlag?: boolean;
+}
+
+export interface RiskFactorItem {
+  id: string; // 'R1' | 'R2' | 'R3' | 'R4' | 'R5'
+  code: string;
+  title: string;
+  category: string;
+  points: number;
+  description: string;
+}
+
+export interface FunctionalDomainOption {
+  level: 'green' | 'yellow' | 'red';
+  label: string;
+  points: number;
+  detail: string;
+}
+
+export interface FunctionalDomain {
+  id: string; // 'F1' | 'F2' | 'F3'
+  code: string;
+  title: string;
+  question: string;
+  options: FunctionalDomainOption[];
 }
 
 export interface PFARecord {
@@ -87,6 +112,12 @@ export interface AssessmentRecord {
   checklistSelections?: string[];
   srq20YesList?: number[];
   functionalSelections?: string[];
+  riskFactorSelections?: string[]; // IDs like 'R1', 'R2'
+  riskFactorScore?: number; // 0 - 8
+  functionalScores?: Record<string, number>; // { F1: 0|1|3, F2: 0|1|3, F3: 0|1|3 }
+  functionalScoreTotal?: number; // 0 - 9
+  totalIntegratedScore?: number; // 0 - 37
+  statusTitle?: string; // Recommendation for Priority Clinical Assessment, etc.
   recommendedAction: string;
   syncStatus: SyncStatus;
   volunteerNotes?: string;
@@ -106,7 +137,11 @@ export interface AssessmentRecord {
 export interface TriageAnalysisResult {
   zone: TriageZone;
   triageTier: TriageTier;
-  score: number;
+  score: number; // SRQ-20 score (0-20)
+  riskFactorScore?: number; // 0 - 8
+  functionalScore?: number; // 0 - 9
+  totalIntegratedScore?: number; // 0 - 37
+  statusTitle?: string;
   indicators: string[];
   criticalTriggered: boolean;
   recommendedAction: string;

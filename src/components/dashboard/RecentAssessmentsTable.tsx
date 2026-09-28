@@ -149,23 +149,64 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">
-                    Risk Score
+                    Skor Integrasi & Klasifikasi
                   </span>
                   <span className="text-base font-bold text-slate-900">
-                    {selectedModalRecord.score} / 5
+                    {selectedModalRecord.totalIntegratedScore !== undefined
+                      ? `${selectedModalRecord.totalIntegratedScore} / 37 Point`
+                      : `${selectedModalRecord.score} Point`}
                   </span>
+                  {selectedModalRecord.statusTitle && (
+                    <span className="text-[10px] text-blue-700 block font-bold mt-0.5">
+                      {selectedModalRecord.statusTitle}
+                    </span>
+                  )}
                 </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">
-                    Sync Status
+                    Triage Tier
                   </span>
-                  <span className="text-emerald-700 font-semibold mt-0.5 inline-block">
-                    ✓ Synced to Central Hub
-                  </span>
+                  <div className="mt-1">
+                    {selectedModalRecord.triageTier === 'T0' ? (
+                      <span className="px-2 py-0.5 rounded-lg bg-red-600 text-white font-black text-xs">
+                        🚨 T0 EMERGENCY
+                      </span>
+                    ) : selectedModalRecord.triageTier === 'T1' ? (
+                      <span className="px-2 py-0.5 rounded-lg bg-red-100 text-red-800 font-bold text-xs border border-red-300">
+                        🔴 T1 HIGH RISK
+                      </span>
+                    ) : selectedModalRecord.triageTier === 'T2' ? (
+                      <span className="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">
+                        🟡 T2 MODERATE
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 font-bold text-xs border border-emerald-300">
+                        🟢 T3 LOW RISK
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* Rincian Komponen Skor Integrasi */}
+              {selectedModalRecord.totalIntegratedScore !== undefined && (
+                <div className="grid grid-cols-3 gap-2 text-center text-xs p-2.5 bg-blue-50/60 rounded-xl border border-blue-100">
+                  <div className="bg-white p-1.5 rounded-lg border border-blue-100">
+                    <span className="text-[10px] text-slate-500 block">SRQ-20</span>
+                    <strong className="text-slate-800">{selectedModalRecord.score} / 20</strong>
+                  </div>
+                  <div className="bg-white p-1.5 rounded-lg border border-blue-100">
+                    <span className="text-[10px] text-slate-500 block">Faktor Risiko (A)</span>
+                    <strong className="text-slate-800">{selectedModalRecord.riskFactorScore ?? 0} / 8</strong>
+                  </div>
+                  <div className="bg-white p-1.5 rounded-lg border border-blue-100">
+                    <span className="text-[10px] text-slate-500 block">Fungsi Harian (B)</span>
+                    <strong className="text-slate-800">{selectedModalRecord.functionalScoreTotal ?? 0} / 9</strong>
+                  </div>
+                </div>
+              )}
 
               {selectedModalRecord.transcript && (
                 <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
@@ -305,7 +346,7 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
               <th className="py-2.5 px-3.5 whitespace-nowrap">Tahap / Jenis</th>
               <th className="py-2.5 px-3.5 whitespace-nowrap">Waktu</th>
               <th className="py-2.5 px-3.5 whitespace-nowrap">Lokasi</th>
-              <th className="py-2.5 px-3.5 whitespace-nowrap">Metode</th>
+              <th className="py-2.5 px-3.5 whitespace-nowrap">Skor Integrasi</th>
               <th className="py-2.5 px-3.5 whitespace-nowrap">Status Risiko</th>
               <th className="py-2.5 px-3.5 whitespace-nowrap">Sinkronisasi</th>
               <th className="py-2.5 px-3.5 text-right whitespace-nowrap">Aksi</th>
@@ -345,9 +386,9 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
                     <td className="py-2.5 px-3.5 font-medium text-slate-800 whitespace-nowrap">
                       {row.location}
                     </td>
-                    <td className="py-2.5 px-3.5 text-slate-500 whitespace-nowrap">
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600">
-                        {row.method}
+                    <td className="py-2.5 px-3.5 whitespace-nowrap">
+                      <span className="font-mono font-bold text-slate-900 text-xs">
+                        {row.totalIntegratedScore !== undefined ? `${row.totalIntegratedScore}/37` : `${row.score} pt`}
                       </span>
                     </td>
                     <td className="py-2.5 px-3.5 whitespace-nowrap">

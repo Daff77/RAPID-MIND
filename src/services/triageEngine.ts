@@ -1,5 +1,6 @@
 import { TriageZone, TriageTier, TriageAnalysisResult } from '../types/assessment';
 import { SRQ20_QUESTIONS } from '../data/srq20Questions';
+import { RISK_FACTOR_ITEMS } from '../data/riskAndFunctionalAssessment';
 
 export interface KeywordRule {
   term: string;
@@ -17,45 +18,39 @@ export const DICTIONARY_INDICATORS: KeywordRule[] = [
   { term: 'harm to others', category: 'critical', label: 'Risk of harm to others' },
   { term: 'kehilangan kendali', category: 'critical', label: 'Kehilangan kendali (Loss of control)' },
   { term: 'lost control', category: 'critical', label: 'Loss of behavioral control' },
-  { term: 'loss of control', category: 'critical', label: 'Loss of behavioral control' },
   { term: 'bunuh diri', category: 'critical', label: 'Ideasi bunuh diri (Suicide ideation)' },
+  { term: 'mati', category: 'critical', label: 'Ideasi ingin mati' },
+  { term: 'nyerah', category: 'critical', label: 'Ungkapan menyerah hidup' },
+  { term: 'nyusul', category: 'critical', label: 'Ungkapan ingin menyusul' },
   { term: 'suicide', category: 'critical', label: 'Suicidal intent' },
-  { term: 'suicidal', category: 'critical', label: 'Suicidal behavior' },
   { term: 'halusinasi', category: 'critical', label: 'Halusinasi / Delusi' },
-  { term: 'hallucination', category: 'critical', label: 'Severe hallucination' },
+  { term: 'disosiasi', category: 'critical', label: 'Disosiasi berat / Katatonia' },
 
   // Moderate distress indicators (Yellow)
   { term: 'takut', category: 'yellow', label: 'Takut (Fear)' },
-  { term: 'scared', category: 'yellow', label: 'Fear / Scared' },
-  { term: 'afraid', category: 'yellow', label: 'Fear / Afraid' },
-  { term: 'fear', category: 'yellow', label: 'Fear' },
+  { term: 'was-was', category: 'yellow', label: 'Was-was (Apprehension)' },
+  { term: 'gampang kaget', category: 'yellow', label: 'Gampang kaget' },
   { term: 'cemas', category: 'yellow', label: 'Cemas (Anxiety)' },
-  { term: 'anxious', category: 'yellow', label: 'Anxious' },
-  { term: 'anxiety', category: 'yellow', label: 'Severe anxiety' },
+  { term: 'tegang', category: 'yellow', label: 'Tegang (Tension)' },
   { term: 'panik', category: 'yellow', label: 'Panik (Panic)' },
-  { term: 'panic', category: 'yellow', label: 'Panic' },
-  { term: 'panicked', category: 'yellow', label: 'Panicked state' },
-  { term: 'bingung', category: 'yellow', label: 'Bingung (Disoriented)' },
-  { term: 'confused', category: 'yellow', label: 'Confusion' },
-  { term: 'disoriented', category: 'yellow', label: 'Disorientation' },
-  { term: 'sedih', category: 'yellow', label: 'Sedih mendalam (Deep sadness)' },
-  { term: 'sad', category: 'yellow', label: 'Profound sadness' },
-  { term: 'crying', category: 'yellow', label: 'Persistent crying' },
-  { term: 'menangis', category: 'yellow', label: 'Menangis terus-menerus' },
-  { term: 'khawatir', category: 'yellow', label: 'Khawatir (Worry/Apprehension)' },
-  { term: 'worried', category: 'yellow', label: 'Severe worry' },
-  { term: 'tidak tenang', category: 'yellow', label: 'Tidak tenang (Restlessness)' },
-  { term: 'restless', category: 'yellow', label: 'Restlessness' },
-  { term: 'cant calm down', category: 'yellow', label: 'Inability to calm down' },
-  { term: "can't calm down", category: 'yellow', label: 'Inability to calm down' },
+  { term: 'bingung', category: 'yellow', label: 'Bingung / Linglung' },
+  { term: 'linglung', category: 'yellow', label: 'Linglung' },
+  { term: 'sedih', category: 'yellow', label: 'Sedih mendalam' },
+  { term: 'hampa', category: 'yellow', label: 'Perasaan hampa' },
+  { term: 'menangis', category: 'yellow', label: 'Menangis terus' },
+  { term: 'nangis', category: 'yellow', label: 'Nangis terus' },
   { term: 'gemetar', category: 'yellow', label: 'Gemetar / Tremor fisik' },
-  { term: 'shaking', category: 'yellow', label: 'Physical trembling/shaking' },
-  { term: 'sesak', category: 'yellow', label: 'Sesak emosional / Hiperventilasi' },
-  { term: 'trauma', category: 'yellow', label: 'Reaksi trauma akut' },
+  { term: 'deg-degan', category: 'yellow', label: 'Dada berdebar-debar' },
+  { term: 'mual', category: 'yellow', label: 'Mual psikosomatik' },
+  { term: 'tidak nafsu makan', category: 'yellow', label: 'Penurunan nafsu makan' },
+  { term: 'males makan', category: 'yellow', label: 'Kehilangan selera makan' },
+  { term: 'gak bisa tidur', category: 'yellow', label: 'Insomnia / Gangguan tidur' },
+  { term: 'lelah terus', category: 'yellow', label: 'Kelelahan psikis kronis' },
 ];
 
 /**
  * Scan transcript and detect matched SRQ-20 question IDs via NLP keywords
+ * Sesuai daftar kata kunci dokumen panduan wawancara relawan
  */
 export function matchSRQ20Keywords(transcript: string): number[] {
   if (!transcript.trim()) return [];
@@ -79,6 +74,11 @@ export function matchSRQ20Keywords(transcript: string): number[] {
 export interface CentralTriageDecision {
   tier: TriageTier;
   zone: TriageZone;
+  statusTitle: string;
+  totalIntegratedScore: number;
+  srqScore: number;
+  riskFactorScore: number;
+  functionalScore: number;
   reason: string;
   recommendation: string;
   emergencyStatus?: 'T0-Suspect' | 'T0-Confirmed' | 'Downgraded';
@@ -86,14 +86,99 @@ export interface CentralTriageDecision {
 
 /**
  * SATU SUMBER LOGIKA TRIASE TERPUSAT (Single Source of Truth)
- * Sesuai spesifikasi Section 11:
- * calculateTriage(srqScore, item17, functionalScore, redFlag)
+ * Sesuai Dokumen Resmi RAPID-MIND Full Paper:
  *
- * Aturan:
- * - T0 (EMERGENCY): Red Flag = true OR SRQ-20 Item #17 = YES
- * - T1 (HIGH RISK): SRQ-20 >= 11 OR Functional impairment >= 3
- * - T2 (MODERATE RISK): (SRQ-20 = 6–10) OR (Functional impairment = 1–2)
- * - T3 (LOW RISK): SRQ-20 = 0–5 AND Functional impairment = 0
+ * Formula:
+ * Total Integrated Score = Skor SRQ20 (0-20) + Skor Risk Factor (0-8) + Skor Functional (0-9)
+ * Rentang Total Skor: 0 - 37 Point
+ *
+ * THRESHOLD:
+ * 1. T0 (CRITICAL EMERGENCY): Red Flag = true OR SRQ-20 Item #17 = "Ya"
+ *    -> Bypassing Score Engine. Status: T0-Suspect.
+ * 2. T1 (HIGH RISK): Total Integrated Score >= 15 Point (ATAU Skor Keberfungsian F >= 6 Point)
+ *    -> Status: "Recommendation for Priority Clinical Assessment"
+ * 3. T2 (MODERATE RISK): Total Integrated Score 7 – 14 Point
+ *    -> Status: "Recommendation for Psychosocial Follow-Up"
+ * 4. T3 (LOW RISK): Total Integrated Score 0 – 6 Point
+ *    -> Status: "Routine Community Support"
+ */
+export function calculateIntegratedTriage(
+  srqScore: number,
+  item17: boolean,
+  riskFactorScore: number = 0,
+  functionalScore: number = 0,
+  redFlag: boolean = false
+): CentralTriageDecision {
+  const totalIntegratedScore = srqScore + riskFactorScore + functionalScore;
+
+  // 1. T0 EMERGENCY: Bypassing Score Engine
+  if (redFlag || item17) {
+    return {
+      tier: 'T0',
+      zone: 'RED',
+      statusTitle: 'T0 Critical Emergency (Red Flag Override)',
+      totalIntegratedScore,
+      srqScore,
+      riskFactorScore,
+      functionalScore,
+      reason: redFlag
+        ? 'Floating Red Flag Emergency aktif (Krisis bunuh diri, psikosis akut, amuk/agitasi, atau kegawatan medis). Sistem langsung mengunci ke status T0-Suspect (Bypassing Score Engine).'
+        : 'SRQ-20 Butir #17 bernilai YA (Ideasi Mengakhiri Hidup / Bunuh Diri). Otomatis dialihkan ke status T0-Suspect tanpa menunggu kalkulasi skor akhir.',
+      recommendation: getTierRecommendedAction('T0'),
+      emergencyStatus: 'T0-Suspect',
+    };
+  }
+
+  // 2. T1 HIGH RISK: Total Integrated Score >= 15 Point ATAU Skor Keberfungsian F >= 6 Point
+  if (totalIntegratedScore >= 15 || functionalScore >= 6) {
+    return {
+      tier: 'T1',
+      zone: 'RED',
+      statusTitle: 'Recommendation for Priority Clinical Assessment',
+      totalIntegratedScore,
+      srqScore,
+      riskFactorScore,
+      functionalScore,
+      reason: `Tingkat Risiko Tinggi (T1): Total Skor Integrasi = ${totalIntegratedScore}/37 (SRQ: ${srqScore}, Risiko: ${riskFactorScore}, Fungsi: ${functionalScore}). ${
+        functionalScore >= 6
+          ? 'Terdapat kelumpuhan fungsi harian berat (Skor F >= 6).'
+          : 'Total skor melampaui ambang batas klinis (>= 15).'
+      } Penyintas mengalami distres emosional berat yang memerlukan asesmen klinis prioritas.`,
+      recommendation: getTierRecommendedAction('T1'),
+    };
+  }
+
+  // 3. T2 MODERATE RISK: Total Integrated Score 7 – 14 Point
+  if (totalIntegratedScore >= 7 && totalIntegratedScore <= 14) {
+    return {
+      tier: 'T2',
+      zone: 'YELLOW',
+      statusTitle: 'Recommendation for Psychosocial Follow-Up',
+      totalIntegratedScore,
+      srqScore,
+      riskFactorScore,
+      functionalScore,
+      reason: `Tingkat Risiko Sedang (T2): Total Skor Integrasi = ${totalIntegratedScore}/37 (SRQ: ${srqScore}, Risiko: ${riskFactorScore}, Fungsi: ${functionalScore}). Distres emosional tingkat sedang atau skor SRQ sedang yang diperberat faktor kerentanan posko.`,
+      recommendation: getTierRecommendedAction('T2'),
+    };
+  }
+
+  // 4. T3 LOW RISK: Total Integrated Score 0 – 6 Point
+  return {
+    tier: 'T3',
+    zone: 'GREEN',
+    statusTitle: 'Routine Community Support',
+    totalIntegratedScore,
+    srqScore,
+    riskFactorScore,
+    functionalScore,
+    reason: `Tingkat Risiko Rendah (T3): Total Skor Integrasi = ${totalIntegratedScore}/37 (SRQ: ${srqScore}, Risiko: ${riskFactorScore}, Fungsi: ${functionalScore}). Gejala emosional tergolong wajar pascabencana, keberfungsian harian mandiri, dan adaptif/resilien.`,
+    recommendation: getTierRecommendedAction('T3'),
+  };
+}
+
+/**
+ * Backward compatibility wrapper for calculateTriage
  */
 export function calculateTriage(
   srqScore: number,
@@ -101,56 +186,44 @@ export function calculateTriage(
   functionalScore: number,
   redFlag: boolean
 ): CentralTriageDecision {
-  if (redFlag || item17) {
-    return {
-      tier: 'T0',
-      zone: 'RED',
-      reason: redFlag
-        ? 'Red Flag Emergency terverifikasi via 3 Verification Gates. Otomatis masuk status T0-Suspect.'
-        : 'SRQ-20 Butir #17 bernilai YA (Ideasi Bunuh Diri / Mengakhiri Hidup). Otomatis masuk status T0-Suspect tanpa menunggu skor akhir.',
-      recommendation: getTierRecommendedAction('T0'),
-      emergencyStatus: 'T0-Suspect',
-    };
-  }
-
-  if (srqScore >= 11 || functionalScore >= 3) {
-    return {
-      tier: 'T1',
-      zone: 'RED',
-      reason: `Tingkat Risiko Tinggi (T1): Skor SRQ-20 = ${srqScore} (≥ 11) atau Hendaya Fungsi Harian = ${functionalScore} (≥ 3). Menunjukkan distres psikologis berat / risiko PTSD.`,
-      recommendation: getTierRecommendedAction('T1'),
-    };
-  }
-
-  if ((srqScore >= 6 && srqScore <= 10) || (functionalScore >= 1 && functionalScore <= 2)) {
-    return {
-      tier: 'T2',
-      zone: 'YELLOW',
-      reason: `Tingkat Risiko Sedang (T2): Skor SRQ-20 = ${srqScore} (6–10) atau Hendaya Fungsi Harian = ${functionalScore} (1–2). Memerlukan pendampingan PFA berkala.`,
-      recommendation: getTierRecommendedAction('T2'),
-    };
-  }
-
-  return {
-    tier: 'T3',
-    zone: 'GREEN',
-    reason: `Tingkat Risiko Rendah (T3): Skor SRQ-20 = ${srqScore} (0–5) dan fungsi harian terpelihara. Reaksi adaptasi stres bencana stabil.`,
-    recommendation: getTierRecommendedAction('T3'),
-  };
+  return calculateIntegratedTriage(srqScore, item17, 0, functionalScore, redFlag);
 }
 
 /**
- * Evaluator for SRQ-20 (Fase Lanjutan Hari 4-30) + Functional Impairments
- * Uses calculateTriage as the single source of truth.
+ * Evaluator for Complete Integrated Assessment (SRQ-20 + Risk Factors + Functional Domains)
  */
-export function evaluateSRQ20(
+export function evaluateIntegratedAssessment(
   yesQuestionIds: number[] = [],
-  functionalIds: string[] = [],
+  selectedRiskFactorIds: string[] = [],
+  functionalScoresMap: Record<string, number> = {},
   isManualRedFlag: boolean = false
 ): TriageAnalysisResult {
-  const score = yesQuestionIds.length;
+  const srqScore = yesQuestionIds.length;
   const isQuestion17Yes = yesQuestionIds.includes(17);
   const criticalTriggered = isManualRedFlag || isQuestion17Yes;
+
+  // Calculate Risk Factor Score (Bagian A: max 8)
+  let riskFactorScore = 0;
+  for (const rfId of selectedRiskFactorIds) {
+    const item = RISK_FACTOR_ITEMS.find((r) => r.id === rfId);
+    if (item) {
+      riskFactorScore += item.points;
+    }
+  }
+
+  // Calculate Functional Impairment Score (Bagian B: max 9)
+  let functionalScore = 0;
+  Object.values(functionalScoresMap).forEach((pts) => {
+    functionalScore += pts || 0;
+  });
+
+  const decision = calculateIntegratedTriage(
+    srqScore,
+    isQuestion17Yes,
+    riskFactorScore,
+    functionalScore,
+    isManualRedFlag
+  );
 
   const indicators: string[] = [];
 
@@ -158,27 +231,53 @@ export function evaluateSRQ20(
   for (const qId of yesQuestionIds) {
     const qObj = SRQ20_QUESTIONS.find((item) => item.id === qId);
     if (qObj) {
-      indicators.push(`SRQ-${qObj.id}: ${qObj.text.replace('Apakah Anda ', '').replace('?', '')}`);
+      indicators.push(`SRQ-${qObj.id}: ${qObj.text.replace('Apakah Anda ', '').replace('Apakah Sdr ', '').replace('?', '')}`);
     }
   }
 
-  // Add functional impairment indicators
-  for (const fId of functionalIds) {
-    indicators.push(`Hendaya: ${fId.replace('func_', '')}`);
+  // Add Risk Factor indicators
+  for (const rfId of selectedRiskFactorIds) {
+    const rfObj = RISK_FACTOR_ITEMS.find((item) => item.id === rfId);
+    if (rfObj) {
+      indicators.push(`Faktor Risiko [${rfObj.code}]: ${rfObj.title} (+${rfObj.points}pt)`);
+    }
   }
 
-  // Centralized triage calculation
-  const decision = calculateTriage(score, isQuestion17Yes, functionalIds.length, isManualRedFlag);
+  // Add Functional Domain indicators
+  Object.entries(functionalScoresMap).forEach(([fDomain, pts]) => {
+    if (pts > 0) {
+      indicators.push(`Hendaya [${fDomain}]: ${pts === 3 ? 'Lumpuh / Ekstrem (3pt)' : 'Terganggu Sedang (1pt)'}`);
+    }
+  });
 
   return {
     zone: decision.zone,
     triageTier: decision.tier,
-    score,
+    score: srqScore,
+    riskFactorScore,
+    functionalScore,
+    totalIntegratedScore: decision.totalIntegratedScore,
+    statusTitle: decision.statusTitle,
     indicators,
     criticalTriggered,
     recommendedAction: decision.recommendation,
     explanation: decision.reason,
   };
+}
+
+/**
+ * Backward compatibility evaluator for SRQ20
+ */
+export function evaluateSRQ20(
+  yesQuestionIds: number[] = [],
+  functionalIds: string[] = [],
+  isManualRedFlag: boolean = false
+): TriageAnalysisResult {
+  const fakeFunctionalMap: Record<string, number> = {};
+  functionalIds.forEach((id, idx) => {
+    fakeFunctionalMap[`F${idx + 1}`] = 1;
+  });
+  return evaluateIntegratedAssessment(yesQuestionIds, [], fakeFunctionalMap, isManualRedFlag);
 }
 
 /**
@@ -363,26 +462,26 @@ export function analyzeCombined(
 export function getTierRecommendedAction(tier: TriageTier): string {
   switch (tier) {
     case 'T0':
-      return 'T0 EMERGENCY (RED FLAG): Peringatan dini instan terkirim ke PSC 119 dan RS Rujukan. Lakukan isolasi dari stresor akut, dampingi penyintas 100% tanpa jeda, koordinasikan penjemputan ambulans via tele-emergency.';
+      return '🚨 T0 EMERGENCY: Sinyal darurat terkirim real-time ke PSC 119 & RS Rujukan. JANGAN tinggalkan penyintas sendirian secara fisik! Dampingi terus, amankan benda berbahaya di sekitar, dan koordinasikan penjemputan ambulans via Tele-Emergency.';
     case 'T1':
-      return 'T1 HIGH RISK (SKOR SRQ-20 ≥ 11): Rujukan ke Psikolog Klinis atau Dokter Spesialis Kesehatan Jiwa (Sp.KJ). Dampingi dengan Psychological First Aid terstruktur dan jadwalkan evaluasi 24 jam.';
+      return '🔴 T1 (Recommendation for Priority Clinical Assessment): Prioritas Rujukan ke Faskes Role 2 (Puskesmas/Dokter/Psikiater). Perlu evaluasi medis dan kemungkinan intervensi farmakoterapi/psikoterapi intensif.';
     case 'T2':
-      return 'T2 MODERATE RISK (SKOR SRQ-20 6–10): Pendampingan PFA berlanjut oleh Resilience Coach / Relawan terlatih. Berikan teknik grounding pernapasan, pastikan kebutuhan dasar terpenuhi, re-evaluasi 3-7 hari.';
+      return '🟡 T2 (Recommendation for Psychosocial Follow-Up): Masukkan ke Daftar Pantau Utama Posko (Watchlist). Intervensi Konseling Kelompok, Stress Management, dan pendampingan oleh Perawat/Tenaga Kesehatan Terlatih Faskes. Re-evaluasi ulang dalam 7 hari.';
     case 'T3':
     default:
-      return 'T3 LOW RISK (SKOR SRQ-20 0–5): Kondisi psikologis stabil dalam batas reaksi stres wajar pascabencana. Berikan edukasi kesehatan jiwa, libatkan dalam kegiatan gotong royong posko dan komunitas.';
+      return '🟢 T3 (Routine Community Support): Penyintas dalam kondisi adaptif/resilien. Berikan Dukungan Psikososial Komunitas (PFA Lanjutan), libatkan dalam kegiatan sosial gotong royong posko, dan penuhi kebutuhan logistik dasarnya.';
   }
 }
 
 export function getTierExplanation(tier: TriageTier, score: number, hasCritical: boolean): string {
   if (tier === 'T0' || hasCritical) {
-    return 'Terdeteksi tanda bahaya darurat (ideasi bunuh diri, psikosis akut, atau mutisme syok ekstrem). Otomatis dialihkan ke protokol rujukan darurat T0.';
+    return 'Terdeteksi tanda bahaya darurat (ideasi bunuh diri, psikosis akut, amuk/agitasi berat, atau krisis somatik). Sistem langsung mengunci ke status T0-Suspect (Bypassing Score Engine).';
   }
   if (tier === 'T1') {
-    return `Tingkat distres psikologis tinggi (${score} indikator SRQ-20 teridentifikasi). Menunjukkan risiko depresi akut atau gangguan stres pascatrauma (PTSD).`;
+    return 'Penyintas mengalami distres emosional berat yang disertai dengan kelumpuhan fungsi harian atau memiliki tumpukan faktor risiko trauma yang sangat masif.';
   }
   if (tier === 'T2') {
-    return `Tingkat distres psikologis sedang (${score} indikator SRQ-20 teridentifikasi). Membutuhkan intervensi pendampingan emosional terarah.`;
+    return 'Distres emosional tingkat sedang (gejala kecemasan/somatik menonjol) atau skor SRQ-20 sedang yang diperberat oleh faktor risiko tinggi.';
   }
-  return `Tingkat distres psikologis ringan/stabil (${score} indikator). Penyintas menunjukkan resiliensi yang baik dalam fase adaptasi bencana.`;
+  return 'Gejala emosional tergolong wajar pascabencana, keberfungsian harian masih terjaga mandiri, dan tidak memiliki faktor risiko laten yang mengancam.';
 }
