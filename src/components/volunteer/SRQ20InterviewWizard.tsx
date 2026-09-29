@@ -290,7 +290,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
     0
   );
 
-  const liveIntegratedScore = totalSRQScore + riskFactorScoreTotal + functionalScoreTotal;
+  const _liveIntegratedScore = totalSRQScore + riskFactorScoreTotal + functionalScoreTotal;
 
   const handleProceedToFunctional = () => {
     if (!isAllSRQAnswered) {
@@ -907,36 +907,54 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
       {/* STEP 2: MODUL ASSESSMENT FAKTOR RISIKO & KEBERFUNGSIAN (SCREEN 6) */}
       {wizardStep === 'functional' && (
-        <div className="space-y-5 animate-in fade-in">
-          <div>
-            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-              Screen 6: Modul Assessment (Fase Hari 4–30)
-            </span>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
-              Penilaian Faktor Risiko (Bagian A) & Keberfungsian Hidup (Bagian B)
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Lakukan penilaian ini berdasarkan observasi langsung dan cerita penyintas untuk menghitung Skor Skoring Integrasi.
-            </p>
-          </div>
-
-          {/* BAGIAN A: CHECKLIST FAKTOR RISIKO (RISK FACTORS) */}
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  BAGIAN A: CHECKLIST FAKTOR RISIKO (0–8 Point)
-                </h4>
-                <span className="text-[11px] text-slate-500">
-                  Mengukur tingkat kerentanan latar belakang (vulnerability context).
+        <div className="space-y-6 animate-in fade-in pb-16 sm:pb-20">
+          {/* Header Context */}
+          <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                  LANGKAH 2 DARI 2 · PENILAIAN KONDISI
+                </span>
+                <span className="text-[11px] font-semibold text-slate-500">
+                  Tahap Akhir Sebelum Triase
                 </span>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold text-xs">
-                Skor A: {riskFactorScoreTotal} / 8 Point
-              </span>
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1">
+                Penilaian Kondisi
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Faktor risiko & keberfungsian sehari-hari
+              </p>
             </div>
 
-            <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setWizardStep('interview')}
+              className="text-slate-500 hover:text-slate-800 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition min-h-[44px] flex items-center gap-1.5 text-xs font-semibold shrink-0"
+              title="Kembali ke Penapisan SRQ-20"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Kembali ke SRQ-20</span>
+            </button>
+          </div>
+
+          {/* SECTION 01: FAKTOR RISIKO */}
+          <section className="space-y-3">
+            <div className="border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-blue-600 text-white font-mono font-bold text-xs flex items-center justify-center">
+                  01
+                </span>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  Faktor Risiko
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 pl-8">
+                Pilih kondisi yang sesuai berdasarkan cerita atau observasi penyintas.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
               {RISK_FACTOR_ITEMS.map((item) => {
                 const isChecked = selectedRiskFactors.includes(item.id);
                 return (
@@ -944,53 +962,62 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     key={item.id}
                     type="button"
                     onClick={() => toggleRiskFactor(item.id)}
-                    className={`w-full p-3.5 rounded-2xl border text-left flex items-start justify-between gap-3 transition min-h-[56px] ${
+                    className={`w-full p-4 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition min-h-[56px] active:scale-[0.99] ${
                       isChecked
-                        ? 'bg-amber-50 border-amber-400 text-amber-950 font-semibold'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'bg-blue-50/70 border-blue-600 text-slate-900 shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300'
                     }`}
                   >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-[10px]">
-                          {item.code} · +{item.points} Point
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`px-2 py-0.5 rounded-md font-mono font-bold text-xs ${
+                            isChecked
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          }`}
+                        >
+                          {item.code}
                         </span>
-                        <span className="text-xs font-bold">{item.title}</span>
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                          {item.title}
+                        </h4>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                      <p className="text-xs text-slate-600 leading-relaxed pt-0.5">
                         {item.description}
                       </p>
                     </div>
 
+                    {/* Selection Indicator Checkbox */}
                     <div
-                      className={`w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 ${
+                      className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center shrink-0 mt-0.5 transition ${
                         isChecked
-                          ? 'bg-amber-600 border-amber-600 text-white'
-                          : 'border-slate-300 bg-white'
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                          : 'border-slate-300 bg-slate-50'
                       }`}
                     >
-                      {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      {isChecked && <Check className="w-4 h-4 stroke-[3]" />}
                     </div>
                   </button>
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* BAGIAN B: CHECKLIST PENILAIAN FUNGSI HARIAN (FUNCTIONAL ASSESSMENT) */}
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  BAGIAN B: PENILAIAN FUNGSI HARIAN (0–9 Point)
-                </h4>
-                <span className="text-[11px] text-slate-500">
-                  Mengukur hendaya kemampuan hidup sehari-hari (1-Tap Selection: 0, 1, atau 3 Point).
+          {/* SECTION 02: KEBERFUNGSIAN SEHARI-HARI */}
+          <section className="space-y-4 pt-2">
+            <div className="border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-blue-600 text-white font-mono font-bold text-xs flex items-center justify-center">
+                  02
                 </span>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  Keberfungsian Sehari-hari
+                </h3>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold text-xs">
-                Skor B: {functionalScoreTotal} / 9 Point
-              </span>
+              <p className="text-xs text-slate-500 mt-1 pl-8">
+                Nilai kemampuan penyintas dalam menjalankan aktivitas sehari-hari.
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -998,44 +1025,79 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                 const currentPts = functionalScores[domain.id] ?? 0;
 
                 return (
-                  <div key={domain.id} className="p-3 bg-white border border-slate-200 rounded-2xl space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900">
-                        {domain.code}. {domain.title}
+                  <div
+                    key={domain.id}
+                    className="p-4 sm:p-5 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-2xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-mono font-bold text-xs">
+                        {domain.code}
                       </span>
-                      <span className="text-[11px] font-semibold text-slate-500">
-                        {currentPts} Point
-                      </span>
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                        {domain.title}
+                      </h4>
                     </div>
-                    <p className="text-[11px] text-blue-900 italic font-medium">
-                      "{domain.question}"
-                    </p>
 
-                    {/* 3 Fat-Finger Tap Options: 0, 1, 3 */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1">
+                    <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-2xl">
+                      <p className="text-xs text-blue-950 italic font-medium leading-relaxed">
+                        "{domain.question}"
+                      </p>
+                    </div>
+
+                    {/* 3 Large Vertical Options (Min-H 54-56px on mobile) */}
+                    <div className="space-y-2 pt-1">
                       {domain.options.map((opt) => {
                         const isSelected = currentPts === opt.points;
+
+                        let selectedStyle = '';
+                        if (isSelected) {
+                          if (opt.points === 0) {
+                            selectedStyle =
+                              'bg-emerald-50/80 border-emerald-600 text-emerald-950 font-bold shadow-2xs ring-2 ring-emerald-500/20';
+                          } else if (opt.points === 1) {
+                            selectedStyle =
+                              'bg-amber-50/80 border-amber-600 text-amber-950 font-bold shadow-2xs ring-2 ring-amber-500/20';
+                          } else {
+                            selectedStyle =
+                              'bg-rose-50/80 border-rose-600 text-rose-950 font-bold shadow-2xs ring-2 ring-rose-500/20';
+                          }
+                        } else {
+                          selectedStyle =
+                            'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50';
+                        }
+
                         return (
                           <button
                             key={opt.points}
                             type="button"
                             onClick={() => setFunctionalOption(domain.id, opt.points)}
-                            className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition min-h-[56px] ${
-                              isSelected
-                                ? opt.level === 'green'
-                                  ? 'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold'
-                                  : opt.level === 'yellow'
-                                  ? 'bg-amber-50 border-amber-500 text-amber-950 font-bold'
-                                  : 'bg-red-50 border-red-500 text-red-950 font-bold'
-                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                            }`}
+                            className={`w-full p-3.5 sm:p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition min-h-[56px] active:scale-[0.99] ${selectedStyle}`}
                           >
-                            <span className="text-[11px] block leading-tight">
-                              {opt.level === 'green' ? '🟢' : opt.level === 'yellow' ? '🟡' : '🔴'} {opt.label}
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-semibold block mt-1">
-                              ({opt.points} Point)
-                            </span>
+                            <div className="min-w-0 flex items-center gap-3">
+                              <span className="text-base shrink-0">
+                                {opt.points === 0 ? '🟢' : opt.points === 1 ? '🟡' : '🔴'}
+                              </span>
+                              <div className="min-w-0">
+                                <span className="text-xs sm:text-sm block leading-snug">
+                                  {opt.detail}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Radio Check Indicator */}
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${
+                                isSelected
+                                  ? opt.points === 0
+                                    ? 'border-emerald-600 bg-emerald-600 text-white'
+                                    : opt.points === 1
+                                    ? 'border-amber-600 bg-amber-600 text-white'
+                                    : 'border-rose-600 bg-rose-600 text-white'
+                                  : 'border-slate-300 bg-white'
+                              }`}
+                            >
+                              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                            </div>
                           </button>
                         );
                       })}
@@ -1044,43 +1106,26 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* Real-time Formula Preview */}
-          <div className="p-3.5 bg-slate-900 text-white rounded-2xl space-y-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Formula & Rumus Skoring Integrasi (0 – 37 Point)
-            </span>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-mono font-bold">
-              <span>SRQ-20: {totalSRQScore}</span>
-              <span className="text-slate-500">+</span>
-              <span>Faktor Risiko: {riskFactorScoreTotal}</span>
-              <span className="text-slate-500">+</span>
-              <span>Fungsi Harian: {functionalScoreTotal}</span>
-              <span className="text-slate-500">=</span>
-              <span className="text-emerald-400 text-sm">
-                Total Terintegrasi: {liveIntegratedScore} / 37 Point
-              </span>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+          {/* BOTTOM ACTIONS (MOBILE-FIRST 52-56PX) */}
+          <div className="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center gap-3">
             <button
               type="button"
               onClick={() => setWizardStep('interview')}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 min-h-[48px]"
+              className="w-full sm:w-auto px-5 min-h-[52px] rounded-2xl bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition shadow-xs"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-4 h-4 text-slate-600" />
               <span>Kembali ke Soal SRQ</span>
             </button>
 
             <button
               type="button"
               onClick={handleCalculateTriage}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold flex items-center gap-2 shadow-xs transition min-h-[48px]"
+              className="w-full sm:flex-1 min-h-[54px] px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Kalkulasi Triase Integrasi Otomatis</span>
+              <Sparkles className="w-4 h-4 text-white" />
+              <span>Lihat Hasil Analisis Triase →</span>
             </button>
           </div>
         </div>
