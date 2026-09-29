@@ -149,41 +149,47 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
       {/* MODAL: PROTOKOL EMERGENCY RED FLAG T0 (SCREEN 4) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white border-2 border-red-600 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 bg-red-600 text-white flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-white text-red-600 flex items-center justify-center font-black shadow-xs text-base">
-                  🚨
+          {!isSubmitted ? (
+            <div className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                    <ShieldAlert className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-full bg-red-600 text-white font-mono font-bold text-[10px] tracking-wide">
+                        T0 — PROTOKOL
+                      </span>
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        Sinyal Red Flag Darurat
+                      </span>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-0.5">
+                      Verifikasi Kedaruratan Lapangan
+                    </h3>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black tracking-tight uppercase">
-                    Protokol Emergency Red Flag (T0)
-                  </h3>
-                  <span className="text-[11px] text-red-100 font-medium">
-                    Sinyal Darurat Instan PSC 119 & Tim Medis Rujukan
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition shrink-0"
+                  aria-label="Tutup"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-red-700 transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Modal Body */}
-            <div className="p-5 overflow-y-auto space-y-4 text-xs text-slate-700 leading-relaxed">
-              {!isSubmitted ? (
+              {/* Modal Body */}
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs text-slate-700 leading-relaxed">
                 <>
                   {/* Step Aksi Relawan Guidance Alert */}
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-2xl space-y-1.5 text-red-950">
+                  <div className="p-3 bg-red-50/70 border border-red-200 rounded-2xl space-y-1.5 text-red-950">
                     <div className="flex items-center gap-2">
                       <AlertOctagon className="w-4 h-4 text-red-600 shrink-0" />
                       <strong className="text-xs font-bold">
-                        Instruksi Wajib Garda Depan (Section Protokol T0):
+                        Instruksi Wajib Garda Depan (Protokol T0):
                       </strong>
                     </div>
                     <ol className="list-decimal list-inside space-y-1 text-[11px] text-red-900 leading-relaxed pl-1">
@@ -365,24 +371,26 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                     </p>
                   </div>
                 </>
-              ) : (
-                /* SCREEN 4: ALERT & NOTIFIKASI RUJUKAN DARURAT (T0 - EMERGENCY) */
-                <Screen4EmergencyAlert
-                  survivorId={currentVictimId}
-                  survivorName={isAnonymous ? 'Penyintas Tanpa Nama (Krisis Akut)' : customName}
-                  posko={currentLocation}
-                  timestamp={recordedTimestamp || 'Sekarang'}
-                  emergencyReasons={emergencyReasons}
-                  volunteerNotes={notes}
-                  onClose={handleClose}
-                  onGoToHospitalPortal={() => {
-                    handleClose();
-                    window.location.hash = '/hospital';
-                  }}
-                />
-              )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto">
+              {/* SCREEN 4: ALERT & NOTIFIKASI RUJUKAN DARURAT (T0 - EMERGENCY) */}
+              <Screen4EmergencyAlert
+                survivorId={currentVictimId}
+                survivorName={isAnonymous ? 'Penyintas Tanpa Nama (Krisis Akut)' : customName}
+                posko={currentLocation}
+                timestamp={recordedTimestamp || 'Sekarang'}
+                emergencyReasons={emergencyReasons}
+                volunteerNotes={notes}
+                onClose={handleClose}
+                onGoToHospitalPortal={() => {
+                  handleClose();
+                  window.location.hash = '/hospital';
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </>
