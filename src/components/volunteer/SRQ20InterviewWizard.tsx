@@ -879,7 +879,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               >
                 <span>
                   {isAllSRQAnswered
-                    ? 'Lanjut ke Evaluasi Faktor Risiko & Fungsi (Screen 6) →'
+                    ? 'Lanjut ke Penilaian Kondisi (Faktor Risiko & Fungsi) →'
                     : `Lengkapi 20 Soal (${answeredQuestionsCount}/20 Terjawab) Untuk Lanjut`}
                 </span>
                 <ArrowRight className="w-4 h-4" />

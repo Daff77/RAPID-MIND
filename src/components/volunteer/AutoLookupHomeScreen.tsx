@@ -157,7 +157,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
             <IdCard className="w-3.5 h-3.5 text-blue-600" />
-            <span>Screen 2: Penapisan Lapangan</span>
+            <span>Penapisan Lapangan</span>
           </div>
 
           {/* Compact Secondary Action: View History */}

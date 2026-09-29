@@ -27,7 +27,7 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F8FB] text-slate-900 flex flex-col font-sans relative">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans relative">
       {/* Sticky Volunteer Header */}
       <VolunteerHeader
         currentTab={activeView === 'history' ? 'history' : 'home'}

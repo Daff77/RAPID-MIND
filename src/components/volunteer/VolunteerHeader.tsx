@@ -239,7 +239,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
           aria-selected={currentTab === 'home'}
         >
           <UserCheck className="w-4 h-4" />
-          <span>Screen 2: Identifikasi Penyintas</span>
+          <span>Identifikasi Penyintas</span>
         </button>
 
         <button

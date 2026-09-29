@@ -22,7 +22,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onLoginSuccess,
   defaultRole = 'volunteer',
 }) => {
-  const { login, quickLogin } = useAuth();
+  const { login } = useAuth();
 
   const [selectedRole, setSelectedRole] = useState<UserRole>(defaultRole);
   const [usernameOrEmail, setUsernameOrEmail] = useState<string>(() => {

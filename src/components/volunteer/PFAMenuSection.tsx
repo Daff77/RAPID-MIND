@@ -240,6 +240,16 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
           </div>
         </div>
 
+        {/* Section Title */}
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+            Pertolongan Pertama Psikologis (PFA)
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Panduan lapangan terstruktur Look-Listen-Link untuk fase akut pascabencana (Hari 1–3)
+          </p>
+        </div>
+
         {/* Survivor Profile Snapshot Card */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="space-y-0.5">

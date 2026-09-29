@@ -133,7 +133,7 @@ export function startLiveSpeechRecognition(
       isManuallyStopped = true;
       try {
         recognition.stop();
-      } catch (e) {
+      } catch {
         // already stopped
       }
       stopMediaStream(audioStream);

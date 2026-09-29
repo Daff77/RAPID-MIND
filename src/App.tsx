@@ -50,18 +50,23 @@ const PageRouter: React.FC = () => {
     };
   }, []);
 
-  const navigateTo = (route: RouteType) => {
-    setCurrentRoute(route);
-    if (route === 'dashboard') {
-      window.location.hash = '/dashboard';
-    } else if (route === 'hospital') {
-      window.location.hash = '/hospital';
-    } else if (route === 'login') {
-      window.location.hash = '/login';
-    } else {
-      window.location.hash = '/volunteer';
+  useEffect(() => {
+    const targetHash =
+      currentRoute === 'dashboard'
+        ? '/dashboard'
+        : currentRoute === 'hospital'
+        ? '/hospital'
+        : currentRoute === 'login'
+        ? '/login'
+        : '/volunteer';
+    if (window.location.hash !== `#${targetHash}`) {
+      window.location.hash = targetHash;
     }
     window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentRoute]);
+
+  const navigateTo = (route: RouteType) => {
+    setCurrentRoute(route);
   };
 
   const handleLoginSuccess = (role: UserRole) => {
@@ -103,14 +108,14 @@ const PageRouter: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F6F8FB] text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
       {/* 1. VOLUNTEER FIELD APP */}
       {currentRoute === 'volunteer' && (
         <>
           {usePhoneFrame ? (
             <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-slate-200/60">
               <div
-                className="w-[390px] h-[844px] bg-[#F6F8FB] rounded-[44px] border-[8px] border-slate-300 shadow-2xl overflow-hidden flex flex-col relative"
+                className="w-[390px] h-[844px] bg-[#F8FAFC] rounded-[44px] border-[8px] border-slate-300 shadow-2xl overflow-hidden flex flex-col relative"
                 style={{ maxHeight: 'calc(100vh - 40px)' }}
               >
                 {/* Simulated iPhone Notch */}
