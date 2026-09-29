@@ -183,7 +183,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {[
           { id: 'overview', label: 'Pusat Komando & Geospasial', icon: Layers },
           { id: 'longitudinal', label: 'Data Longitudinal (30 Hari)', icon: Activity },
-          { id: 'users', label: 'Manajemen Relawan & Pengguna', icon: Users },
+          { id: 'users', label: 'Manajemen Relawan & Posko Sumber Daya', icon: Users },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSection === tab.id;

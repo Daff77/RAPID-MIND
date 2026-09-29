@@ -43,5 +43,6 @@ export interface AuthContextType {
   logout: () => void;
   addUser: (input: NewUserInput) => { success: boolean; error?: string; user?: User };
   deleteUser: (userId: string) => { success: boolean; error?: string };
+  updateUserPost: (userId: string, newPost: LocationPost) => { success: boolean; error?: string };
 }
 

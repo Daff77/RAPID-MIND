@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
 import { User, UserRole, LoginCredentials, AuthContextType, NewUserInput } from '../types/auth';
+import { LocationPost } from '../types/assessment';
 
 const STORAGE_KEY_AUTH = 'rapidmind_auth_session';
 const STORAGE_KEY_CUSTOM_USERS = 'rapidmind_custom_users_v2';
 const STORAGE_KEY_USER_PASSWORDS = 'rapidmind_user_passwords_v2';
+const STORAGE_KEY_USER_POST_OVERRIDES = 'rapidmind_user_post_overrides_v1';
 
 export const MOCK_VOLUNTEER: User = {
   id: 'user-vol-042',
@@ -72,9 +74,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return [];
   });
 
+  const [postOverrides, setPostOverrides] = useState<Record<string, LocationPost>>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_USER_POST_OVERRIDES);
+      if (stored) {
+        return JSON.parse(stored) as Record<string, LocationPost>;
+      }
+    } catch (e) {
+      console.warn('Failed to parse post overrides', e);
+    }
+    return {};
+  });
+
   const allUsers = useMemo(() => {
-    return [...DEFAULT_USERS, ...customUsers];
-  }, [customUsers]);
+    return [...DEFAULT_USERS, ...customUsers].map((u) => {
+      if (postOverrides[u.id]) {
+        return { ...u, assignedPost: postOverrides[u.id] };
+      }
+      return u;
+    });
+  }, [customUsers, postOverrides]);
 
   const saveUserSession = (user: User | null) => {
     setCurrentUser(user);
@@ -297,6 +317,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { success: true };
   };
 
+  const updateUserPost = (userId: string, newPost: LocationPost): { success: boolean; error?: string } => {
+    if (currentUser?.role !== 'admin') {
+      return {
+        success: false,
+        error: 'Akses ditolak: Hanya akun Admin yang berwenang menugaskan posko relawan.',
+      };
+    }
+
+    const updatedOverrides = { ...postOverrides, [userId]: newPost };
+    setPostOverrides(updatedOverrides);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_USER_POST_OVERRIDES, JSON.stringify(updatedOverrides));
+    }
+
+    // Also update customUsers if user is in customUsers
+    const customIdx = customUsers.findIndex((u) => u.id === userId);
+    if (customIdx >= 0) {
+      const updatedCustom = [...customUsers];
+      updatedCustom[customIdx] = { ...updatedCustom[customIdx], assignedPost: newPost };
+      setCustomUsers(updatedCustom);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY_CUSTOM_USERS, JSON.stringify(updatedCustom));
+      }
+    }
+
+    // If currently logged in user is this user, update session too
+    if (currentUser?.id === userId) {
+      saveUserSession({ ...currentUser, assignedPost: newPost });
+    }
+
+    return { success: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -308,6 +361,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         addUser,
         deleteUser,
+        updateUserPost,
       }}
     >
       {children}
