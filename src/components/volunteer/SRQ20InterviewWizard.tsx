@@ -4,7 +4,7 @@ import {
   Square,
   Volume2,
   Check,
-  CheckCircle,
+  CheckCircle2,
   X,
   Sparkles,
   ArrowRight,
@@ -13,8 +13,13 @@ import {
   MessageSquare,
   Info,
   AlertCircle,
+  AlertOctagon,
+  AlertTriangle,
+  Clock,
+  Activity,
+  Database,
 } from 'lucide-react';
-import { SurvivorProfile, TriageAnalysisResult, TriageTier } from '../../types/assessment';
+import { SurvivorProfile, TriageAnalysisResult } from '../../types/assessment';
 import { SRQ20_QUESTIONS, SRQ20_ONBOARDING_SCRIPT } from '../../data/srq20Questions';
 import { RISK_FACTOR_ITEMS, FUNCTIONAL_DOMAINS } from '../../data/riskAndFunctionalAssessment';
 import {
@@ -66,12 +71,14 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
   onComplete,
   onBack,
 }) => {
-  const { addAssessment } = useAssessment();
+  const { addAssessment, isOnline } = useAssessment();
 
   const [wizardStep, setWizardStep] = useState<'interview' | 'functional' | 'result'>('interview');
   const [interviewMode, setInterviewMode] = useState<'verbal' | 'non_verbal'>('verbal');
   const [showItem17Alert, setShowItem17Alert] = useState<boolean>(false);
   const [activeSessionRecordId, setActiveSessionRecordId] = useState<string | null>(null);
+  const [isSavedOffline, setIsSavedOffline] = useState<boolean>(false);
+  const [recordedTime, setRecordedTime] = useState<string>('');
 
   // SRQ-20 Answers: map of question id to boolean (true = Ya, false = Tidak)
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
@@ -318,6 +325,8 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
     const now = new Date();
     const timeHours = String(now.getHours()).padStart(2, '0');
     const timeMins = String(now.getMinutes()).padStart(2, '0');
+    const timeString = `${timeHours}:${timeMins}`;
+    setRecordedTime(timeString);
 
     // Save assessment record to central database
     const saveRes = addAssessment({
@@ -325,7 +334,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       id: survivor.id,
       victimId: survivor.id,
       nik: survivor.nik,
-      timestamp: `${timeHours}:${timeMins}`,
+      timestamp: timeString,
       location: survivor.posko,
       method: interviewMode === 'verbal' ? 'VERBAL' : 'CHECKLIST',
       phase: 'followup_srq20',
@@ -354,66 +363,41 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
     if (saveRes?.record?.recordId) {
       setActiveSessionRecordId(saveRes.record.recordId);
     }
+    if (saveRes?.isOfflineSaved !== undefined) {
+      setIsSavedOffline(saveRes.isOfflineSaved);
+    }
 
     setWizardStep('result');
     onComplete(result);
   };
 
-  const renderTierBadge = (tier: TriageTier) => {
-    switch (tier) {
-      case 'T0':
-        return (
-          <span className="px-3 py-1 rounded-xl bg-red-600 text-white font-black text-xs uppercase tracking-wider animate-pulse flex items-center gap-1.5 shadow-xs">
-            <span>🚨 T0 — EMERGENCY</span>
-          </span>
-        );
-      case 'T1':
-        return (
-          <span className="px-3 py-1 rounded-xl bg-red-100 text-red-800 font-bold text-xs uppercase border border-red-300 flex items-center gap-1.5">
-            <span>🔴 T1 — HIGH RISK</span>
-          </span>
-        );
-      case 'T2':
-        return (
-          <span className="px-3 py-1 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs uppercase border border-amber-300 flex items-center gap-1.5">
-            <span>🟡 T2 — MODERATE RISK</span>
-          </span>
-        );
-      case 'T3':
-      default:
-        return (
-          <span className="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-900 font-bold text-xs uppercase border border-emerald-300 flex items-center gap-1.5">
-            <span>🟢 T3 — LOW RISK</span>
-          </span>
-        );
-    }
-  };
+
 
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs space-y-5 animate-in fade-in">
-      {/* Header Context */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 font-mono font-bold text-[10px] uppercase tracking-wider">
-              FASE LANJUTAN · HARI 4–30
-            </span>
+      {/* Header Context (Khusus Step Interview SRQ-20 agar tidak duplikat di step lain) */}
+      {wizardStep === 'interview' && (
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                FASE LANJUTAN · HARI 4–30
+              </span>
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1">
+              Wawancara Penapisan SRQ-20
+            </h2>
+            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-medium flex-wrap">
+              <span className="font-mono font-bold text-slate-800">{survivor.id}</span>
+              <span>·</span>
+              <span className="font-semibold text-slate-800">
+                {survivor.name} ({survivor.age} th, {survivor.gender === 'L' ? 'L' : 'P'})
+              </span>
+              <span>·</span>
+              <span>{survivor.posko}</span>
+            </div>
           </div>
-          <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1">
-            Wawancara Penapisan SRQ-20
-          </h2>
-          <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-medium flex-wrap">
-            <span className="font-mono font-bold text-slate-800">{survivor.id}</span>
-            <span>·</span>
-            <span className="font-semibold text-slate-800">
-              {survivor.name} ({survivor.age} th, {survivor.gender === 'L' ? 'L' : 'P'})
-            </span>
-            <span>·</span>
-            <span>{survivor.posko}</span>
-          </div>
-        </div>
 
-        {wizardStep === 'interview' && (
           <button
             type="button"
             onClick={onBack}
@@ -423,8 +407,8 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Kembali</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* STEP 1: WAWANCARA 20 PERTANYAAN (SCREEN 5) */}
       {wizardStep === 'interview' && (
@@ -1131,103 +1115,371 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
         </div>
       )}
 
-      {/* STEP 3: HASIL ASESMEN OTOMATIS & INTEGRASI DATABASE (SCREEN 7) */}
-      {wizardStep === 'result' && analysisResult && (
-        <div className="space-y-4 animate-in fade-in">
-          <div>
-            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-              Screen 7: Result Screen (Auto-Calculated Triage Zone)
-            </span>
-            <h3 className="text-base font-bold text-slate-900 mt-0.5">
-              Klasifikasi Triase Terintegrasi (Formula 0–37 Point)
-            </h3>
-          </div>
+      {/* STEP 3: HASIL ASESMEN TRIASE TERINTEGRASI (SCREEN 7) */}
+      {wizardStep === 'result' && analysisResult && (() => {
+        const tier = analysisResult.triageTier;
+        const isT0 = tier === 'T0';
+        const isT1 = tier === 'T1';
+        const isT2 = tier === 'T2';
+        const isT3 = tier === 'T3';
 
-          {/* Tier Highlight Card */}
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
-              <div className="flex items-center gap-2">
-                {renderTierBadge(analysisResult.triageTier)}
-                <span className="text-xs font-bold text-slate-800">
+        return (
+          <div className="space-y-5 animate-in fade-in pb-20 sm:pb-24">
+            {/* Header Context */}
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                    TAHAP AKHIR · HASIL ASESMEN
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-500">
+                    Keputusan Triase Terintegrasi
+                  </span>
+                </div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1">
+                  Hasil Assessment
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Keputusan triase & rekomendasi tindak lanjut lapangan
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={onBack}
+                className="text-slate-500 hover:text-slate-800 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition min-h-[44px] flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                title="Selesai & Kembali ke Homescreen"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Beranda</span>
+              </button>
+            </div>
+
+            {/* Survivor Identity Context Strip (Compact, Non-Dominant) */}
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50/80 border border-slate-200/80 rounded-2xl text-xs text-slate-600">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">
+                  {survivor.id}
+                </span>
+                <span className="font-bold text-slate-900">
+                  {survivor.name}
+                </span>
+                <span className="text-slate-400">·</span>
+                <span>{survivor.age} th ({survivor.gender === 'L' ? 'Laki-laki' : 'Perempuan'})</span>
+                <span className="text-slate-400">·</span>
+                <span className="font-medium text-slate-700">{survivor.posko}</span>
+              </div>
+              <div className="text-[11px] font-mono text-slate-500 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                <span>{recordedTime || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+              </div>
+            </div>
+
+            {/* STATUS RESULT CARD (DOMINANT ELEMENT) */}
+            <div
+              className={`p-5 sm:p-6 rounded-3xl border-2 space-y-4 shadow-2xs transition ${
+                isT0
+                  ? 'bg-rose-50/80 border-rose-500 ring-2 ring-rose-500/20'
+                  : isT1
+                  ? 'bg-orange-50/80 border-orange-500 ring-2 ring-orange-500/20'
+                  : isT2
+                  ? 'bg-amber-50/80 border-amber-500 ring-2 ring-amber-500/20'
+                  : 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20'
+              }`}
+            >
+              {/* Badge & Urgency Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-black/5 pb-3.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {/* Semantic Tier Badge */}
+                  <span
+                    className={`px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 shadow-xs ${
+                      isT0
+                        ? 'bg-rose-600 text-white animate-pulse'
+                        : isT1
+                        ? 'bg-orange-600 text-white'
+                        : isT2
+                        ? 'bg-amber-500 text-slate-950 font-bold'
+                        : 'bg-emerald-600 text-white font-bold'
+                    }`}
+                  >
+                    {isT0 && <AlertOctagon className="w-4 h-4 text-white shrink-0" />}
+                    {isT1 && <AlertTriangle className="w-4 h-4 text-white shrink-0" />}
+                    {isT2 && <Activity className="w-4 h-4 text-slate-950 shrink-0" />}
+                    {isT3 && <CheckCircle2 className="w-4 h-4 text-white shrink-0" />}
+                    <span>
+                      {isT0
+                        ? 'T0 — CRITICAL EMERGENCY'
+                        : isT1
+                        ? 'T1 — HIGH RISK'
+                        : isT2
+                        ? 'T2 — MODERATE RISK'
+                        : 'T3 — LOW RISK'}
+                    </span>
+                  </span>
+
+                  {/* Accessible Urgency Tag */}
+                  <span
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wide border ${
+                      isT0
+                        ? 'bg-rose-100 text-rose-950 border-rose-300'
+                        : isT1
+                        ? 'bg-orange-100 text-orange-950 border-orange-300'
+                        : isT2
+                        ? 'bg-amber-100 text-amber-950 border-amber-300'
+                        : 'bg-emerald-100 text-emerald-950 border-emerald-300'
+                    }`}
+                  >
+                    {isT0
+                      ? 'Kegawatdaruratan Kritis Lapangan'
+                      : isT1
+                      ? 'Prioritas Klinis / Rujukan'
+                      : isT2
+                      ? 'Pemantauan Psikososial'
+                      : 'Kondisi Adaptif / Resilien'}
+                  </span>
+                </div>
+
+                <div className="text-xs font-mono font-bold text-slate-700 bg-white/90 px-3 py-1.5 rounded-xl border border-black/10 self-start sm:self-auto">
+                  Skor Integrasi: {analysisResult.totalIntegratedScore} / 37 Poin
+                </div>
+              </div>
+
+              {/* Status Title & Clinical Explanation */}
+              <div className="space-y-1.5">
+                <h3
+                  className={`text-base sm:text-lg font-bold leading-snug ${
+                    isT0
+                      ? 'text-rose-950'
+                      : isT1
+                      ? 'text-orange-950'
+                      : isT2
+                      ? 'text-amber-950'
+                      : 'text-emerald-950'
+                  }`}
+                >
                   {analysisResult.statusTitle}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                  {analysisResult.explanation}
+                </p>
+              </div>
+            </div>
+
+            {/* ACTION CARD (TINDAKAN BERIKUTNYA) */}
+            <div className="p-4 sm:p-5 bg-white border-2 border-slate-200 rounded-3xl space-y-4 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    isT0
+                      ? 'bg-rose-600 animate-ping'
+                      : isT1
+                      ? 'bg-orange-600'
+                      : isT2
+                      ? 'bg-amber-500'
+                      : 'bg-emerald-600'
+                  }`}
+                />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                  Tindakan Berikutnya (Protokol Lapangan)
                 </span>
               </div>
-              <div className="text-xs font-mono font-bold text-slate-700 bg-white px-3 py-1 rounded-xl border border-slate-200">
-                Skor Integrasi: {analysisResult.totalIntegratedScore} / 37 Point
-              </div>
-            </div>
 
-            {/* Score Component Breakdown */}
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="p-2 bg-white rounded-xl border border-slate-200">
-                <span className="text-[10px] text-slate-400 block font-semibold">Skor SRQ-20</span>
-                <span className="font-bold text-slate-800">{analysisResult.score} / 20</span>
+              {/* Action Protocol Narrative */}
+              <div
+                className={`p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed font-medium ${
+                  isT0
+                    ? 'bg-rose-50/70 border-rose-200 text-rose-950'
+                    : isT1
+                    ? 'bg-orange-50/70 border-orange-200 text-orange-950'
+                    : isT2
+                    ? 'bg-amber-50/70 border-amber-200 text-amber-950'
+                    : 'bg-blue-50/70 border-blue-200 text-blue-950'
+                }`}
+              >
+                {analysisResult.recommendedAction}
               </div>
-              <div className="p-2 bg-white rounded-xl border border-slate-200">
-                <span className="text-[10px] text-slate-400 block font-semibold">Faktor Risiko (A)</span>
-                <span className="font-bold text-slate-800">{analysisResult.riskFactorScore ?? 0} / 8</span>
-              </div>
-              <div className="p-2 bg-white rounded-xl border border-slate-200">
-                <span className="text-[10px] text-slate-400 block font-semibold">Fungsi Harian (B)</span>
-                <span className="font-bold text-slate-800">{analysisResult.functionalScore ?? 0} / 9</span>
-              </div>
-            </div>
 
-            <p className="text-xs text-slate-700 leading-relaxed">
-              {analysisResult.explanation}
-            </p>
-          </div>
+              {/* Primary & Secondary Action CTAs (Min-H 52-56px on Mobile) */}
+              <div className="pt-1 flex flex-col gap-2.5">
+                {isT0 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowItem17Alert(true)}
+                      className="w-full min-h-[56px] px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 transition uppercase tracking-wider"
+                    >
+                      <AlertOctagon className="w-5 h-5 text-white shrink-0" />
+                      <span>Buka Protokol Rujukan Darurat T0</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.hash = '/hospital';
+                      }}
+                      className="w-full min-h-[52px] px-5 rounded-2xl bg-white hover:bg-rose-50 active:scale-[0.99] text-rose-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-rose-300 transition shadow-xs"
+                    >
+                      <span>Koordinasi Portal Rujukan RS / PSC 119 →</span>
+                    </button>
+                  </>
+                )}
 
-          {/* Recommended Action Protocol */}
-          <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-1">
-            <span className="text-[10px] uppercase font-bold text-blue-900 tracking-wider block">
-              Rekomendasi Tindak Lanjut Sistem:
-            </span>
-            <p className="text-xs text-blue-950 font-medium leading-relaxed">
-              {analysisResult.recommendedAction}
-            </p>
-          </div>
+                {isT1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.hash = '/hospital';
+                      }}
+                      className="w-full min-h-[56px] px-6 rounded-2xl bg-orange-600 hover:bg-orange-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-600/30 transition"
+                    >
+                      <AlertTriangle className="w-5 h-5 text-white shrink-0" />
+                      <span>Rujuk ke Fasilitas Kesehatan (Role 2) →</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onBack}
+                      className="w-full min-h-[52px] px-5 rounded-2xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition shadow-xs"
+                    >
+                      <span>Selesai & Kembali ke Homescreen</span>
+                    </button>
+                  </>
+                )}
 
-          {/* Detected Risk Factors & Symptoms */}
-          {analysisResult.indicators.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                Indikator Klinis & Faktor Kerentanan ({analysisResult.indicators.length}):
-              </span>
-              <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto">
-                {analysisResult.indicators.map((ind, i) => (
-                  <span
-                    key={i}
-                    className="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-[11px]"
+                {isT2 && (
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    className="w-full min-h-[54px] px-6 rounded-2xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-slate-900/20 transition"
                   >
-                    ✓ {ind}
-                  </span>
-                ))}
+                    <Check className="w-4 h-4 text-white" />
+                    <span>Catat ke Watchlist Posko & Selesai</span>
+                  </button>
+                )}
+
+                {isT3 && (
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    className="w-full min-h-[54px] px-6 rounded-2xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-slate-900/20 transition"
+                  >
+                    <Check className="w-4 h-4 text-white" />
+                    <span>Selesai & Kembali ke Homescreen</span>
+                  </button>
+                )}
               </div>
             </div>
-          )}
 
-          {/* Database Integration Success Banner */}
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-900 font-semibold">
-            <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-            <span>
-              [INTEGRASI DATABASE BERHASIL]: Rekam medis longitudinal tersimpan aman berbasis ID {survivor.id} & NIK. Tersinkronisasi otomatis ke Dashboard Faskes (PSC 119) dan Dashboard Utama BPBD/Dinkes.
-            </span>
-          </div>
+            {/* SCORE BREAKDOWN (STRUCTURED 4-CELL GRID) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Komponen Skor Terintegrasi
+                </span>
+                <span className="text-[11px] font-mono text-slate-500">
+                  Maksimum 37 Poin
+                </span>
+              </div>
 
-          <div className="pt-2 flex justify-end">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-black text-white text-xs font-bold flex items-center gap-2 shadow-xs transition min-h-[48px]"
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="p-3 bg-white rounded-2xl border border-slate-200 text-center">
+                  <span className="text-[10px] text-slate-500 block font-semibold uppercase">
+                    Skor SRQ-20
+                  </span>
+                  <span className="text-base sm:text-lg font-mono font-bold text-slate-900 block mt-0.5">
+                    {analysisResult.score} <span className="text-xs text-slate-400 font-normal">/ 20</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">Distres Emosional</span>
+                </div>
+
+                <div className="p-3 bg-white rounded-2xl border border-slate-200 text-center">
+                  <span className="text-[10px] text-slate-500 block font-semibold uppercase">
+                    Faktor Risiko (A)
+                  </span>
+                  <span className="text-base sm:text-lg font-mono font-bold text-slate-900 block mt-0.5">
+                    {analysisResult.riskFactorScore ?? 0} <span className="text-xs text-slate-400 font-normal">/ 8</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">Kerentanan Lapangan</span>
+                </div>
+
+                <div className="p-3 bg-white rounded-2xl border border-slate-200 text-center">
+                  <span className="text-[10px] text-slate-500 block font-semibold uppercase">
+                    Fungsi Harian (B)
+                  </span>
+                  <span className="text-base sm:text-lg font-mono font-bold text-slate-900 block mt-0.5">
+                    {analysisResult.functionalScore ?? 0} <span className="text-xs text-slate-400 font-normal">/ 9</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">Hendaya Aktivitas</span>
+                </div>
+
+                <div className="p-3 bg-blue-50/70 rounded-2xl border border-blue-200 text-center">
+                  <span className="text-[10px] text-blue-800 block font-bold uppercase">
+                    Total Integrasi
+                  </span>
+                  <span className="text-base sm:text-lg font-mono font-bold text-blue-950 block mt-0.5">
+                    {analysisResult.totalIntegratedScore} <span className="text-xs text-blue-600 font-normal">/ 37</span>
+                  </span>
+                  <span className="text-[10px] text-blue-700 font-semibold block mt-0.5">Skor Kumulatif</span>
+                </div>
+              </div>
+            </div>
+
+            {/* DETECTED CLINICAL INDICATORS (PROGRESSIVE DISCLOSURE) */}
+            {analysisResult.indicators.length > 0 && (
+              <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">
+                    Indikator Klinis & Kerentanan Terdeteksi ({analysisResult.indicators.length})
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500">
+                    Dari Wawancara & Observasi
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pt-0.5">
+                  {analysisResult.indicators.map((ind, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium"
+                    >
+                      <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>{ind}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* DATA PERSISTENCE & SYNC STATUS BANNER */}
+            <div
+              className={`p-3.5 rounded-2xl border flex items-start gap-3 text-xs leading-relaxed ${
+                !isOnline || isSavedOffline
+                  ? 'bg-amber-50/70 border-amber-200 text-amber-950'
+                  : 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+              }`}
             >
-              <span>Selesai & Kembali ke Homescreen</span>
-            </button>
+              {!isOnline || isSavedOffline ? (
+                <Database className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              )}
+              <div className="min-w-0">
+                <span className="font-bold block">
+                  {!isOnline || isSavedOffline
+                    ? 'Tersimpan di Perangkat (Offline)'
+                    : 'Tersimpan & Tersinkronisasi Otomatis'}
+                </span>
+                <span className="text-[11px] block mt-0.5 opacity-90">
+                  {!isOnline || isSavedOffline
+                    ? `Rekam medis telah disimpan lokal (IndexedDB) berbasis ID ${survivor.id}. Data akan otomatis disinkronkan ke server pusat saat koneksi internet pulih.`
+                    : `Rekam medis longitudinal tersimpan aman berbasis ID ${survivor.id} & NIK. Tersinkronisasi otomatis ke Dashboard Faskes (PSC 119) dan Posko Komando BPBD/Dinkes.`}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
-      {/* SCREEN 4 EMERGENCY MODAL FOR ITEM #17 (IDEASI SUISIDA) */}
+      {/* SCREEN 4 EMERGENCY MODAL FOR ITEM #17 (IDEASI SUISIDA) ATAU T0 DI SCREEN 7 */}
       {showItem17Alert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto">
@@ -1237,12 +1489,20 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               survivorAge={survivor.age}
               survivorGender={survivor.gender}
               posko={survivor.posko}
-              timestamp={new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-              emergencyReasons={[
-                'SRQ-20 Butir #17: Apakah Anda mempunyai pikiran untuk mengakhiri hidup Anda? (JAWABAN: YA)',
-                'Sesuai protokol keselamatan RAPID-MIND, terdeteksinya pikiran mengakhiri hidup seketika mengunci status pasien ke T0-SUSPECT tanpa menunggu perhitungan skor akhir.',
-              ]}
-              volunteerNotes="Penyintas mengonfirmasi adanya pikiran untuk mengakhiri hidup pada saat penapisan SRQ-20."
+              timestamp={recordedTime || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+              emergencyReasons={
+                analysisResult && analysisResult.indicators.length > 0
+                  ? analysisResult.indicators
+                  : [
+                      'SRQ-20 Butir #17: Apakah Anda mempunyai pikiran untuk mengakhiri hidup Anda? (JAWABAN: YA)',
+                      'Sesuai protokol keselamatan RAPID-MIND, terdeteksinya pikiran mengakhiri hidup seketika mengunci status pasien ke T0-SUSPECT tanpa menunggu perhitungan skor akhir.',
+                    ]
+              }
+              volunteerNotes={
+                analysisResult
+                  ? `Hasil Triase: T0-SUSPECT. ${analysisResult.explanation}`
+                  : 'Penyintas mengonfirmasi adanya pikiran untuk mengakhiri hidup pada saat penapisan SRQ-20.'
+              }
               onClose={() => setShowItem17Alert(false)}
               onGoToHospitalPortal={() => {
                 setShowItem17Alert(false);
