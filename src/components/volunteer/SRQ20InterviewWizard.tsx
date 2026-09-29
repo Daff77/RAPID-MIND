@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Mic,
   Square,
-  HelpCircle,
   Volume2,
   Check,
   CheckCircle,
@@ -33,6 +32,29 @@ import {
 import { useAssessment } from '../../context/AssessmentContext';
 import { Screen4EmergencyAlert } from './Screen4EmergencyAlert';
 
+const CATEGORY_META: Record<string, { label: string; badgeClass: string }> = {
+  somatic: {
+    label: 'Gejala Somatik / Fisik',
+    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  },
+  anxiety: {
+    label: 'Kecemasan / Neurotik',
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+  },
+  depressive: {
+    label: 'Gejala Depresi / Afektif',
+    badgeClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+  },
+  energy: {
+    label: 'Energi & Kelelahan',
+    badgeClass: 'bg-slate-100 text-slate-800 border-slate-200',
+  },
+  safety: {
+    label: '🚨 Keamanan Jiwa (Kritis)',
+    badgeClass: 'bg-red-50 text-red-800 border-red-200',
+  },
+};
+
 interface SRQ20InterviewWizardProps {
   survivor: SurvivorProfile;
   onComplete: (result: TriageAnalysisResult) => void;
@@ -53,7 +75,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
   // SRQ-20 Answers: map of question id to boolean (true = Ya, false = Tidak)
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
-  const [expandedTooltipId, setExpandedTooltipId] = useState<number | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
 
   // Bagian A: Checklist Faktor Risiko (R1-R5, Bobot: 2, 2, 1, 2, 1)
   const [selectedRiskFactors, setSelectedRiskFactors] = useState<string[]>([]);
@@ -273,13 +295,10 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
   const handleProceedToFunctional = () => {
     if (!isAllSRQAnswered) {
       setValidationAttempted(true);
-      // Auto-scroll ke butir pertanyaan pertama yang masih kosong
+      // Auto-jump ke butir pertanyaan pertama yang masih kosong
       const firstMissingId = unansweredQuestionIds[0];
       if (firstMissingId) {
-        const el = document.getElementById(`srq-question-${firstMissingId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        setCurrentQuestionIndex(firstMissingId - 1);
       }
       return;
     }
@@ -375,16 +394,20 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       {/* Header Context */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-            Screen 5: Menu Wawancara SRQ-20 (Hari 4–30)
-          </span>
-          <h2 className="text-base font-bold text-slate-900 mt-0.5">
-            Penapisan Terstruktur SRQ-20 & Modul Faktor Risiko / Fungsi
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+              FASE LANJUTAN · HARI 4–30
+            </span>
+          </div>
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1">
+            Wawancara Penapisan SRQ-20
           </h2>
-          <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-medium">
+          <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-medium flex-wrap">
             <span className="font-mono font-bold text-slate-800">{survivor.id}</span>
             <span>·</span>
-            <span>{survivor.name} ({survivor.age} th)</span>
+            <span className="font-semibold text-slate-800">
+              {survivor.name} ({survivor.age} th, {survivor.gender === 'L' ? 'L' : 'P'})
+            </span>
             <span>·</span>
             <span>{survivor.posko}</span>
           </div>
@@ -394,10 +417,11 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
           <button
             type="button"
             onClick={onBack}
-            className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition min-h-[44px]"
-            title="Kembali ke Homescreen"
+            className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition min-h-[44px] flex items-center gap-1 text-xs font-semibold"
+            title="Kembali ke Beranda Relawan"
           >
             <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Kembali</span>
           </button>
         )}
       </div>
@@ -418,7 +442,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               <button
                 type="button"
                 onClick={() => setInterviewMode('verbal')}
-                className={`px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 min-h-[40px] ${
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 min-h-[44px] ${
                   interviewMode === 'verbal'
                     ? 'bg-white text-blue-700 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -431,7 +455,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               <button
                 type="button"
                 onClick={() => setInterviewMode('non_verbal')}
-                className={`px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 min-h-[40px] ${
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 min-h-[44px] ${
                   interviewMode === 'non_verbal'
                     ? 'bg-white text-blue-700 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -441,6 +465,17 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                 <span>Non-Verbal</span>
               </button>
             </div>
+          </div>
+
+          {/* Onboarding Script Card for Volunteer */}
+          <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-1">
+            <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1.5 uppercase tracking-wider">
+              <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
+              <span>Pesan Pembuka Relawan (Script Onboarding):</span>
+            </span>
+            <p className="text-xs text-blue-950 italic leading-relaxed font-medium">
+              "{SRQ20_ONBOARDING_SCRIPT}"
+            </p>
           </div>
 
           {/* Non-Verbal Mode Adaptive Assessment Guidance */}
@@ -462,31 +497,20 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </div>
           )}
 
-          {/* Onboarding Script Card for Volunteer */}
-          <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
-              <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
-              <span>Pesan Pembuka Relawan (Script Onboarding):</span>
-            </span>
-            <p className="text-xs text-blue-950 italic leading-relaxed font-medium">
-              "{SRQ20_ONBOARDING_SCRIPT}"
-            </p>
-          </div>
-
           {/* Speech-to-Text Bar for Verbal Mode */}
           {interviewMode === 'verbal' && (
             <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-2.5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
                     <Mic className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-blue-950 block">
-                      Feature Speech-to-Text & Auto-Checklist
+                      Fitur Speech-to-Text & Auto-Checklist
                     </span>
-                    <span className="text-[10px] text-blue-700">
-                      Mendeteksi kata kunci keluhan korban & menandai otomatis (kontrol penuh tetap di tangan relawan)
+                    <span className="text-[10px] text-blue-700 leading-tight block">
+                      Deteksi kata kunci keluhan secara otomatis (kontrol manual tetap di tangan relawan)
                     </span>
                   </div>
                 </div>
@@ -547,7 +571,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
           {/* Red Flag Warning Alert if Q17 is Yes */}
           {isQuestion17Yes && (
-            <div className="p-3.5 bg-red-50 border-2 border-red-600 rounded-2xl flex items-center gap-3 text-red-950 animate-in fade-in">
+            <div className="p-3.5 bg-red-50 border-2 border-red-500 rounded-2xl flex items-center gap-3 text-red-950 animate-in fade-in">
               <ShieldAlert className="w-6 h-6 text-red-600 shrink-0" />
               <div>
                 <span className="font-extrabold text-xs block text-red-900">
@@ -560,18 +584,18 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </div>
           )}
 
-          {/* Progress & Completion Status Bar */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          {/* Progress & 20 Questions Jump Bar */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-800">
-                  Daftar 20 Butir Soal Terstandar WHO SRQ-20
+                <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                  Butir {SRQ20_QUESTIONS[currentQuestionIndex].id} / 20
                 </span>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] transition ${
+                  className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
                     isAllSRQAnswered
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                      : 'bg-amber-100 text-amber-800 border border-amber-300'
+                      : 'bg-blue-100 text-blue-800 border border-blue-200'
                   }`}
                 >
                   {isAllSRQAnswered
@@ -579,8 +603,8 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     : `${answeredQuestionsCount} / 20 Terjawab`}
                 </span>
               </div>
-              <span className="font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200 text-xs">
-                Skor 'Ya': {totalSRQScore} / 20
+              <span className="font-mono font-bold text-blue-700 bg-white px-2.5 py-1 rounded-xl border border-blue-200 text-xs shadow-2xs">
+                Skor 'Ya': {totalSRQScore}
               </span>
             </div>
 
@@ -594,215 +618,287 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               />
             </div>
 
+            {/* 20 Questions Jump Matrix (10x2 on mobile, perfectly fit without scroll) */}
+            <div className="grid grid-cols-10 gap-1 sm:gap-1.5 pt-1">
+              {SRQ20_QUESTIONS.map((q, idx) => {
+                const isCurrent = idx === currentQuestionIndex;
+                const val = answers[q.id];
+                const isAnswered = val !== undefined;
+                const isRedFlagItem = q.isRedFlag;
+                const isMissing = validationAttempted && !isAnswered;
+
+                let btnStyle = 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100';
+                if (val === true) {
+                  btnStyle = isRedFlagItem
+                    ? 'bg-red-600 border-red-600 text-white font-bold'
+                    : 'bg-blue-600 border-blue-600 text-white font-bold';
+                } else if (val === false) {
+                  btnStyle = 'bg-slate-200 border-slate-300 text-slate-700 font-semibold';
+                } else if (isMissing) {
+                  btnStyle = 'bg-rose-50 border-rose-400 text-rose-800 animate-pulse';
+                }
+
+                return (
+                  <button
+                    key={q.id}
+                    type="button"
+                    onClick={() => setCurrentQuestionIndex(idx)}
+                    className={`h-8 sm:h-9 rounded-xl text-xs font-mono font-bold flex items-center justify-center transition border relative ${btnStyle} ${
+                      isCurrent
+                        ? 'ring-2 ring-blue-600 ring-offset-1 scale-105 z-10 shadow-xs'
+                        : ''
+                    }`}
+                    title={`Butir ${q.id}: ${val === true ? 'YA' : val === false ? 'TIDAK' : 'Belum Dijawab'}`}
+                  >
+                    <span>{q.id}</span>
+                    {isRedFlagItem && val !== true && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 absolute top-1 right-1" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* FOCUSED ONE-QUESTION-AT-A-TIME WORKBENCH */}
+          {(() => {
+            const currentQ = SRQ20_QUESTIONS[currentQuestionIndex];
+            const currentCat = CATEGORY_META[currentQ.category] || {
+              label: currentQ.category,
+              badgeClass: 'bg-slate-100 text-slate-800 border-slate-200',
+            };
+
+            return (
+              <div
+                className={`p-4 sm:p-6 rounded-3xl border-2 transition space-y-4 shadow-xs ${
+                  currentQ.isRedFlag
+                    ? 'bg-red-50/20 border-red-300'
+                    : 'bg-white border-slate-200'
+                }`}
+              >
+                {/* Question Card Header */}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-xs">
+                      {currentQ.id}
+                    </span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${currentCat.badgeClass}`}
+                    >
+                      {currentCat.label}
+                    </span>
+                  </div>
+
+                  {/* Status Chip */}
+                  <div>
+                    {answers[currentQ.id] === true ? (
+                      <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>Pilihan: YA</span>
+                      </span>
+                    ) : answers[currentQ.id] === false ? (
+                      <span className="px-2.5 py-1 rounded-full bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1">
+                        <X className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>Pilihan: TIDAK</span>
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
+                        Belum Dijawab
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Critical Red Flag Indicator Warning if Question 17 */}
+                {currentQ.isRedFlag && (
+                  <div className="p-3 bg-red-50 border border-red-300 rounded-2xl flex items-start gap-2.5 text-red-950">
+                    <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <div className="text-xs">
+                      <span className="font-extrabold block text-red-900">
+                        🚨 INDIKATOR KRITIS KEAMANAN JIWA (RED FLAG)
+                      </span>
+                      <span className="text-[11px] text-red-800 block mt-0.5 leading-relaxed">
+                        Jika dijawab "YA", sistem seketika mengunci status triase ke <strong>T0-SUSPECT (Emergency Override)</strong> dan memicu rujukan segera ke Faskes / PSC 119.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Question Text */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Pertanyaan Standar WHO SRQ-20
+                  </span>
+                  <h3 className="text-base sm:text-xl font-extrabold text-slate-900 leading-snug">
+                    {currentQ.text}
+                  </h3>
+                </div>
+
+                {/* Conversational Script */}
+                {currentQ.scriptQuestion && (
+                  <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-1">
+                    <span className="text-[10px] font-bold text-blue-900 flex items-center gap-1.5 uppercase tracking-wider">
+                      <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Panduan Percakapan Relawan:</span>
+                    </span>
+                    <p className="text-xs sm:text-sm text-blue-950 italic leading-relaxed font-medium">
+                      "{currentQ.scriptQuestion}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Volunteer Clinical Instruction */}
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed">
+                  <span className="font-bold text-slate-900">Petunjuk Observasi Relawan: </span>
+                  <span>{currentQ.volunteerInstruction}</span>
+                </div>
+
+                {/* FAT-FINGER FRIENDLY YES/NO CONTROLS (MIN-H 56PX) */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAnswerToggle(currentQ.id, false)}
+                    className={`min-h-[56px] rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition active:scale-[0.98] ${
+                      answers[currentQ.id] === false
+                        ? 'bg-slate-800 text-white border-2 border-slate-800 shadow-md ring-2 ring-slate-400/40'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-300 shadow-xs'
+                    }`}
+                  >
+                    <X
+                      className={`w-5 h-5 ${
+                        answers[currentQ.id] === false ? 'text-white stroke-[2.5]' : 'text-slate-400'
+                      }`}
+                    />
+                    <span>TIDAK</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAnswerToggle(currentQ.id, true)}
+                    className={`min-h-[56px] rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition active:scale-[0.98] ${
+                      answers[currentQ.id] === true
+                        ? currentQ.isRedFlag
+                          ? 'bg-red-600 text-white border-2 border-red-600 shadow-md ring-2 ring-red-400/40'
+                          : 'bg-blue-600 text-white border-2 border-blue-600 shadow-md ring-2 ring-blue-400/40'
+                        : currentQ.isRedFlag
+                          ? 'bg-white hover:bg-red-50 text-red-700 border-2 border-red-300 shadow-xs'
+                          : 'bg-white hover:bg-blue-50 text-slate-800 border-2 border-slate-300 shadow-xs'
+                    }`}
+                  >
+                    <Check
+                      className={`w-5 h-5 ${
+                        answers[currentQ.id] === true ? 'text-white stroke-[3]' : 'text-slate-400'
+                      }`}
+                    />
+                    <span>YA</span>
+                  </button>
+                </div>
+
+                {/* PREV / NEXT QUESTION CONTROLS (MIN-H 52PX) */}
+                <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    disabled={currentQuestionIndex === 0}
+                    onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
+                    className="flex-1 sm:flex-initial px-4 min-h-[52px] rounded-2xl bg-white hover:bg-slate-100 active:scale-[0.99] disabled:opacity-30 disabled:pointer-events-none text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 transition shadow-xs"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-slate-600" />
+                    <span>Sebelumnya</span>
+                  </button>
+
+                  <span className="text-xs font-mono font-bold text-slate-500 hidden sm:inline-block">
+                    Butir {currentQuestionIndex + 1} dari 20
+                  </span>
+
+                  {currentQuestionIndex < 19 ? (
+                    <button
+                      type="button"
+                      onClick={() => setCurrentQuestionIndex((prev) => Math.min(19, prev + 1))}
+                      className="flex-1 sm:flex-initial px-5 min-h-[52px] rounded-2xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xs"
+                    >
+                      <span>Berikutnya</span>
+                      <ArrowRight className="w-4 h-4 text-white" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleProceedToFunctional}
+                      className={`flex-1 sm:flex-initial px-5 min-h-[52px] rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xs ${
+                        isAllSRQAnswered
+                          ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white'
+                          : 'bg-amber-500 hover:bg-amber-600 text-white'
+                      }`}
+                    >
+                      <span>{isAllSRQAnswered ? 'Lanjut ke Modul Evaluasi' : 'Periksa Soal'}</span>
+                      <ArrowRight className="w-4 h-4 text-white" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* BATCH ACTION & VALIDATION ALERTS */}
+          <div className="space-y-3 pt-1">
             {!isAllSRQAnswered && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-[11px]">
-                <span className="text-amber-800 font-medium">
-                  ⚠️ <strong>Wajib dijawab semua:</strong> Masih ada{' '}
-                  <strong className="text-amber-950">{unansweredQuestionIds.length}</strong> butir
-                  soal yang kosong.
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
+                <span className="text-slate-600 font-medium">
+                  Masih ada <strong className="text-slate-900">{unansweredQuestionIds.length} butir</strong> yang belum dijawab.
                 </span>
                 <button
                   type="button"
                   onClick={handleFillRemainingAsNo}
-                  className="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-[10px] transition shrink-0 self-start sm:self-center flex items-center gap-1 shadow-2xs"
-                  title="Tandai semua soal yang belum diisi menjadi Tidak"
+                  className="px-3 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition flex items-center gap-1.5 shadow-2xs self-start sm:self-auto min-h-[44px]"
+                  title="Tandai sisa butir soal yang belum diisi menjadi Tidak"
                 >
                   <span>⚡ Set Sisa ({unansweredQuestionIds.length}) Menjadi 'Tidak'</span>
                 </button>
               </div>
             )}
-          </div>
 
-          {/* List of 20 SRQ Questions */}
-          <div className="space-y-2.5 max-h-[52vh] overflow-y-auto pr-1">
-            {SRQ20_QUESTIONS.map((q) => {
-              const currentVal = answers[q.id];
-              const isExpanded = expandedTooltipId === q.id;
-              const isUnanswered = currentVal === undefined;
-              const isFlaggedMissing = validationAttempted && isUnanswered;
-
-              return (
-                <div
-                  key={q.id}
-                  id={`srq-question-${q.id}`}
-                  className={`p-3.5 rounded-2xl border transition ${
-                    isFlaggedMissing
-                      ? 'bg-rose-50/70 border-rose-400 ring-2 ring-rose-200'
-                      : q.isRedFlag && currentVal === true
-                      ? 'bg-red-50 border-red-500'
-                      : currentVal === true
-                      ? 'bg-blue-50/70 border-blue-300'
-                      : currentVal === false
-                      ? 'bg-slate-50/90 border-slate-200'
-                      : 'bg-white border-slate-200'
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                        {q.id}
-                      </span>
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span
-                            className={`text-xs ${
-                              currentVal === true ? 'font-bold text-slate-900' : 'text-slate-800'
-                            }`}
-                          >
-                            {q.text}
-                          </span>
-                          {q.isRedFlag && (
-                            <span className="text-[10px] text-red-600 font-bold uppercase">
-                              (🚨 Red Flag)
-                            </span>
-                          )}
-
-                          {/* Status Badge */}
-                          {isFlaggedMissing ? (
-                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1 animate-pulse">
-                              <AlertCircle className="w-3 h-3" />
-                              <span>Wajib Diisi (Kosong)</span>
-                            </span>
-                          ) : currentVal === true ? (
-                            <span className="px-2 py-0.2 rounded-md bg-blue-100 text-blue-800 font-bold text-[10px]">
-                              Pilihan: YA
-                            </span>
-                          ) : currentVal === false ? (
-                            <span className="px-2 py-0.2 rounded-md bg-slate-200 text-slate-700 font-semibold text-[10px]">
-                              Pilihan: TIDAK
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.2 rounded-md bg-slate-100 text-slate-400 text-[10px]">
-                              Belum Dijawab
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Conversational Script */}
-                        {q.scriptQuestion && (
-                          <p className="text-[11px] text-blue-900/90 italic leading-relaxed">
-                            "{q.scriptQuestion}"
-                          </p>
-                        )}
-
-                        {/* Guided Tooltip for Volunteer */}
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => setExpandedTooltipId(isExpanded ? null : q.id)}
-                            className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 pt-0.5"
-                          >
-                            <HelpCircle className="w-3 h-3" />
-                            <span>
-                              {isExpanded ? 'Sembunyikan Panduan Relawan' : 'Lihat Petunjuk Relawan'}
-                            </span>
-                          </button>
-
-                          {isExpanded && (
-                            <div className="mt-1.5 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-950 leading-relaxed animate-in fade-in">
-                              <strong>Petunjuk Relawan:</strong> {q.volunteerInstruction}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Fat-Finger Friendly Yes/No Controls */}
-                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                      <button
-                        type="button"
-                        onClick={() => handleAnswerToggle(q.id, false)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition min-h-[44px] flex items-center gap-1.5 ${
-                          currentVal === false
-                            ? 'bg-slate-700 border-slate-700 text-white shadow-2xs'
-                            : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                        }`}
-                      >
-                        <X className="w-3.5 h-3.5" />
-                        <span>Tidak</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleAnswerToggle(q.id, true)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition min-h-[44px] flex items-center gap-1.5 ${
-                          currentVal === true
-                            ? q.isRedFlag
-                              ? 'bg-red-600 border-red-600 text-white shadow-xs'
-                              : 'bg-blue-600 border-blue-600 text-white shadow-xs'
-                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                        <span>Ya</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Action to proceed to Screen 6 */}
-          <div className="pt-3 border-t border-slate-100 space-y-3">
             {validationAttempted && !isAllSRQAnswered && (
               <div className="p-3.5 bg-rose-50 border border-rose-300 rounded-2xl flex items-start gap-2.5 text-rose-950 animate-in fade-in">
                 <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                <div className="text-xs">
+                <div className="text-xs space-y-1.5 flex-1">
                   <span className="font-bold block text-rose-900">
                     Tidak dapat lanjut: Seluruh 20 butir soal SRQ-20 wajib dijawab!
                   </span>
-                  <span className="text-[11px] text-rose-800 block mt-0.5">
-                    Tersisa <strong>{unansweredQuestionIds.length} butir</strong> yang masih kosong
-                    (Butir #{unansweredQuestionIds.slice(0, 8).join(', #')}
-                    {unansweredQuestionIds.length > 8 ? '...' : ''}). Harap pilih opsi "Ya" atau
-                    "Tidak" pada setiap pertanyaan sebelum melanjutkan ke Screen 6.
-                  </span>
+                  <p className="text-[11px] text-rose-800">
+                    Klik nomor butir di bawah untuk langsung menjawab:
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    {unansweredQuestionIds.map((qId) => (
+                      <button
+                        key={qId}
+                        type="button"
+                        onClick={() => setCurrentQuestionIndex(qId - 1)}
+                        className="px-2.5 py-1 rounded-lg bg-white border border-rose-300 hover:bg-rose-100 text-rose-900 font-mono font-bold text-xs shadow-2xs"
+                      >
+                        #{qId}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="text-xs text-slate-500">
-                <div className="flex items-center gap-2">
-                  <span>
-                    Skor 'Ya': <strong className="text-slate-900">{totalSRQScore}</strong> / 20
-                  </span>
-                  <span>·</span>
-                  <span
-                    className={
-                      isAllSRQAnswered
-                        ? 'text-emerald-700 font-semibold'
-                        : 'text-amber-800 font-semibold'
-                    }
-                  >
-                    {isAllSRQAnswered
-                      ? '✓ 20 Terjawab Lengkap'
-                      : `${answeredQuestionsCount} / 20 Terjawab`}
-                  </span>
-                </div>
-              </div>
-
+            {/* Bottom primary proceed button */}
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={handleProceedToFunctional}
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition min-h-[48px] ${
+                className={`w-full min-h-[52px] rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition shadow-xs ${
                   isAllSRQAnswered
-                    ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white shadow-xs cursor-pointer'
-                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700 border border-slate-300 cursor-pointer'
+                    ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white shadow-md'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
                 }`}
-                title={
-                  isAllSRQAnswered
-                    ? 'Lanjut ke Evaluasi Faktor Risiko & Fungsi'
-                    : `Harap lengkapi 20 soal (${answeredQuestionsCount}/20 terjawab)`
-                }
               >
                 <span>
                   {isAllSRQAnswered
-                    ? 'Lanjut ke Evaluasi Faktor Risiko & Fungsi'
-                    : `Lengkapi 20 Soal (${answeredQuestionsCount}/20 Terjawab)`}
+                    ? 'Lanjut ke Evaluasi Faktor Risiko & Fungsi (Screen 6) →'
+                    : `Lengkapi 20 Soal (${answeredQuestionsCount}/20 Terjawab) Untuk Lanjut`}
                 </span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
