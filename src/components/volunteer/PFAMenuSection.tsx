@@ -209,18 +209,18 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
   };
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs p-4 sm:p-6 space-y-5 animate-in fade-in pb-16">
+    <div className="w-full bg-white border border-slate-200/90 rounded-2xl shadow-xs p-4 sm:p-6 space-y-4 sm:space-y-5 animate-in fade-in pb-8">
       {/* ------------------------------------------------------------------ */}
-      {/* 1. TOP HEADER & SURVIVOR CONTEXT */}
+      {/* 1. PFA HEADER & SURVIVOR IDENTIFICATION */}
       {/* ------------------------------------------------------------------ */}
       <header className="space-y-3 border-b border-slate-100 pb-4">
-        {/* Navigation & Phase Pill */}
+        {/* Navigation & Phase Badge */}
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={handleBackWithDraft}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 min-h-[40px] transition cursor-pointer"
-            title="Kembali dan simpan draf pengamatan"
+            title="Kembali ke pencarian dan simpan draf pengamatan"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
             <span>Kembali (Simpan Draf)</span>
@@ -232,7 +232,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
               <span>PFA · Hari 1–3</span>
             </span>
             {survivor.pfaRecord?.completedAt && (
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
                 <Save className="w-2.5 h-2.5" />
                 <span>{survivor.pfaRecord.completedAt}</span>
               </span>
@@ -240,15 +240,15 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
           </div>
         </div>
 
-        {/* Survivor Tactical Identity Card */}
-        <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Survivor Profile Snapshot Card */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-extrabold text-slate-900">
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
                 {survivor.name}
-              </h1>
+              </h2>
               <span className="text-xs text-slate-500 font-medium">
-                ({survivor.age} th, {survivor.gender})
+                ({survivor.age} th, {survivor.gender === 'L' ? 'Laki-laki' : 'Perempuan'})
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
@@ -265,116 +265,129 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                Target Sesi
-              </span>
-              <span className="text-xs font-bold text-slate-800">
-                Stabilisasi Psikologis
-              </span>
-            </div>
+          <div className="text-left sm:text-right shrink-0">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+              Protokol Intervensi
+            </span>
+            <span className="text-xs font-bold text-slate-800">
+              Stabilisasi Psikologis Lapangan
+            </span>
           </div>
         </div>
 
-        {/* Calm Core Principle Notice */}
+        {/* Core Principle Notice */}
         <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-center gap-2.5 text-xs text-blue-950 font-medium">
           <Heart className="w-4 h-4 text-blue-600 shrink-0" />
           <span className="leading-snug">{PFA_PRINCIPLE}</span>
         </div>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* STEP PROGRESS CONNECTOR BAR: 01 LOOK ─── 02 LISTEN ─── 03 LINK     */}
+        {/* ------------------------------------------------------------------ */}
+        <div className="pt-1">
+          <div
+            className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200"
+            role="tablist"
+            aria-label="Tahapan Guided PFA"
+          >
+            {/* 01 LOOK */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeStep === 'look'}
+              onClick={() => setActiveStep('look')}
+              className={`min-h-[52px] rounded-xl px-2 py-2 flex flex-col items-center justify-center transition cursor-pointer ${
+                activeStep === 'look'
+                  ? 'bg-white text-blue-700 shadow-xs border border-slate-200 font-bold ring-1 ring-blue-500/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 text-xs">
+                <Eye className="w-3.5 h-3.5" />
+                <span>01 LOOK</span>
+              </div>
+              <div className="flex items-center gap-1 mt-0.5">
+                {activeStep === 'look' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                )}
+                <span className="text-[10px] font-normal text-slate-500">
+                  {selectedLook.length > 0 ? `${selectedLook.length} diobservasi` : 'Amati'}
+                </span>
+              </div>
+            </button>
+
+            {/* 02 LISTEN */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeStep === 'listen'}
+              onClick={() => setActiveStep('listen')}
+              className={`min-h-[52px] rounded-xl px-2 py-2 flex flex-col items-center justify-center transition cursor-pointer ${
+                activeStep === 'listen'
+                  ? 'bg-white text-blue-700 shadow-xs border border-slate-200 font-bold ring-1 ring-blue-500/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 text-xs">
+                <Ear className="w-3.5 h-3.5" />
+                <span>02 LISTEN</span>
+              </div>
+              <div className="flex items-center gap-1 mt-0.5">
+                {activeStep === 'listen' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                )}
+                <span className="text-[10px] font-normal text-slate-500">
+                  {listenNotes.trim() || groundingUsed ? 'Tercatat' : 'Dengarkan'}
+                </span>
+              </div>
+            </button>
+
+            {/* 03 LINK */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeStep === 'link'}
+              onClick={() => setActiveStep('link')}
+              className={`min-h-[52px] rounded-xl px-2 py-2 flex flex-col items-center justify-center transition cursor-pointer ${
+                activeStep === 'link'
+                  ? 'bg-white text-blue-700 shadow-xs border border-slate-200 font-bold ring-1 ring-blue-500/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 text-xs">
+                <Link2 className="w-3.5 h-3.5" />
+                <span>03 LINK</span>
+              </div>
+              <div className="flex items-center gap-1 mt-0.5">
+                {activeStep === 'link' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                )}
+                <span className="text-[10px] font-normal text-slate-500">
+                  {selectedLink.length > 0 ? `${selectedLink.length} terhubung` : 'Hubungkan'}
+                </span>
+              </div>
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* ------------------------------------------------------------------ */}
-      {/* 2. GUIDED WORKBENCH STEP NAVIGATION (LOOK -> LISTEN -> LINK) */}
+      {/* 2. TAHAP 1: LOOK (OBSERVE -> IDENTIFY -> ACT)                      */}
       {/* ------------------------------------------------------------------ */}
-      <nav
-        className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80"
-        role="tablist"
-        aria-label="Tahapan Guided PFA"
-      >
-        {/* Step 1: LOOK */}
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeStep === 'look'}
-          onClick={() => setActiveStep('look')}
-          className={`min-h-[52px] rounded-xl px-2 py-2 flex flex-col items-center justify-center transition cursor-pointer ${
-            activeStep === 'look'
-              ? 'bg-white text-blue-700 shadow-xs border border-slate-200 font-bold'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold'
-          }`}
-        >
-          <div className="flex items-center gap-1.5 text-xs">
-            <Eye className="w-3.5 h-3.5" />
-            <span>01 LOOK</span>
-          </div>
-          <span className="text-[10px] font-normal text-slate-500 mt-0.5">
-            {selectedLook.length > 0 ? `${selectedLook.length} indikator` : 'Observasi'}
-          </span>
-        </button>
-
-        {/* Step 2: LISTEN */}
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeStep === 'listen'}
-          onClick={() => setActiveStep('listen')}
-          className={`min-h-[52px] rounded-xl px-2 py-2 flex flex-col items-center justify-center transition cursor-pointer ${
-            activeStep === 'listen'
-              ? 'bg-white text-blue-700 shadow-xs border border-slate-200 font-bold'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold'
-          }`}
-        >
-          <div className="flex items-center gap-1.5 text-xs">
-            <Ear className="w-3.5 h-3.5" />
-            <span>02 LISTEN</span>
-          </div>
-          <span className="text-[10px] font-normal text-slate-500 mt-0.5">
-            {listenNotes.trim() || groundingUsed ? 'Tercatat' : 'Dengarkan'}
-          </span>
-        </button>
-
-        {/* Step 3: LINK */}
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeStep === 'link'}
-          onClick={() => setActiveStep('link')}
-          className={`min-h-[52px] rounded-xl px-2 py-2 flex flex-col items-center justify-center transition cursor-pointer ${
-            activeStep === 'link'
-              ? 'bg-white text-blue-700 shadow-xs border border-slate-200 font-bold'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold'
-          }`}
-        >
-          <div className="flex items-center gap-1.5 text-xs">
-            <Link2 className="w-3.5 h-3.5" />
-            <span>03 LINK</span>
-          </div>
-          <span className="text-[10px] font-normal text-slate-500 mt-0.5">
-            {selectedLink.length > 0 ? `${selectedLink.length} kebutuhan` : 'Hubungkan'}
-          </span>
-        </button>
-      </nav>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* 3. STEP CONTENT SECTIONS */}
-      {/* ------------------------------------------------------------------ */}
-
-      {/* === STEP 1: LOOK (OBSERVE -> IDENTIFY -> RESPOND) === */}
       {activeStep === 'look' && (
         <section className="space-y-4 animate-in fade-in" aria-labelledby="heading-look">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  01 / 03
+                <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  OBSERVE → IDENTIFY → ACT
                 </span>
-                <h2 id="heading-look" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                  Tahap 1: LOOK (Amati Kondisi Lapangan)
-                </h2>
+                <h3 id="heading-look" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                  Tahap 1: LOOK (Observasi Lapangan)
+                </h3>
               </div>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                OBSERVE → IDENTIFY → RESPOND. Lakukan pemindaian visual singkat selama 10–15 detik sebelum mendekati penyintas.
+                Lakukan pemindaian visual singkat selama 10–15 detik sebelum mendekati penyintas untuk memastikan keamanan dan mendeteksi distres berat.
               </p>
             </div>
             <span className="self-start sm:self-auto text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium shrink-0">
@@ -382,7 +395,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             </span>
           </div>
 
-          {/* Checklist Items */}
+          {/* Checklist Items: Large 52-56px Tap Targets */}
           <div className="space-y-2.5" role="group" aria-label="Daftar observasi visual PFA">
             {PFA_LOOK_ITEMS.map((item) => {
               const isChecked = selectedLook.includes(item.label);
@@ -423,7 +436,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                     </div>
                   </div>
 
-                  {/* Accessible Checkmark Indicator */}
+                  {/* Accessible Checkmark Indicator (Visible without color) */}
                   <div
                     className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition ${
                       isChecked
@@ -467,17 +480,19 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
         </section>
       )}
 
-      {/* === STEP 2: LISTEN (CONVERSATIONAL & GROUNDING) === */}
+      {/* ------------------------------------------------------------------ */}
+      {/* 3. TAHAP 2: LISTEN (CONVERSATION & GROUNDING)                      */}
+      {/* ------------------------------------------------------------------ */}
       {activeStep === 'listen' && (
         <section className="space-y-4 animate-in fade-in" aria-labelledby="heading-listen">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                02 / 03
+              <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                CONVERSATION & VALIDATION
               </span>
-              <h2 id="heading-listen" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                Tahap 2: LISTEN (Dengarkan & Tenangkan)
-              </h2>
+              <h3 id="heading-listen" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                Tahap 2: LISTEN (Dengarkan & Validasi)
+              </h3>
             </div>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
               Fokus utama: Menenangkan emosi, mendengarkan aktif tanpa menghakimi, dan memulihkan rasa aman penyintas.
@@ -489,29 +504,29 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             <div className="flex items-center gap-2 text-blue-900">
               <MessageSquare className="w-4 h-4 text-blue-600" />
               <span className="text-xs font-bold uppercase tracking-wider">
-                1. Sapa & Tawarkan Bantuan (Script Relawan)
+                1. Sapa & Tawarkan Bantuan (Contoh Naskah Relawan)
               </span>
             </div>
-            <blockquote className="p-3 bg-white/90 border-l-4 border-blue-500 rounded-r-lg text-xs text-slate-800 italic leading-relaxed font-medium">
+            <blockquote className="p-3 bg-white/95 border-l-4 border-blue-600 rounded-r-lg text-xs text-slate-800 italic leading-relaxed font-medium">
               "{PFA_LISTEN_GREETING_SCRIPT}"
             </blockquote>
             <p className="text-[11px] text-blue-800">
-              Gunakan nada suara yang tenang, duduk sejajar, dan berikan penyintas ruang untuk berbicara sesuai kesiapannya.
+              Gunakan nada suara yang tenang, duduk sejajar dengan mata penyintas, dan beri ruang tanpa memaksakan jawaban.
             </p>
           </div>
 
-          {/* 2. Actionable Guidance: Do's & Don'ts */}
+          {/* 2. Panduan Sikap Relawan (DO & DON'T) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             {/* DO Card */}
             <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
               <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-xs">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>DO (Dianjurkan Dilakukan)</span>
+                <span>✓ DO (Dianjurkan Dilakukan)</span>
               </div>
               <ul className="space-y-2 text-emerald-950 text-[11px] leading-relaxed">
                 {PFA_DOS_AND_DONTS.dos.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-emerald-600 font-bold shrink-0">✓</span>
+                    <span className="text-emerald-700 font-bold shrink-0">✓</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -522,12 +537,12 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             <div className="p-4 bg-rose-50/80 border border-rose-200 rounded-xl space-y-2.5">
               <div className="flex items-center gap-2 text-rose-900 font-extrabold text-xs">
                 <AlertTriangle className="w-4 h-4 text-rose-600" />
-                <span>DON'T (Hindari Dilakukan)</span>
+                <span>✕ DON'T (Hindari Dilakukan)</span>
               </div>
               <ul className="space-y-2 text-rose-950 text-[11px] leading-relaxed">
                 {PFA_DOS_AND_DONTS.donts.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-rose-600 font-bold shrink-0">✕</span>
+                    <span className="text-rose-700 font-bold shrink-0">✕</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -535,17 +550,17 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             </div>
           </div>
 
-          {/* 3. Teknik Grounding 5-4-3-2-1 */}
+          {/* 3. Calm Guided Exercise: Teknik Grounding 5-4-3-2-1 */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
               <div className="flex items-center gap-2">
                 <Wind className="w-5 h-5 text-blue-600" />
                 <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">
                     {PFA_GROUNDING_STEPS.title}
-                  </h3>
+                  </h4>
                   <span className="text-[11px] text-slate-500">
-                    Gunakan jika penyintas panik, gemetar, atau napas memburu
+                    Ajak penyintas melakukan latihan jika mengalami panik, cemas, atau napas memburu
                   </span>
                 </div>
               </div>
@@ -576,6 +591,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
               {PFA_GROUNDING_STEPS.intro}
             </p>
 
+            {/* Guided Exercise Steps */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {PFA_GROUNDING_STEPS.steps.map((st, i) => (
                 <div
@@ -636,24 +652,26 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
         </section>
       )}
 
-      {/* === STEP 3: LINK (NEED -> CONNECT -> SUPPORT) === */}
+      {/* ------------------------------------------------------------------ */}
+      {/* 4. TAHAP 3: LINK (NEED -> CONNECT -> SUPPORT)                      */}
+      {/* ------------------------------------------------------------------ */}
       {activeStep === 'link' && (
         <section className="space-y-4 animate-in fade-in" aria-labelledby="heading-link">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                03 / 03
+              <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                NEED → CONNECT → SUPPORT
               </span>
-              <h2 id="heading-link" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+              <h3 id="heading-link" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
                 Tahap 3: LINK (Hubungkan Kebutuhan & Bantuan)
-              </h2>
+              </h3>
             </div>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              NEED → CONNECT → SUPPORT. Bantu penyintas menemukan kembali rasa kendali atas kebutuhan dasarnya dan sambungkan ke posko/keluarga.
+              Bantu penyintas menemukan kembali rasa kendali atas kebutuhan dasarnya, menghubungkan ke posko/keluarga, dan menutup sesi pendampingan.
             </p>
           </div>
 
-          {/* 1. Kebutuhan Dasar Logistik */}
+          {/* 1. Kelompok Kebutuhan Dasar Logistik */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 block">
@@ -716,10 +734,10 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             <div className="flex items-center gap-2 text-blue-900">
               <PhoneCall className="w-4 h-4 text-blue-600" />
               <span className="text-xs font-bold uppercase tracking-wider">
-                2. Menghubungkan Dukungan Sosial (Script Relawan)
+                2. Menghubungkan Dukungan Sosial (Naskah Relawan)
               </span>
             </div>
-            <blockquote className="p-3 bg-white/90 border-l-4 border-blue-500 rounded-r-lg text-xs text-slate-800 italic leading-relaxed font-medium">
+            <blockquote className="p-3 bg-white/95 border-l-4 border-blue-600 rounded-r-lg text-xs text-slate-800 italic leading-relaxed font-medium">
               "{PFA_LINK_SOCIAL_SCRIPT}"
             </blockquote>
           </div>
@@ -729,7 +747,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             <div className="flex items-center gap-2 text-slate-800">
               <UserCheck className="w-4 h-4 text-slate-600" />
               <span className="text-xs font-bold uppercase tracking-wider">
-                3. Penutup Sesi PFA (Script Relawan)
+                3. Penutup Sesi PFA (Naskah Relawan)
               </span>
             </div>
             <blockquote className="p-3 bg-white border-l-4 border-slate-400 rounded-r-lg text-xs text-slate-700 italic leading-relaxed">
@@ -737,35 +755,54 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             </blockquote>
           </div>
 
-          {/* Action Footer: Complete PFA or Proceed to SRQ-20 */}
-          <div className="pt-4 border-t border-slate-200/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => setActiveStep('listen')}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center justify-center gap-1.5 min-h-[50px] transition cursor-pointer"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Kembali ke LISTEN</span>
-            </button>
+          {/* 4. Ringkasan Observasi & Aksi Penyelesaian PFA */}
+          <div className="pt-4 border-t border-slate-200/90 space-y-3">
+            {/* Review Snapshot Card */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="font-bold text-slate-700">Ringkasan Sesi:</span>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
+                <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {selectedLook.length} Observasi LOOK
+                </span>
+                <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {groundingUsed ? '✓ Grounding Dilakukan' : 'Tanpa Grounding'}
+                </span>
+                <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {selectedLink.length} Kebutuhan LINK
+                </span>
+              </div>
+            </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            {/* Action Buttons: Primary & Secondary */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
                 type="button"
-                onClick={() => handleFinishPFA(false)}
-                className="px-4 py-3 rounded-xl border border-slate-300 hover:bg-slate-100 active:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition min-h-[52px] cursor-pointer"
+                onClick={() => setActiveStep('listen')}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center justify-center gap-1.5 min-h-[50px] transition cursor-pointer"
               >
-                <Save className="w-4 h-4 text-slate-600" />
-                <span>Simpan PFA & Selesai</span>
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Kembali ke LISTEN</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => handleFinishPFA(true)}
-                className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition min-h-[52px] cursor-pointer"
-              >
-                <span>Simpan & Lanjut ke SRQ-20</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleFinishPFA(false)}
+                  className="px-4 py-3 rounded-xl border border-slate-300 hover:bg-slate-100 active:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition min-h-[52px] cursor-pointer"
+                >
+                  <Save className="w-4 h-4 text-slate-600" />
+                  <span>Simpan PFA & Selesai</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleFinishPFA(true)}
+                  className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition min-h-[52px] cursor-pointer"
+                >
+                  <span>Simpan & Lanjut ke SRQ-20</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -773,4 +810,5 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     </div>
   );
 };
+
 

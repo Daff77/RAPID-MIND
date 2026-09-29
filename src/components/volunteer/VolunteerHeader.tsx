@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Wifi,
   WifiOff,
   LogOut,
   Cloud,
