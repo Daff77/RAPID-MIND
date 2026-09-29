@@ -35,8 +35,8 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
         onGoToDashboard={onGoToDashboard}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 px-3 sm:px-4 py-5 max-w-2xl mx-auto w-full pb-24">
+      {/* Main Container — Mobile-First (16px edge padding, safe bottom clearance for dock) */}
+      <main className="flex-1 px-4 sm:px-6 py-4 sm:py-6 max-w-2xl mx-auto w-full pb-28 sm:pb-32">
         {/* HOMESCREEN & IDENTITAS PENYINTAS (AUTO-LOOKUP SYSTEM) */}
         {activeView === 'home' && (
           <AutoLookupHomeScreen

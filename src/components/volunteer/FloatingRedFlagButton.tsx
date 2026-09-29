@@ -3,15 +3,8 @@ import {
   ShieldAlert,
   AlertOctagon,
   X,
-  PhoneCall,
   MapPin,
-  CheckCircle,
-  Ambulance,
   Radio,
-  User,
-  HeartCrack,
-  Activity,
-  Zap,
 } from 'lucide-react';
 import { LocationPost } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
@@ -129,23 +122,29 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
 
   return (
     <>
-      {/* 🚨 ALWAYS-ON PERSISTENT FLOATING SHORTCUT: RED FLAG EMERGENCY */}
-      <div className="fixed bottom-6 right-4 sm:right-6 z-50">
+      {/* 🚨 COMPACT TACTICAL EMERGENCY CONTROL: RED FLAG T0 */}
+      <aside
+        aria-label="Kontrol Darurat Lapangan"
+        className="fixed z-40 right-3.5 sm:right-6 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 pointer-events-auto"
+      >
         <button
           type="button"
           onClick={handleOpen}
-          className="group flex items-center gap-2.5 px-4 py-3.5 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black text-xs shadow-2xl shadow-red-600/60 border-2 border-white transition-all transform hover:scale-105 select-none min-h-[56px]"
+          className="group flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-black text-xs shadow-lg shadow-red-950/25 border-2 border-white transition-all transform hover:scale-[1.03] select-none min-h-[46px] cursor-pointer"
           title="Tekan untuk kasus darurat T0 (Ideasi Bunuh Diri, Psikosis, Agitasi, Krisis Medis)"
         >
-          <div className="relative">
-            <ShieldAlert className="w-5 h-5 text-white" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-300 rounded-full animate-ping"></span>
+          <div className="relative flex items-center justify-center">
+            <ShieldAlert className="w-4 h-4 text-white shrink-0" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-300 rounded-full animate-ping"></span>
           </div>
-          <span className="tracking-wider uppercase text-xs font-black">
-            🚨 Red Flag Emergency
+          <span className="tracking-wide uppercase text-[11px] sm:text-xs font-black">
+            SOS T0
+          </span>
+          <span className="hidden sm:inline text-[10px] font-bold text-red-100 pl-0.5">
+            · Emergency
           </span>
         </button>
-      </div>
+      </aside>
 
       {/* MODAL: PROTOKOL EMERGENCY RED FLAG T0 (SCREEN 4) */}
       {isModalOpen && (
