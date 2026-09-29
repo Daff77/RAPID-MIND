@@ -11,10 +11,112 @@ import {
 } from '../services/indexedDbService';
 
 /**
- * Initial empty survivor registry.
- * Starts clean with 0 survivors.
+ * Standard Demo / Mock Survivors Registry representing the complete RAPID-MIND workflow:
+ * - Normal T1 (Ratna Sari)
+ * - Normal T2 (Dewi Sartika)
+ * - Normal T3 (Ahmad Fauzi)
+ * - T0-SUSPECT (Slamet Raharjo)
+ * - T0-CONFIRMED (Bambang Wijaya)
+ * - DOWNGRADED (Nurul Hidayah)
  */
-export const INITIAL_MOCK_SURVIVORS: SurvivorProfile[] = [];
+export const INITIAL_MOCK_SURVIVORS: SurvivorProfile[] = [
+  {
+    id: 'RM-2026-000001',
+    nik: '3578012345670001',
+    poskoId: 'POS-A-01',
+    name: 'Ratna Sari',
+    age: 34,
+    gender: 'P',
+    category: 'Dewasa',
+    posko: 'Posko A',
+    registeredAt: '2026-09-28 08:30',
+    currentPhase: 'followup_srq20',
+    srq20Score: 11,
+    triageTier: 'T1',
+    t0Status: undefined,
+    notes: 'Mengeluhkan pusing dan cemas berulang sejak gempa.',
+  },
+  {
+    id: 'RM-2026-000002',
+    nik: '3578012345670002',
+    poskoId: 'POS-B-04',
+    name: 'Dewi Sartika',
+    age: 28,
+    gender: 'P',
+    category: 'Dewasa',
+    posko: 'Posko B',
+    registeredAt: '2026-09-28 09:00',
+    currentPhase: 'followup_srq20',
+    srq20Score: 6,
+    triageTier: 'T2',
+    t0Status: undefined,
+    notes: 'Kaget terhadap suara gemuruh susulan. Membantu di dapur posko.',
+  },
+  {
+    id: 'RM-2026-000003',
+    nik: '3578012345670003',
+    poskoId: 'POS-A-12',
+    name: 'Ahmad Fauzi',
+    age: 45,
+    gender: 'L',
+    category: 'Dewasa',
+    posko: 'Posko A',
+    registeredAt: '2026-09-28 09:20',
+    currentPhase: 'followup_srq20',
+    srq20Score: 2,
+    triageTier: 'T3',
+    t0Status: undefined,
+    notes: 'Kondisi stabil, berpartisipasi aktif dalam gotong royong tenda.',
+  },
+  {
+    id: 'RM-2026-000004',
+    nik: '3578012345670004',
+    poskoId: 'POS-C-02',
+    name: 'Slamet Raharjo',
+    age: 52,
+    gender: 'L',
+    category: 'Dewasa',
+    posko: 'Posko C',
+    registeredAt: '2026-09-28 09:50',
+    currentPhase: 'followup_srq20',
+    srq20Score: 14,
+    triageTier: 'T0',
+    t0Status: 'T0-Suspect',
+    notes: 'Red flag Butir #17 aktif. Perlu pendampingan ketat dan validasi dokter.',
+  },
+  {
+    id: 'RM-2026-000005',
+    nik: '3578012345670005',
+    poskoId: 'POS-B-01',
+    name: 'Bambang Wijaya',
+    age: 39,
+    gender: 'L',
+    category: 'Dewasa',
+    posko: 'Posko B',
+    registeredAt: '2026-09-28 07:15',
+    currentPhase: 'acute_pfa',
+    srq20Score: 16,
+    triageTier: 'T0',
+    t0Status: 'T0-Confirmed',
+    notes: 'T0-Confirmed rujukan darurat. PSC 119 dan bed IGD disiapkan.',
+  },
+  {
+    id: 'RM-2026-000006',
+    nik: '3578012345670006',
+    poskoId: 'POS-D-08',
+    name: 'Nurul Hidayah',
+    age: 24,
+    gender: 'P',
+    category: 'Dewasa',
+    posko: 'Posko D',
+    registeredAt: '2026-09-28 08:00',
+    currentPhase: 'followup_srq20',
+    srq20Score: 7,
+    triageTier: 'T2',
+    t0Status: 'Downgraded',
+    notes: 'Diturunkan status dari T0 ke T2 setelah Tele-Emergency dengan nakes.',
+  },
+];
 
 const STORAGE_KEY_SURVIVORS = 'rapidmind_survivor_registry_clean_v1';
 
@@ -26,7 +128,12 @@ export function getStoredSurvivors(): SurvivorProfile[] {
     return INITIAL_MOCK_SURVIVORS;
   }
   try {
-    return JSON.parse(raw);
+    const list: SurvivorProfile[] = JSON.parse(raw);
+    if (list.length === 0 && INITIAL_MOCK_SURVIVORS.length > 0) {
+      localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(INITIAL_MOCK_SURVIVORS));
+      return INITIAL_MOCK_SURVIVORS;
+    }
+    return list;
   } catch {
     return INITIAL_MOCK_SURVIVORS;
   }

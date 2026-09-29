@@ -38,6 +38,10 @@ export function getCentralAssessments(): AssessmentRecord[] {
   }
   try {
     const list: AssessmentRecord[] = JSON.parse(stored);
+    if (list.length === 0 && INITIAL_ASSESSMENTS.length > 0) {
+      localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(INITIAL_ASSESSMENTS));
+      return INITIAL_ASSESSMENTS;
+    }
     let dirty = false;
     const year = new Date().getFullYear();
     const migrated = list.map((r, idx) => {
@@ -49,6 +53,11 @@ export function getCentralAssessments(): AssessmentRecord[] {
       }
       if (!rec.recordId) {
         rec.recordId = `ASM-${year}-${String(idx + 1).padStart(6, '0')}`;
+        changed = true;
+      }
+      // Sanitize: A non-T0 record without critical red flag must NEVER have t0Status = 'T0-Confirmed'
+      if (rec.triageTier && rec.triageTier !== 'T0' && !rec.criticalTriggered && rec.t0Status === 'T0-Confirmed') {
+        rec.t0Status = undefined;
         changed = true;
       }
       if (changed) dirty = true;
