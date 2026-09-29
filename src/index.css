@@ -1,23 +1,176 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* ==========================================================================
+   RAPID-MIND DESIGN SYSTEM — PHASE 1 FOUNDATION
+   Disaster Response & Clinical Emergency Healthcare Platform
+   ========================================================================== */
+
 @layer base {
   :root {
-    --zone-green: #16a34a;
-    --zone-yellow: #eab308;
-    --zone-red: #dc2626;
-    --canvas-bg: #f6f8fb;
-    --surface-bg: #ffffff;
-    --text-primary: #172033;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    --border-subtle: #e2e8f0;
-    --accent-blue: #2563eb;
+    /* ------------------------------------------------------------------------
+       1. PRIMITIVE TOKENS (RAW PALETTE VALUES)
+       ------------------------------------------------------------------------ */
+    /* Neutrals / Slates */
+    --rm-slate-50: #f8fafc;
+    --rm-slate-100: #f1f5f9;
+    --rm-slate-200: #e2e8f0;
+    --rm-slate-300: #cbd5e1;
+    --rm-slate-400: #94a3b8;
+    --rm-slate-500: #64748b;
+    --rm-slate-600: #475569;
+    --rm-slate-700: #334155;
+    --rm-slate-800: #1e293b;
+    --rm-slate-900: #0f172a;
+    --rm-slate-950: #020617;
+
+    /* Blues (Primary Clinical Action) */
+    --rm-blue-50: #eff6ff;
+    --rm-blue-100: #dbeafe;
+    --rm-blue-200: #bfdbfe;
+    --rm-blue-500: #3b82f6;
+    --rm-blue-600: #2563eb;
+    --rm-blue-700: #1d4ed8;
+    --rm-blue-800: #1e40af;
+    --rm-blue-900: #1e3a8a;
+
+    /* Reds (T0 Emergency & Critical Safeguards Only) */
+    --rm-red-50: #fef2f2;
+    --rm-red-100: #fee2e2;
+    --rm-red-200: #fecaca;
+    --rm-red-400: #f87171;
+    --rm-red-500: #ef4444;
+    --rm-red-600: #dc2626;
+    --rm-red-700: #b91c1c;
+    --rm-red-800: #991b1b;
+    --rm-red-900: #7f1d1d;
+
+    /* Oranges (T1 High Risk Clinical Referral) */
+    --rm-orange-50: #fff7ed;
+    --rm-orange-100: #ffedd5;
+    --rm-orange-200: #fed7aa;
+    --rm-orange-400: #fb923c;
+    --rm-orange-500: #f97316;
+    --rm-orange-600: #ea580c;
+    --rm-orange-700: #c2410c;
+
+    /* Ambers (T2 Moderate Risk / PFA Follow-up) */
+    --rm-amber-50: #fffbeb;
+    --rm-amber-100: #fef3c7;
+    --rm-amber-200: #fde68a;
+    --rm-amber-300: #fcd34d;
+    --rm-amber-500: #f59e0b;
+    --rm-amber-600: #d97706;
+    --rm-amber-700: #b45309;
+
+    /* Greens (T3 Low Risk / Stable Community) */
+    --rm-green-50: #f0fdf4;
+    --rm-green-100: #dcfce7;
+    --rm-green-200: #bbf7d0;
+    --rm-green-300: #86efac;
+    --rm-green-500: #22c55e;
+    --rm-green-600: #16a34a;
+    --rm-green-700: #15803d;
+
+    /* ------------------------------------------------------------------------
+       2. SEMANTIC TOKENS (ROLE-BASED DESIGN SYSTEM)
+       Foundation:
+       Background: #F8FAFC
+       Surface:    #FFFFFF
+       Elevated:   #F1F5F9
+       Border:     #E2E8F0
+       Primary Text:   #0F172A
+       Secondary Text: #475569
+       Muted:          #64748B
+       Primary Action: #1D4ED8
+       Primary Hover:  #1E40AF
+       T0: #DC2626
+       T1: #EA580C
+       T2: #D97706
+       T3: #16A34A
+       ------------------------------------------------------------------------ */
+    --rm-bg-canvas: #f8fafc;
+    --rm-bg-surface: #ffffff;
+    --rm-bg-elevated: #f1f5f9;
+    --rm-border-default: #e2e8f0;
+    --rm-border-strong: #cbd5e1;
+    --rm-border-focus: #1d4ed8;
+
+    --rm-text-primary: #0f172a;
+    --rm-text-secondary: #475569;
+    --rm-text-muted: #64748b;
+
+    --rm-action-primary: #1d4ed8;
+    --rm-action-hover: #1e40af;
+    --rm-action-active: #172554;
+    --rm-action-light: #eff6ff;
+    --rm-action-border: #bfdbfe;
+
+    /* Triage Semantic Tiers */
+    --rm-t0-solid: #dc2626;
+    --rm-t0-bg: #fef2f2;
+    --rm-t0-border: #f87171;
+    --rm-t0-text: #991b1b;
+
+    --rm-t1-solid: #ea580c;
+    --rm-t1-bg: #fff7ed;
+    --rm-t1-border: #fb923c;
+    --rm-t1-text: #9a3412;
+
+    --rm-t2-solid: #d97706;
+    --rm-t2-bg: #fffbeb;
+    --rm-t2-border: #fcd34d;
+    --rm-t2-text: #92400e;
+
+    --rm-t3-solid: #16a34a;
+    --rm-t3-bg: #f0fdf4;
+    --rm-t3-border: #86efac;
+    --rm-t3-text: #166534;
+
+    /* Focus & Accessibility Tokens */
+    --rm-focus-ring: #1d4ed8;
+    --rm-focus-offset: 2px;
+
+    /* Legacy compatibility mappings (Preserve unbroken existing components) */
+    --canvas-bg: var(--rm-bg-canvas);
+    --surface-bg: var(--rm-bg-surface);
+    --text-primary: var(--rm-text-primary);
+    --text-secondary: var(--rm-text-secondary);
+    --text-muted: var(--rm-text-muted);
+    --border-subtle: var(--rm-border-default);
+    --accent-blue: var(--rm-action-primary);
+    --zone-green: var(--rm-t3-solid);
+    --zone-yellow: var(--rm-t2-solid);
+    --zone-red: var(--rm-t0-solid);
+
+    /* ------------------------------------------------------------------------
+       3. SPACING & TOUCH TARGET TOKENS
+       ------------------------------------------------------------------------ */
+    --touch-target-min: 48px;
+    --touch-target-emergency: 56px;
+    --touch-target-mobile-field: 52px;
+
+    /* ------------------------------------------------------------------------
+       4. CONCENTRIC RADIUS SYSTEM
+       Outer radius = inner radius + padding
+       ------------------------------------------------------------------------ */
+    --radius-card: 16px;       /* 1rem - Main card boundaries */
+    --radius-item: 12px;       /* 0.75rem - Nested container or section */
+    --radius-control: 10px;    /* 0.625rem - Inputs, buttons, switches */
+    --radius-badge: 6px;       /* 0.375rem - Status chips, flags */
+    --radius-pill: 9999px;     /* Full rounded pills */
+
+    /* ------------------------------------------------------------------------
+       5. ELEVATION & SHADOW SYSTEM (Crisp, Clinical Depth)
+       ------------------------------------------------------------------------ */
+    --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+    --shadow-floating: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+    --shadow-emergency: 0 12px 30px -4px rgba(220, 38, 38, 0.35);
   }
 
   body {
-    background-color: #f6f8fb;
-    color: #172033;
+    background-color: var(--rm-bg-canvas);
+    color: var(--rm-text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -27,38 +180,265 @@
   }
 }
 
-/* Custom scrollbars for clean light theme */
+/* ----------------------------------------------------------------------------
+   TYPOGRAPHY & ACCESSIBILITY UTILITIES
+   ---------------------------------------------------------------------------- */
+.tabular-numbers {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Accessible focus ring system across all interactive controls */
+*:focus-visible {
+  outline: 2px solid var(--rm-focus-ring) !important;
+  outline-offset: var(--rm-focus-offset) !important;
+}
+
+/* Prevent unwanted focus ring for pure mouse clicks */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Respect user's motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   FOUNDATION COMPONENT UTILITIES (PHASE 1)
+   ---------------------------------------------------------------------------- */
+
+/* Primary Action Button (Tactile 52px touch floor on field) */
+.rm-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--rm-action-primary);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  min-height: var(--touch-target-mobile-field);
+  border-radius: var(--radius-item);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: background-color 150ms ease, transform 100ms ease;
+  user-select: none;
+  cursor: pointer;
+}
+.rm-btn-primary:hover:not(:disabled) {
+  background-color: var(--rm-action-hover);
+}
+.rm-btn-primary:active:not(:disabled) {
+  background-color: var(--rm-action-active);
+  transform: scale(0.98);
+}
+.rm-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary Button */
+.rm-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #ffffff;
+  color: var(--rm-text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  min-height: var(--touch-target-mobile-field);
+  border-radius: var(--radius-item);
+  border: 1px solid var(--rm-border-default);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
+  user-select: none;
+  cursor: pointer;
+}
+.rm-btn-secondary:hover:not(:disabled) {
+  background-color: var(--rm-bg-elevated);
+  border-color: var(--rm-border-strong);
+}
+.rm-btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.rm-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Emergency Button (T0 Safe Trigger) */
+.rm-btn-emergency {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--rm-t0-solid);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.875rem 1.25rem;
+  min-height: var(--touch-target-emergency);
+  border-radius: var(--radius-item);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-emergency);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background-color 150ms ease, transform 100ms ease;
+  user-select: none;
+  cursor: pointer;
+}
+.rm-btn-emergency:hover:not(:disabled) {
+  background-color: var(--rm-red-700);
+}
+.rm-btn-emergency:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Standardized Field Input (16px base font to prevent iOS Safari auto-zoom) */
+.rm-input {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid var(--rm-border-default);
+  border-radius: var(--radius-control);
+  padding: 0.625rem 0.875rem;
+  font-size: 1rem; /* 16px on mobile prevents zoom */
+  line-height: 1.5;
+  color: var(--rm-text-primary);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  outline: none;
+}
+@media (min-width: 640px) {
+  .rm-input {
+    font-size: 0.875rem; /* 14px on desktop */
+  }
+}
+.rm-input:focus {
+  border-color: var(--rm-action-primary);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+.rm-input::placeholder {
+  color: var(--rm-text-muted);
+}
+
+/* Standardized Card Foundation */
+.rm-card {
+  background-color: var(--rm-bg-surface);
+  border: 1px solid var(--rm-border-default);
+  border-radius: var(--radius-card);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+/* Status / Triage Badges (Multimodal: Color + Label + Icon Border) */
+.rm-badge-t0 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-badge);
+  background-color: var(--rm-t0-solid);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-mono: inherit;
+}
+
+.rm-badge-t1 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-badge);
+  background-color: var(--rm-t1-bg);
+  border: 1px solid var(--rm-t1-border);
+  color: var(--rm-t1-text);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rm-badge-t2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-badge);
+  background-color: var(--rm-t2-bg);
+  border: 1px solid var(--rm-t2-border);
+  color: var(--rm-t2-text);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rm-badge-t3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-badge);
+  background-color: var(--rm-t3-bg);
+  border: 1px solid var(--rm-t3-border);
+  color: var(--rm-t3-text);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Clean Custom Scrollbars for Medical/Dashboard density */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--rm-bg-elevated);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
+  background: var(--rm-slate-300);
+  border-radius: var(--radius-pill);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--rm-slate-400);
 }
 
-/* Fix Leaflet map for light theme */
+/* Fix Leaflet map for light clinical theme */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  border-radius: 0.75rem;
-  background-color: #e5e7eb !important;
+  border-radius: var(--radius-item);
+  background-color: var(--rm-slate-200) !important;
   font-family: inherit;
 }
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: #ffffff !important;
-  color: #172033 !important;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  border-radius: 0.75rem;
+  color: var(--rm-text-primary) !important;
+  border: 1px solid var(--rm-border-default);
+  box-shadow: var(--shadow-floating);
+  border-radius: var(--radius-item);
 }
 
 .leaflet-popup-content {
@@ -66,7 +446,3 @@
   line-height: 1.4;
 }
 
-/* Tabular numbers for live counters and clocks */
-.tabular-numbers {
-  font-variant-numeric: tabular-nums;
-}
