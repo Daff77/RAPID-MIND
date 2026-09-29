@@ -1,17 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Calendar,
   Search,
-  User,
   MapPin,
-  Clock,
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
   Activity,
   CheckCircle2,
-  AlertTriangle,
-  ShieldAlert,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
