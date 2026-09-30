@@ -6,7 +6,6 @@ import { DashboardPage } from './pages/DashboardPage';
 import { HospitalPage } from './pages/HospitalPage';
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedCard } from './components/auth/UnauthorizedCard';
-import { Smartphone } from 'lucide-react';
 import { UserRole } from './types/auth';
 
 type RouteType = 'volunteer' | 'dashboard' | 'hospital' | 'login';
@@ -33,8 +32,6 @@ const PageRouter: React.FC = () => {
   const [currentRoute, setCurrentRoute] = useState<RouteType>(() => {
     return getTargetRouteFromUrl();
   });
-
-  const [usePhoneFrame, setUsePhoneFrame] = useState<boolean>(false);
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -111,37 +108,7 @@ const PageRouter: React.FC = () => {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
       {/* 1. VOLUNTEER FIELD APP */}
       {currentRoute === 'volunteer' && (
-        <>
-          {usePhoneFrame ? (
-            <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-slate-200/60">
-              <div
-                className="w-[390px] h-[844px] bg-[#F8FAFC] rounded-[44px] border-[8px] border-slate-300 shadow-2xl overflow-hidden flex flex-col relative"
-                style={{ maxHeight: 'calc(100vh - 40px)' }}
-              >
-                {/* Simulated iPhone Notch */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-300/80 rounded-full z-50 pointer-events-none"></div>
-                <div className="flex-1 overflow-y-auto pt-2">
-                  <VolunteerPage onGoToDashboard={() => navigateTo('dashboard')} />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <VolunteerPage onGoToDashboard={() => navigateTo('dashboard')} />
-          )}
-
-          {/* Discreet Floating Desktop Simulator Toggle */}
-          <div className="hidden lg:block fixed bottom-4 right-4 z-40">
-            <button
-              type="button"
-              onClick={() => setUsePhoneFrame(!usePhoneFrame)}
-              className="px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-slate-700 text-xs font-semibold shadow-md border border-slate-200 backdrop-blur-xs flex items-center gap-1.5 transition hover:scale-105 active:scale-95"
-              title="Toggle iPhone Frame Simulator on Desktop"
-            >
-              <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-              <span>{usePhoneFrame ? 'Mobile Frame: ON' : 'Mobile Frame: OFF'}</span>
-            </button>
-          </div>
-        </>
+        <VolunteerPage onGoToDashboard={() => navigateTo('dashboard')} />
       )}
 
       {/* 2. COMMAND CENTER DASHBOARD (Admin Only) */}

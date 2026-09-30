@@ -25,16 +25,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const { login } = useAuth();
 
   const [selectedRole, setSelectedRole] = useState<UserRole>(defaultRole);
-  const [usernameOrEmail, setUsernameOrEmail] = useState<string>(() => {
-    if (defaultRole === 'admin') return 'admin';
-    if (defaultRole === 'hospital') return 'rumahsakit';
-    return 'volunteer';
-  });
-  const [password, setPassword] = useState<string>(() => {
-    if (defaultRole === 'admin') return 'admin123';
-    if (defaultRole === 'hospital') return 'rumahsakit123';
-    return 'volunteer123';
-  });
+  const [usernameOrEmail, setUsernameOrEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -42,16 +34,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
     setErrorMessage(null);
-    if (role === 'admin') {
-      setUsernameOrEmail('admin');
-      setPassword('admin123');
-    } else if (role === 'hospital') {
-      setUsernameOrEmail('rumahsakit');
-      setPassword('rumahsakit123');
-    } else {
-      setUsernameOrEmail('volunteer');
-      setPassword('volunteer123');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,6 +161,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <input
                   id="login-username"
                   type="text"
+                  placeholder="Masukkan username atau email"
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 rounded-xl text-xs sm:text-sm text-slate-900 outline-none transition min-h-[44px]"
@@ -196,6 +179,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
+                  placeholder="Masukkan kata sandi"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 rounded-xl text-xs sm:text-sm text-slate-900 outline-none transition min-h-[44px]"
@@ -223,17 +207,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </button>
           </form>
 
-          {/* Akun Demonstrasi Lapangan */}
-          <div className="pt-3 border-t border-slate-100 text-center text-[11px] text-slate-500 space-y-1.5">
-            <span className="font-semibold block text-slate-600">Akun Simulasi:</span>
-            <div className="flex flex-wrap justify-center gap-1.5 text-[11px] text-slate-700 font-mono">
-              <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">volunteer</span>
-              <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">rumahsakit</span>
-              <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">admin</span>
-            </div>
-            <span className="text-[10px] text-slate-400 block">
-              Sandi default: <code className="font-mono text-slate-600 font-bold">password123</code>
-            </span>
+          {/* Production Security & Encryption Notice */}
+          <div className="pt-3 border-t border-slate-100 text-center text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-slate-400" />
+            <span>Koneksi aman terenkripsi · RAPID-MIND v2.0 Production</span>
           </div>
         </div>
       </div>

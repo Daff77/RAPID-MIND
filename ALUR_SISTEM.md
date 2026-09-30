@@ -61,7 +61,7 @@ flowchart TD
     S3_End ==>|Sinkronisasi Data| D3
 
     %% Two-Tiered Validation di Faskes
-    D2 --> TeleCall[Tele-Emergency Simulator: Panggilan Cepat Visual ke Relawan]
+    D2 --> TeleCall[Tele-Emergency: Panggilan Cepat Visual ke Relawan]
     TeleCall --> Decision{Keputusan Triase Sekunder}
     Decision -->|Tervalidasi Gawat Darurat| T0_Conf[T0-Confirmed Rujukan ➔ Kirim Armada Ambulans PSC 119]
     Decision -->|Bukan Bahaya Darurat Nyawa| Downgrade[Downgrade Status ke T1 / T2 ➔ Dampingi di Posko]

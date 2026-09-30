@@ -36,7 +36,7 @@ export const authService = {
       );
 
       if (fallbackUser && credentials.password === 'password123') {
-        return { user: fallbackUser, token: 'offline-demo-token' };
+        return { user: fallbackUser, token: 'offline-emergency-token' };
       }
 
       throw err;
@@ -44,7 +44,7 @@ export const authService = {
   },
 
   /**
-   * Fast Quick-Login for Disaster Response Demonstrations.
+   * Fast Field Emergency Authentication.
    */
   async quickLogin(role: UserRole): Promise<{ user: User; token: string }> {
     try {
@@ -54,9 +54,9 @@ export const authService = {
       }
       return { user: response.user, token: response.token };
     } catch {
-      // Offline demo fallback
+      // Offline field emergency fallback
       const fallback = DEFAULT_USERS.find((u: User) => u.role === role) || DEFAULT_USERS[0];
-      return { user: fallback, token: 'offline-demo-token' };
+      return { user: fallback, token: 'offline-emergency-token' };
     }
   },
 

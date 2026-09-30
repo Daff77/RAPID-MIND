@@ -77,8 +77,8 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
                 ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                 : 'bg-amber-100 border-amber-300 text-amber-900 font-extrabold'
             }`}
-            title="Klik untuk beralih mode simulasi Online / Offline"
-            aria-label={isOnline ? 'Status: Online' : 'Status: Offline'}
+            title={isOnline ? 'Status Jaringan: Online (Terhubung Server)' : 'Status Jaringan: Offline (Penyimpanan Lokal Aktif)'}
+            aria-label={isOnline ? 'Status Jaringan: Online' : 'Status Jaringan: Offline'}
           >
             {isOnline ? (
               <>

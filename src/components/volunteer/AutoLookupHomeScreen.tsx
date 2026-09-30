@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Search,
   UserCheck,
@@ -13,6 +13,7 @@ import {
   X,
   FileText,
   AlertCircle,
+  Camera,
 } from 'lucide-react';
 import { SurvivorProfile, LocationPost, getCategoryFromAge } from '../../types/assessment';
 import {
@@ -51,6 +52,65 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
   const [isEditingNik, setIsEditingNik] = useState(false);
   const [editNikInput, setEditNikInput] = useState('');
   const [nikUpdateSuccess, setNikUpdateSuccess] = useState<string | null>(null);
+
+  // Real Camera & QR Scanner State
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [qrManualCode, setQrManualCode] = useState('');
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  useEffect(() => {
+    if (!isQrModalOpen) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      return;
+    }
+
+    let isMounted = true;
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: 'environment' } })
+        .then((stream) => {
+          if (!isMounted) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch((err) => {
+          console.warn('Camera access note:', err);
+          if (isMounted) {
+            setCameraError(
+              'Akses kamera tidak aktif atau izin belum diberikan. Anda dapat memasukkan kode gelang posko secara manual di bawah.'
+            );
+          }
+        });
+    } else {
+      setCameraError('Perangkat tidak mendukung akses kamera langsung. Silakan masukkan kode gelang secara manual.');
+    }
+
+    return () => {
+      isMounted = false;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [isQrModalOpen]);
+
+  const handleScanSubmit = (code: string) => {
+    const cleanCode = code.trim();
+    if (!cleanCode) return;
+    setIsQrModalOpen(false);
+    setSearchQuery(cleanCode);
+    handleSearch(cleanCode);
+  };
 
   const handleNewAgeChange = (val: string) => {
     setNewAge(val);
@@ -243,49 +303,14 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
           <button
             type="button"
             onClick={() => {
-              setSearchQuery('GL-042');
-              handleSearch('GL-042');
+              setQrManualCode('');
+              setIsQrModalOpen(true);
             }}
             className="sm:w-auto px-5 min-h-[56px] rounded-lg bg-white border border-slate-300 hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-semibold text-sm flex items-center justify-center gap-2 transition cursor-pointer"
-            title="Simulasi Pemindaian QR Gelang Posko"
+            title="Pindai QR Gelang Posko"
           >
             <QrCode className="w-4 h-4 text-slate-600" />
             <span>Scan QR</span>
-          </button>
-        </div>
-
-        {/* Demo Quick Lookup Chips (Subtle, secondary field reference) */}
-        <div className="pt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-          <span className="font-semibold text-slate-500">Contoh:</span>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery('Dewi Sartika');
-              handleSearch('Dewi Sartika');
-            }}
-            className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer font-medium text-[11px]"
-          >
-            "Dewi Sartika"
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery('Budi Gunawan');
-              handleSearch('Budi Gunawan');
-            }}
-            className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer font-medium text-[11px]"
-          >
-            "Budi Gunawan"
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery('3201019988770009');
-              handleSearch('3201019988770009');
-            }}
-            className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer font-medium text-[11px]"
-          >
-            "320101..." (NIK Baru)
           </button>
         </div>
       </section>
@@ -809,6 +834,121 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
               </button>
             </form>
           ) : null}
+        </div>
+      )}
+
+      {/* 4. REAL QR / BARCODE SCANNER MODAL */}
+      {isQrModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pindai QR Gelang Penyintas"
+        >
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <QrCode className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                    Pindai QR Gelang Posko
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Arahkan kamera ke QR / Barcode gelang penyintas
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsQrModalOpen(false)}
+                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 flex items-center justify-center transition cursor-pointer"
+                title="Tutup pemindai"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Camera Viewfinder / Fallback */}
+            <div className="p-4 space-y-3.5">
+              <div className="relative w-full aspect-4/3 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-300">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+
+                {/* Viewfinder Target Guide Overlay */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-8">
+                  <div className="w-44 h-44 border-2 border-white/80 rounded-2xl relative shadow-lg">
+                    {/* Viewfinder Corner Accents */}
+                    <div className="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-blue-500 rounded-tl"></div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-blue-500 rounded-tr"></div>
+                    <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-blue-500 rounded-bl"></div>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-blue-500 rounded-br"></div>
+
+                    {/* Scanning Beam Animation */}
+                    <div className="w-full h-0.5 bg-blue-400 shadow-sm animate-pulse absolute top-1/2 -translate-y-1/2"></div>
+                  </div>
+                </div>
+
+                {/* If camera is not available or blocked */}
+                {cameraError && (
+                  <div className="absolute inset-0 bg-slate-900/90 text-white p-4 flex flex-col items-center justify-center text-center space-y-2">
+                    <Camera className="w-8 h-8 text-slate-400" />
+                    <p className="text-xs text-slate-300 leading-relaxed max-w-xs">
+                      {cameraError}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Manual Input Fallback */}
+              <div className="space-y-1.5 pt-1">
+                <label className="text-xs font-bold text-slate-700 block">
+                  Atau Masukkan Kode Gelang / NIK Secara Manual:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={qrManualCode}
+                    onChange={(e) => setQrManualCode(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleScanSubmit(qrManualCode);
+                      }
+                    }}
+                    placeholder="Contoh: GL-042 / RM-2026-000001"
+                    className="flex-1 bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 outline-none transition min-h-[44px]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleScanSubmit(qrManualCode)}
+                    disabled={!qrManualCode.trim()}
+                    className="px-4 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer shrink-0"
+                  >
+                    Terapkan
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsQrModalOpen(false)}
+                className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold transition cursor-pointer"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
