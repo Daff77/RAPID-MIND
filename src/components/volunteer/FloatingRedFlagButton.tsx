@@ -130,17 +130,14 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
         <button
           type="button"
           onClick={handleOpen}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-black text-xs shadow-lg shadow-red-950/25 border-2 border-white transition-all transform hover:scale-[1.03] select-none min-h-[52px] cursor-pointer"
+          className="group flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-black text-xs shadow-lg shadow-red-950/25 border-2 border-white transition-all transform hover:scale-[1.02] select-none min-h-[52px] cursor-pointer"
           title="Tekan untuk kasus darurat T0 (Ideasi Bunuh Diri, Psikosis, Agitasi, Krisis Medis)"
         >
-          <div className="relative flex items-center justify-center">
-            <ShieldAlert className="w-4 h-4 text-white shrink-0" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-300 rounded-full animate-ping"></span>
-          </div>
-          <span className="tracking-wide uppercase text-[11px] sm:text-xs font-black">
+          <ShieldAlert className="w-5 h-5 text-white shrink-0" />
+          <span className="tracking-wide uppercase text-xs font-black">
             SOS T0
           </span>
-          <span className="hidden sm:inline text-[10px] font-bold text-red-100 pl-0.5">
+          <span className="hidden sm:inline text-[11px] font-bold text-red-100 pl-0.5">
             · Emergency
           </span>
         </button>
