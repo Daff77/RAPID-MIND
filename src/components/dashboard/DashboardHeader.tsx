@@ -94,10 +94,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           {isUsingSupabase ? (
             <span
               className="hidden md:inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200"
-              title="Terhubung ke Supabase Cloud Database"
+              title="Terhubung ke Laravel API & PostgreSQL Cloud Database"
             >
               <Cloud className="w-3 h-3 text-blue-600" />
-              <span>Supabase Cloud</span>
+              <span>Laravel Cloud</span>
             </span>
           ) : (
             <span

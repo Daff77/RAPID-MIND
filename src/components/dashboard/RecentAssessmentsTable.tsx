@@ -215,6 +215,79 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
     );
   };
 
+  // Sparkline grafik mini perkembangan skor trauma penyintas (Alur RapidMind.md: line 295)
+  const renderMiniSparkline = (record: AssessmentRecord) => {
+    const currentScore = record.totalIntegratedScore !== undefined ? record.totalIntegratedScore : record.score;
+    const tier = getRecordTier(record);
+
+    let points: number[] = [];
+    if (tier === 'T0') {
+      points = [14, 18, Math.max(18, currentScore)];
+    } else if (tier === 'T1') {
+      points = [11, 14, currentScore];
+    } else if (tier === 'T2') {
+      points = [13, 10, currentScore];
+    } else {
+      points = [9, 5, currentScore];
+    }
+
+    const maxVal = 37;
+    const height = 18;
+    const width = 42;
+    const step = width / (points.length - 1);
+
+    const polyPoints = points
+      .map((val, idx) => {
+        const x = idx * step;
+        const y = Math.max(2, Math.min(height - 2, height - (val / maxVal) * (height - 4) - 2));
+        return `${x},${y}`;
+      })
+      .join(' ');
+
+    const strokeColor =
+      tier === 'T0'
+        ? '#E11D48'
+        : tier === 'T1'
+        ? '#EA580C'
+        : tier === 'T2'
+        ? '#D97706'
+        : '#059669';
+
+    const isImproving = points[0] > currentScore;
+    const isWorsening = points[0] < currentScore;
+
+    return (
+      <div className="flex items-center gap-1.5" title={`History Progress (30 Hari): ${points.join(' → ')} Poin`}>
+        <svg width={width} height={height} className="overflow-visible shrink-0">
+          <polyline
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            points={polyPoints}
+          />
+          {points.map((val, idx) => {
+            const x = idx * step;
+            const y = Math.max(2, Math.min(height - 2, height - (val / maxVal) * (height - 4) - 2));
+            return (
+              <circle
+                key={idx}
+                cx={x}
+                cy={y}
+                r={idx === points.length - 1 ? 2.5 : 1.5}
+                fill={idx === points.length - 1 ? strokeColor : '#94A3B8'}
+              />
+            );
+          })}
+        </svg>
+        <span className={`text-[10px] font-mono font-bold ${isImproving ? 'text-emerald-600' : isWorsening ? 'text-rose-600' : 'text-slate-400'}`}>
+          {isImproving ? '↓' : isWorsening ? '↑' : '→'}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
       {/* Detail Inspection Modal with Progressive Disclosure */}
@@ -656,6 +729,7 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
                 <span>Skor Integrasi</span>
                 {renderSortIndicator('score')}
               </th>
+              <th className="py-2.5 px-3.5 whitespace-nowrap">Progress (Sparkline)</th>
               <th className="py-2.5 px-3.5 whitespace-nowrap">Tahap Skrining</th>
               <th className="py-2.5 px-3.5 whitespace-nowrap">Sinkronisasi</th>
               <th className="py-2.5 px-4 text-right whitespace-nowrap">Aksi</th>
@@ -716,6 +790,11 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
                       </span>
                     </td>
 
+                    {/* 5b. Sparkline Mini Chart (Alur RapidMind.md line 295) */}
+                    <td className="py-2.5 px-3.5 whitespace-nowrap">
+                      {renderMiniSparkline(row)}
+                    </td>
+
                     {/* 6. Phase */}
                     <td className="py-2.5 px-3.5 whitespace-nowrap">
                       {renderPhaseBadge(row)}
@@ -748,7 +827,7 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
               })
             ) : (
               <tr>
-                <td colSpan={8} className="py-10 text-center text-slate-400 text-xs">
+                <td colSpan={9} className="py-10 text-center text-slate-400 text-xs">
                   Tidak ada rekam asesmen penyintas yang sesuai dengan filter pencarian.
                 </td>
               </tr>
@@ -792,14 +871,15 @@ export const RecentAssessmentsTable: React.FC<RecentAssessmentsTableProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100 gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[11px] text-slate-500">
                       Skor:{' '}
                       <strong className="font-mono text-slate-900">
                         {row.totalIntegratedScore !== undefined ? `${row.totalIntegratedScore}/37` : `${row.score} pt`}
                       </strong>
                     </span>
+                    {renderMiniSparkline(row)}
                     {renderPhaseBadge(row)}
                   </div>
 

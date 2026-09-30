@@ -24,10 +24,13 @@ import {
   ArrowLeft,
   Check,
   Save,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAssessment } from '../context/AssessmentContext';
 import { AssessmentRecord, TriageTier, T0EmergencyStatus } from '../types/assessment';
+import { emergencyService } from '../services/emergencyService';
 
 interface HospitalPageProps {
   onGoToVolunteer?: () => void;
@@ -40,6 +43,31 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
 }) => {
   const { currentUser, logout } = useAuth();
   const { centralAssessments, isOnline } = useAssessment();
+
+  const [isAudioAlertActive, setIsAudioAlertActive] = useState(true);
+
+  // High-Frequency Audio Alert Alarm (Alur RapidMind.md: "sinyal audio berfrekuensi tinggi secara instan")
+  const playEmergencySiren = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(960, ctx.currentTime);
+      osc.frequency.setValueAtTime(720, ctx.currentTime + 0.18);
+      osc.frequency.setValueAtTime(960, ctx.currentTime + 0.36);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    } catch {
+      // Audio autoplay policy
+    }
+  };
 
   // Local state for two-tiered triage validations and transport tracking
   const [patientStatuses, setPatientStatuses] = useState<
@@ -148,6 +176,9 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
     );
     setIsTeleModalOpen(false);
     setTimeout(() => setActionSuccessMessage(null), 6000);
+
+    // Persist verification to Laravel backend and broadcast to all connected clients
+    emergencyService.confirmEmergency(recordId, decider, teleNotesInput, 'IGD Psikiatri Bed 02').catch(() => {});
   };
 
   const handleDowngradeStatus = (recordId: string, targetTier: 'T1' | 'T2') => {
@@ -171,6 +202,9 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
     );
     setIsTeleModalOpen(false);
     setTimeout(() => setActionSuccessMessage(null), 6000);
+
+    // Persist downgrade to Laravel backend and broadcast
+    emergencyService.downgradeEmergency(recordId, targetTier, decider, teleNotesInput).catch(() => {});
   };
 
   const handleAdvanceTransportStage = (recordId: string) => {
@@ -314,12 +348,24 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
               )}
             </div>
 
-            {/* T0 Pending Alert Badge */}
+            {/* T0 Pending Alert Badge with Audible Siren Toggle */}
             {t0PendingList.length > 0 ? (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-xs animate-pulse">
-                <Radio className="w-3.5 h-3.5 text-white" />
+              <button
+                type="button"
+                onClick={() => {
+                  playEmergencySiren();
+                  setIsAudioAlertActive(!isAudioAlertActive);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs animate-pulse cursor-pointer transition"
+                title="Sirene Audio T0: Klik untuk membunyikan sinyal audio frekuensi tinggi"
+              >
+                {isAudioAlertActive ? (
+                  <Volume2 className="w-3.5 h-3.5 text-white shrink-0 animate-bounce" />
+                ) : (
+                  <VolumeX className="w-3.5 h-3.5 text-white/80 shrink-0" />
+                )}
                 <span>{t0PendingList.length} T0 PENDING</span>
-              </div>
+              </button>
             ) : (
               <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 text-slate-600 border border-slate-200 text-xs font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -476,6 +522,27 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                   {filtered.length} Antrean
                 </span>
               </div>
+
+              {/* T0 Emergency Audio-Visual Siren Alert Bar */}
+              {t0PendingList.length > 0 && (
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between gap-2.5 text-xs text-rose-950 animate-in fade-in">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping shrink-0" />
+                    <span className="font-bold truncate">
+                      {t0PendingList.length} Kasus Darurat (T0-Suspect) Membutuhkan Validasi
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={playEmergencySiren}
+                    className="px-2.5 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer"
+                    title="Mainkan Sinyal Audio Frekuensi Tinggi PSC 119"
+                  >
+                    <Volume2 className="w-3.5 h-3.5 text-white" />
+                    <span>Bunyikan Sirene</span>
+                  </button>
+                </div>
+              )}
 
               {/* Search Bar */}
               <div className="relative">

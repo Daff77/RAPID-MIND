@@ -1,9 +1,7 @@
 import { AssessmentRecord } from '../types/assessment';
 import { INITIAL_ASSESSMENTS } from '../data/mockAssessments';
-import {
-  upsertAssessmentToSupabase,
-  fetchAssessmentsFromSupabase,
-} from './supabaseService';
+import { assessmentService } from './assessmentService';
+import { syncService } from './syncService';
 import {
   idbSaveAssessment,
   idbBulkSaveAssessments,
@@ -119,9 +117,9 @@ export function saveCentralAssessment(record: AssessmentRecord): AssessmentRecor
     console.warn('IndexedDB assessment save failed:', err);
   });
 
-  // Background sync to Supabase if configured
-  upsertAssessmentToSupabase(normalized).catch((err) => {
-    console.warn('Background Supabase assessment upsert failed:', err);
+  // Background sync to Laravel API
+  assessmentService.createAssessment(normalized).catch((err) => {
+    console.warn('Background Laravel assessment sync note:', err);
   });
 
   return updated;
@@ -188,33 +186,35 @@ export async function syncPendingAssessments(): Promise<{
     return { syncedCount: 0, syncedRecords: [] };
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  try {
+    const result = await syncService.syncPendingQueue();
+    const central = getCentralAssessments();
+    const markSynced = pending.map((item) => ({
+      ...item,
+      syncStatus: 'synced' as const,
+    }));
 
-  // Push each pending record to Supabase
-  for (const item of pending) {
-    await upsertAssessmentToSupabase({ ...item, syncStatus: 'synced' });
+    const updatedCentral = [...markSynced, ...central];
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(updatedCentral));
+      localStorage.removeItem(STORAGE_KEY_OFFLINE_QUEUE);
+    }
+
+    // Sync to IndexedDB: Clear queue & bulk save central assessments
+    idbClearQueue().catch(() => {});
+    idbBulkSaveAssessments(updatedCentral).catch(() => {});
+
+    return {
+      syncedCount: result.syncedCount || pending.length,
+      syncedRecords: markSynced,
+    };
+  } catch {
+    // If backend unreachable, keep pending queue intact
+    return {
+      syncedCount: 0,
+      syncedRecords: [],
+    };
   }
-
-  const central = getCentralAssessments();
-  const markSynced = pending.map((item) => ({
-    ...item,
-    syncStatus: 'synced' as const,
-  }));
-
-  const updatedCentral = [...markSynced, ...central];
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(updatedCentral));
-    localStorage.removeItem(STORAGE_KEY_OFFLINE_QUEUE);
-  }
-
-  // Sync to IndexedDB: Clear queue & bulk save central assessments
-  idbClearQueue().catch(() => {});
-  idbBulkSaveAssessments(updatedCentral).catch(() => {});
-
-  return {
-    syncedCount: pending.length,
-    syncedRecords: markSynced,
-  };
 }
 
 /**
@@ -281,30 +281,34 @@ export async function hydrateFromIndexedDB(): Promise<{
 }
 
 /**
- * Initial sync to pull assessments from Supabase on app start
+ * Initial sync to pull assessments from Laravel backend on app start
  */
 export async function syncAssessmentsWithSupabase(): Promise<AssessmentRecord[]> {
-  const remote = await fetchAssessmentsFromSupabase();
-  if (!remote || remote.length === 0) return getCentralAssessments();
+  try {
+    const remote = await assessmentService.getAssessments();
+    if (!remote || remote.length === 0) return getCentralAssessments();
 
-  const local = getCentralAssessments();
-  const map = new Map<string, AssessmentRecord>();
+    const local = getCentralAssessments();
+    const map = new Map<string, AssessmentRecord>();
 
-  // Add remote records
-  remote.forEach((r) => map.set(r.recordId || r.id, r));
-  // Add local records if not present in remote
-  local.forEach((r) => {
-    const key = r.recordId || r.id;
-    if (!map.has(key)) {
-      map.set(key, r);
-      // Upload local to remote in background
-      upsertAssessmentToSupabase(r).catch(() => {});
+    // Add remote records
+    remote.forEach((r) => map.set(r.recordId || r.id, r));
+    // Add local records if not present in remote
+    local.forEach((r) => {
+      const key = r.recordId || r.id;
+      if (!map.has(key)) {
+        map.set(key, r);
+        // Upload local to remote in background
+        assessmentService.createAssessment(r).catch(() => {});
+      }
+    });
+
+    const merged = Array.from(map.values());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(merged));
     }
-  });
-
-  const merged = Array.from(map.values());
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(merged));
+    return merged;
+  } catch {
+    return getCentralAssessments();
   }
-  return merged;
 }

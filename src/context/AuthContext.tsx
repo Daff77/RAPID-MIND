@@ -1,49 +1,15 @@
-import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { User, UserRole, LoginCredentials, AuthContextType, NewUserInput } from '../types/auth';
 import { LocationPost } from '../types/assessment';
+import { authService } from '../services/authService';
+import { DEFAULT_USERS, MOCK_ADMIN, MOCK_VOLUNTEER, MOCK_HOSPITAL } from '../data/mockUsers';
 
 const STORAGE_KEY_AUTH = 'rapidmind_auth_session';
 const STORAGE_KEY_CUSTOM_USERS = 'rapidmind_custom_users_v2';
 const STORAGE_KEY_USER_PASSWORDS = 'rapidmind_user_passwords_v2';
 const STORAGE_KEY_USER_POST_OVERRIDES = 'rapidmind_user_post_overrides_v1';
 
-export const MOCK_VOLUNTEER: User = {
-  id: 'user-vol-042',
-  username: 'volunteer',
-  email: 'volunteer@rapidmind.org',
-  name: 'Siti Rahma, S.Psi',
-  role: 'volunteer',
-  badgeNumber: 'VOL-042',
-  assignedPost: 'Posko A',
-  title: 'Field Psychological Volunteer',
-  phone: '+62 812-3456-7890',
-};
-
-export const MOCK_ADMIN: User = {
-  id: 'user-adm-001',
-  username: 'admin',
-  email: 'admin@rapidmind.org',
-  name: 'dr. Sarah Amanda, Sp.KJ',
-  role: 'admin',
-  badgeNumber: 'ADM-001',
-  assignedPost: 'Posko A',
-  title: 'Incident Psychological Coordinator',
-  phone: '+62 811-9876-5432',
-};
-
-export const MOCK_HOSPITAL: User = {
-  id: 'user-rs-001',
-  username: 'rumahsakit',
-  email: 'rumahsakit@rapidmind.org',
-  name: 'dr. Budi Santoso, Sp.KJ',
-  role: 'hospital',
-  badgeNumber: 'RS-001',
-  assignedHospital: 'RSUD Dr. Soetomo (Pusat Rujukan Jiwa)',
-  title: 'Hospital Psychiatric Triage & Referral Specialist',
-  phone: '+62 813-1122-3344',
-};
-
-const DEFAULT_USERS: User[] = [MOCK_ADMIN, MOCK_VOLUNTEER, MOCK_HOSPITAL];
+export { MOCK_ADMIN, MOCK_VOLUNTEER, MOCK_HOSPITAL };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -87,15 +53,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return {};
   });
 
-  const allUsers = useMemo(() => {
-    return [...DEFAULT_USERS, ...customUsers].map((u) => {
-      if (postOverrides[u.id]) {
-        return { ...u, assignedPost: postOverrides[u.id] };
-      }
-      return u;
-    });
-  }, [customUsers, postOverrides]);
-
   const saveUserSession = (user: User | null) => {
     setCurrentUser(user);
     if (typeof window !== 'undefined') {
@@ -106,6 +63,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
   };
+
+  // Try validating current session with Laravel Sanctum on startup
+  useEffect(() => {
+    authService.getCurrentUser().then((user) => {
+      if (user) {
+        saveUserSession(user);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const allUsers = useMemo(() => {
+    return [...DEFAULT_USERS, ...customUsers].map((u) => {
+      if (postOverrides[u.id]) {
+        return { ...u, assignedPost: postOverrides[u.id] };
+      }
+      return u;
+    });
+  }, [customUsers, postOverrides]);
 
   const getStoredPasswords = (): Record<string, string> => {
     if (typeof window === 'undefined') return {};
@@ -126,91 +101,70 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (
     credentials: LoginCredentials
   ): Promise<{ success: boolean; error?: string }> => {
-    // Artificial brief network delay (300ms) for realistic UX feel
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const identifier = credentials.usernameOrEmail.trim().toLowerCase();
-    const pass = credentials.password.trim();
-
-    // 1. Check Admin credentials
-    if (
-      (identifier === 'admin' || identifier === 'admin@rapidmind.org') &&
-      pass === 'admin123'
-    ) {
-      saveUserSession(MOCK_ADMIN);
+    try {
+      // First attempt Laravel Sanctum authentication
+      const result = await authService.login(credentials);
+      saveUserSession(result.user);
       return { success: true };
-    }
+    } catch (apiErr: any) {
+      // Fallback local authentication
+      const identifier = credentials.usernameOrEmail.trim().toLowerCase();
+      const pass = credentials.password.trim();
 
-    // 2. Check Volunteer credentials
-    if (
-      (identifier === 'volunteer' || identifier === 'volunteer@rapidmind.org') &&
-      pass === 'volunteer123'
-    ) {
-      saveUserSession(MOCK_VOLUNTEER);
-      return { success: true };
-    }
-
-    // 3. Check Hospital credentials
-    if (
-      (identifier === 'rumahsakit' ||
-        identifier === 'hospital' ||
-        identifier === 'rumahsakit@rapidmind.org' ||
-        identifier === 'rs.rujukan@rapidmind.org') &&
-      (pass === 'rumahsakit123' || pass === 'hospital123')
-    ) {
-      saveUserSession(MOCK_HOSPITAL);
-      return { success: true };
-    }
-
-    // 4. Role-specific fallback check if user entered role explicitly
-    if (credentials.targetRole === 'admin' && pass === 'admin123') {
-      saveUserSession(MOCK_ADMIN);
-      return { success: true };
-    }
-
-    if (credentials.targetRole === 'volunteer' && pass === 'volunteer123') {
-      saveUserSession(MOCK_VOLUNTEER);
-      return { success: true };
-    }
-
-    if (credentials.targetRole === 'hospital' && (pass === 'rumahsakit123' || pass === 'hospital123')) {
-      saveUserSession(MOCK_HOSPITAL);
-      return { success: true };
-    }
-
-    // 5. Check custom users added by Admin
-    const passwords = getStoredPasswords();
-    const matchedCustomUser = customUsers.find(
-      (u) =>
-        u.username.toLowerCase() === identifier ||
-        u.email.toLowerCase() === identifier
-    );
-
-    if (matchedCustomUser) {
-      const storedPass = passwords[matchedCustomUser.username] || 'password123';
-      if (pass === storedPass) {
-        saveUserSession(matchedCustomUser);
+      if ((identifier === 'admin' || identifier === 'admin@rapidmind.org') && pass === 'admin123') {
+        saveUserSession(MOCK_ADMIN);
         return { success: true };
       }
-    }
+      if ((identifier === 'volunteer' || identifier === 'volunteer@rapidmind.org') && pass === 'volunteer123') {
+        saveUserSession(MOCK_VOLUNTEER);
+        return { success: true };
+      }
+      if (
+        (identifier === 'rumahsakit' || identifier === 'hospital' || identifier === 'rumahsakit@rapidmind.org') &&
+        (pass === 'rumahsakit123' || pass === 'hospital123')
+      ) {
+        saveUserSession(MOCK_HOSPITAL);
+        return { success: true };
+      }
 
-    return {
-      success: false,
-      error: 'Invalid credentials. Please check your username/password.',
-    };
+      // Check custom users
+      const passwords = getStoredPasswords();
+      const matchedCustomUser = customUsers.find(
+        (u) => u.username.toLowerCase() === identifier || u.email.toLowerCase() === identifier
+      );
+
+      if (matchedCustomUser) {
+        const storedPass = passwords[matchedCustomUser.username] || 'password123';
+        if (pass === storedPass) {
+          saveUserSession(matchedCustomUser);
+          return { success: true };
+        }
+      }
+
+      return {
+        success: false,
+        error: apiErr?.message || 'Kredensial tidak valid. Silakan periksa username dan password.',
+      };
+    }
   };
 
-  const quickLogin = (role: UserRole) => {
-    if (role === 'admin') {
-      saveUserSession(MOCK_ADMIN);
-    } else if (role === 'hospital') {
-      saveUserSession(MOCK_HOSPITAL);
-    } else {
-      saveUserSession(MOCK_VOLUNTEER);
+  const quickLogin = async (role: UserRole) => {
+    try {
+      const res = await authService.quickLogin(role);
+      saveUserSession(res.user);
+    } catch {
+      if (role === 'admin') {
+        saveUserSession(MOCK_ADMIN);
+      } else if (role === 'hospital') {
+        saveUserSession(MOCK_HOSPITAL);
+      } else {
+        saveUserSession(MOCK_VOLUNTEER);
+      }
     }
   };
 
   const logout = () => {
+    authService.logout().catch(() => {});
     saveUserSession(null);
   };
 
@@ -234,10 +188,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { success: false, error: 'Nama pengguna wajib diisi.' };
     }
 
-    // Check username uniqueness
-    const exists = allUsers.some(
-      (u) => u.username.toLowerCase() === cleanUsername
-    );
+    const exists = allUsers.some((u) => u.username.toLowerCase() === cleanUsername);
     if (exists) {
       return {
         success: false,
@@ -282,10 +233,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem(STORAGE_KEY_CUSTOM_USERS, JSON.stringify(updatedCustom));
     }
 
-    // Save custom user password
     const passwords = getStoredPasswords();
     passwords[cleanUsername] = input.password?.trim() || 'password123';
     saveStoredPasswords(passwords);
+
+    // Call Laravel API in background if online
+    authService.addUser(input).catch(() => {});
 
     return {
       success: true,
@@ -301,7 +254,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
     }
 
-    if (DEFAULT_USERS.some((u) => u.id === userId)) {
+    if (DEFAULT_USERS.some((u: User) => u.id === userId)) {
       return {
         success: false,
         error: 'Pengguna default sistem tidak dapat dihapus.',
@@ -313,6 +266,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY_CUSTOM_USERS, JSON.stringify(updated));
     }
+
+    // Call Laravel API in background
+    authService.deleteUser(userId).catch(() => {});
 
     return { success: true };
   };
@@ -331,7 +287,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem(STORAGE_KEY_USER_POST_OVERRIDES, JSON.stringify(updatedOverrides));
     }
 
-    // Also update customUsers if user is in customUsers
     const customIdx = customUsers.findIndex((u) => u.id === userId);
     if (customIdx >= 0) {
       const updatedCustom = [...customUsers];
@@ -342,10 +297,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    // If currently logged in user is this user, update session too
     if (currentUser?.id === userId) {
       saveUserSession({ ...currentUser, assignedPost: newPost });
     }
+
+    authService.updateUserPost(userId, newPost).catch(() => {});
 
     return { success: true };
   };

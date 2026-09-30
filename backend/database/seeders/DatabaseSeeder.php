@@ -1,0 +1,401 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Assessment;
+use App\Models\DisasterPost;
+use App\Models\EmergencyAlert;
+use App\Models\Survivor;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        // 1. Users (Role 1: Volunteer, Role 2: Hospital, Role 3: Admin)
+        $users = [
+            [
+                'user_id_string' => 'user-vol-042',
+                'username' => 'volunteer',
+                'name' => 'Siti Rahma, S.Psi',
+                'email' => 'volunteer@rapidmind.org',
+                'password' => Hash::make('password'),
+                'role' => 'volunteer',
+                'badge_number' => 'VOL-042',
+                'assigned_post' => 'Posko A',
+                'title' => 'Field Psychological Volunteer',
+                'phone' => '+62 812-3456-7890',
+            ],
+            [
+                'user_id_string' => 'user-rs-001',
+                'username' => 'rumahsakit',
+                'name' => 'dr. Budi Santoso, Sp.KJ',
+                'email' => 'rumahsakit@rapidmind.org',
+                'password' => Hash::make('password'),
+                'role' => 'hospital',
+                'badge_number' => 'RS-001',
+                'assigned_hospital' => 'RSUD Dr. Soetomo (Pusat Rujukan Jiwa)',
+                'title' => 'Hospital Psychiatric Triage & Referral Specialist',
+                'phone' => '+62 813-1122-3344',
+            ],
+            [
+                'user_id_string' => 'user-adm-001',
+                'username' => 'admin',
+                'name' => 'dr. Sarah Amanda, Sp.KJ',
+                'email' => 'admin@rapidmind.org',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'badge_number' => 'ADM-001',
+                'assigned_post' => 'Posko A',
+                'title' => 'Incident Psychological Coordinator',
+                'phone' => '+62 811-9876-5432',
+            ],
+        ];
+
+        foreach ($users as $userData) {
+            User::updateOrCreate(['username' => $userData['username']], $userData);
+        }
+
+        // 2. Disaster Posts
+        $posts = [
+            [
+                'id' => 'posko-a',
+                'name' => 'Posko A',
+                'lat' => -6.8152,
+                'lng' => 107.1395,
+                'sector' => 'Central Staging Sector',
+                'coordinator' => 'dr. Sarah Amanda (Medical & Psych Team)',
+                'active_volunteers' => 18,
+                'description' => 'Main emergency logistics and registration hub with primary medical tent.',
+            ],
+            [
+                'id' => 'posko-b',
+                'name' => 'Posko B',
+                'lat' => -6.8285,
+                'lng' => 107.1510,
+                'sector' => 'East Shelter Complex',
+                'coordinator' => 'Budi Santoso, S.Psi (Crisis Relief)',
+                'active_volunteers' => 14,
+                'description' => 'Community sports hall converted into temporary shelter for 350 displaced families.',
+            ],
+            [
+                'id' => 'posko-c',
+                'name' => 'Posko C',
+                'lat' => -6.8040,
+                'lng' => 107.1260,
+                'sector' => 'North Evacuation Zone',
+                'coordinator' => 'Rina Wijaya (Disaster Care Unit)',
+                'active_volunteers' => 11,
+                'description' => 'School grounds emergency settlement with family tracing desk.',
+            ],
+            [
+                'id' => 'posko-d',
+                'name' => 'Posko D',
+                'lat' => -6.8410,
+                'lng' => 107.1180,
+                'sector' => 'South Remote Valley',
+                'coordinator' => 'Hendra Kusuma (Rapid Assessment Unit)',
+                'active_volunteers' => 9,
+                'description' => 'Sub-district hillside staging area cut off from primary grid; heavy distress concentration.',
+            ],
+        ];
+
+        foreach ($posts as $postData) {
+            DisasterPost::updateOrCreate(['id' => $postData['id']], $postData);
+        }
+
+        // 3. Initial Survivors
+        $survivors = [
+            [
+                'id' => 'RM-2026-000001',
+                'nik' => '3201019988770001',
+                'posko_id' => 'GL-014',
+                'name' => 'Siti Aminah',
+                'age' => '34',
+                'gender' => 'P',
+                'category' => 'Dewasa',
+                'posko' => 'Posko A',
+                'phone' => '+62 812-3344-5566',
+                'registered_at' => now()->subDays(2),
+                'current_phase' => 'acute_pfa',
+                'pfa_record' => [
+                    'completedAt' => '08:45 WIB (Hari 2)',
+                    'lookItems' => ['Keamanan fisik aman', 'Tanda syok / histeria'],
+                    'listenNotes' => 'Penyintas menangis histeris mencari anaknya yang sempat terpisah di reruntuhan.',
+                    'groundingUsed' => true,
+                    'linkItems' => ['Air minum / Makanan', 'Pencarian Orang Hilang (Posko Informasi)'],
+                ],
+                'srq20_score' => null,
+                'triage_tier' => 'T2',
+                'notes' => 'Telah dilakukan grounding napas 5-4-3-2-1. Masih sering cemas saat ada suara gemuruh.',
+            ],
+            [
+                'id' => 'RM-2026-000002',
+                'nik' => '3201019988770002',
+                'posko_id' => 'GL-028',
+                'name' => 'Budi Gunawan',
+                'age' => '46',
+                'gender' => 'L',
+                'category' => 'Dewasa',
+                'posko' => 'Posko A',
+                'phone' => '+62 813-7788-9900',
+                'registered_at' => now()->subDays(5),
+                'current_phase' => 'followup_srq20',
+                'pfa_record' => [
+                    'completedAt' => '10:15 WIB (Hari 1)',
+                    'lookItems' => ['Fisik aman', 'Tatapan kosong / mutisme'],
+                    'listenNotes' => 'Awalnya tidak mau bicara. Diberikan air minum dan didampingi hingga tenang.',
+                    'groundingUsed' => true,
+                    'linkItems' => ['Selimut / Pakaian kering', 'Keluarga inti'],
+                ],
+                'srq20_score' => 14,
+                'triage_tier' => 'T1',
+                'notes' => 'Skor SRQ-20 tinggi (14) ditambah faktor kehilangan rumah total. Direkomendasikan evaluasi nakes spesialis.',
+            ],
+            [
+                'id' => 'RM-2026-000003',
+                'nik' => '3201019988770003',
+                'posko_id' => 'GL-042',
+                'name' => 'Dewi Sartika',
+                'age' => '28',
+                'gender' => 'P',
+                'category' => 'Dewasa',
+                'posko' => 'Posko B',
+                'phone' => '+62 856-1122-3344',
+                'registered_at' => now()->subDays(7),
+                'current_phase' => 'followup_srq20',
+                'pfa_record' => [
+                    'completedAt' => '14:20 WIB (Hari 2)',
+                    'lookItems' => ['Fisik aman', 'Cemas terkendali'],
+                    'listenNotes' => 'Merasa sedih tapi mampu mendampingi kedua anaknya dengan tabah.',
+                    'groundingUsed' => false,
+                    'linkItems' => ['Kebutuhan bayi / popok', 'Dukungan keluarga'],
+                ],
+                'srq20_score' => 4,
+                'triage_tier' => 'T3',
+                'notes' => 'Kondisi adaptif dan resilien. Aktif membantu di dapur umum posko.',
+            ],
+            [
+                'id' => 'RM-2026-000004',
+                'nik' => '3201019988770004',
+                'posko_id' => 'GL-055',
+                'name' => 'Ahmad Fauzi',
+                'age' => '62',
+                'gender' => 'L',
+                'category' => 'Lansia',
+                'posko' => 'Posko C',
+                'phone' => '+62 821-4455-6677',
+                'registered_at' => now()->subDays(1),
+                'current_phase' => 'acute_pfa',
+                'pfa_record' => null,
+                'srq20_score' => null,
+                'triage_tier' => 'T0',
+                't0_status' => 'T0-Suspect',
+                'notes' => 'Mengalami disorientasi akut, halusinasi mendengar gemuruh susulan dan mencoba lari ke arah tebing. Membutuhkan intervensi darurat.',
+            ],
+            [
+                'id' => 'RM-2026-000005',
+                'nik' => '3201019988770005',
+                'posko_id' => 'GL-061',
+                'name' => 'Rina Kusuma',
+                'age' => '19',
+                'gender' => 'P',
+                'category' => 'Remaja',
+                'posko' => 'Posko D',
+                'phone' => '+62 878-9900-1122',
+                'registered_at' => now()->subDays(4),
+                'current_phase' => 'followup_srq20',
+                'pfa_record' => [
+                    'completedAt' => '11:00 WIB (Hari 1)',
+                    'lookItems' => ['Luka gores ringan (sudah diobati)'],
+                    'listenNotes' => 'Khawatir ujian kuliah tertunda. Merasa sesak dan pusing saat mengingat kejadian.',
+                    'groundingUsed' => true,
+                    'linkItems' => ['Makanan', 'Ponsel untuk kontak rekan kuliah'],
+                ],
+                'srq20_score' => 9,
+                'triage_tier' => 'T2',
+                'notes' => 'Distres sedang (somatik dan cemas). Diberikan konseling suportif di tenda remaja.',
+            ],
+            [
+                'id' => 'RM-2026-000006',
+                'nik' => '3201019988770006',
+                'posko_id' => 'GL-078',
+                'name' => 'Hendra Wijaya',
+                'age' => '52',
+                'gender' => 'L',
+                'category' => 'Dewasa',
+                'posko' => 'Posko B',
+                'phone' => '+62 811-2233-4455',
+                'registered_at' => now()->subDays(6),
+                'current_phase' => 'followup_srq20',
+                'pfa_record' => null,
+                'srq20_score' => 16,
+                'triage_tier' => 'T1',
+                'notes' => 'Kelumpuhan fungsi harian parsial. Menolak makan dan tidak mau keluar dari tenda selama 2 hari.',
+            ],
+        ];
+
+        foreach ($survivors as $survivorData) {
+            Survivor::updateOrCreate(['id' => $survivorData['id']], $survivorData);
+        }
+
+        // 4. Initial Assessments
+        $assessments = [
+            [
+                'record_id' => 'ASM-2026-000001',
+                'victim_id' => 'RM-2026-000004',
+                'nik' => '3201019988770004',
+                'timestamp' => '14:35',
+                'location' => 'Posko C',
+                'method' => 'VERBAL',
+                'phase' => 'acute_pfa',
+                'zone' => 'RED',
+                'triage_tier' => 'T0',
+                't0_status' => 'T0-Suspect',
+                'score' => 5,
+                'indicators' => [
+                    'Halusinasi visual/auditorik akut',
+                    'Agitasi dan amuk fisik berisiko membahayakan diri',
+                    'Disorientasi waktu dan tempat',
+                ],
+                'critical_triggered' => true,
+                'transcript' => 'Tolong! Ombak dan gempa datang lagi, semua orang mau bunuh saya di sini!',
+                'recommended_action' => 'T0 EMERGENCY (RED FLAG OVERRIDE): Sinyal SOS darurat aktif ke PSC 119 dan Faskes. Dampingi fisik tanpa jeda (JANGAN ditinggalkan sendirian), amankan benda tajam/bahaya, dan siagakan panggilan Tele-Emergency.',
+                'volunteer_notes' => 'Penyintas lansia panik luar biasa dan mencoba berlari ke jurang. Dua relawan mengamankan secara fisik di tenda medis.',
+                'volunteer_id' => 'VOL-042',
+                'victim_name' => 'Ahmad Fauzi',
+                'victim_age' => '62',
+                'victim_gender' => 'L',
+                'victim_category' => 'Lansia',
+                'total_integrated_score' => 18,
+                'risk_factor_score' => 4,
+                'functional_score_total' => 6,
+                'status_title' => 'T0 Critical Emergency (Red Flag Override)',
+                'created_at' => now()->subMinutes(25),
+            ],
+            [
+                'record_id' => 'ASM-2026-000002',
+                'victim_id' => 'RM-2026-000002',
+                'nik' => '3201019988770002',
+                'timestamp' => '11:20',
+                'location' => 'Posko A',
+                'method' => 'VERBAL',
+                'phase' => 'followup_srq20',
+                'zone' => 'RED',
+                'triage_tier' => 'T1',
+                'score' => 14,
+                'indicators' => [
+                    'Sakit kepala berulang tegang',
+                    'Insomnia berat 4 hari berturut-turut',
+                    'Perasaan sedih mendalam dan survivor guilt',
+                    'Sulit berpikir jernih dan linglung',
+                ],
+                'critical_triggered' => false,
+                'transcript' => 'Saya merasa tidak berguna lagi, rumah dan usaha saya habis semua dalam sekejap.',
+                'recommended_action' => 'Prioritas Asesmen Klinis: Jadwalkan konsultasi dokter spesialis / psikolog faskes rujukan. Berikan pendampingan intensif dan pemantauan harian.',
+                'volunteer_notes' => 'Penyintas kooperatif namun menunjukkan penurunan fungsi sosial yang signifikan.',
+                'volunteer_id' => 'VOL-042',
+                'victim_name' => 'Budi Gunawan',
+                'victim_age' => '46',
+                'victim_gender' => 'L',
+                'victim_category' => 'Dewasa',
+                'total_integrated_score' => 19,
+                'risk_factor_score' => 3,
+                'functional_score_total' => 2,
+                'status_title' => 'Recommendation for Priority Clinical Assessment',
+                'hospital_referral_status' => 'pending',
+                'created_at' => now()->subHours(2),
+            ],
+            [
+                'record_id' => 'ASM-2026-000003',
+                'victim_id' => 'RM-2026-000005',
+                'nik' => '3201019988770005',
+                'timestamp' => '09:45',
+                'location' => 'Posko D',
+                'method' => 'VERBAL',
+                'phase' => 'followup_srq20',
+                'zone' => 'YELLOW',
+                'triage_tier' => 'T2',
+                'score' => 9,
+                'indicators' => [
+                    'Mudah kaget saat ada suara keras',
+                    'Cemas dan tegang berlebih',
+                    'Penurunan selera makan',
+                ],
+                'critical_triggered' => false,
+                'transcript' => 'Dada saya sering berdebar kalau ingat suara gemuruh tembok retak kemarin.',
+                'recommended_action' => 'Daftar Pantau Utama Posko (Watchlist): Masukkan ke dalam kelompok dukungan psikososial, latih relaksasi napas teratur, evaluasi ulang dalam 7 hari.',
+                'volunteer_notes' => 'Penyintas merespons positif teknik grounding visual 5-4-3-2-1.',
+                'volunteer_id' => 'VOL-018',
+                'victim_name' => 'Rina Kusuma',
+                'victim_age' => '19',
+                'victim_gender' => 'P',
+                'victim_category' => 'Remaja',
+                'total_integrated_score' => 11,
+                'risk_factor_score' => 1,
+                'functional_score_total' => 1,
+                'status_title' => 'Recommendation for Psychosocial Follow-Up',
+                'created_at' => now()->subHours(5),
+            ],
+            [
+                'record_id' => 'ASM-2026-000004',
+                'victim_id' => 'RM-2026-000003',
+                'nik' => '3201019988770003',
+                'timestamp' => '16:10',
+                'location' => 'Posko B',
+                'method' => 'VERBAL',
+                'phase' => 'followup_srq20',
+                'zone' => 'GREEN',
+                'triage_tier' => 'T3',
+                'score' => 4,
+                'indicators' => [
+                    'Kelelahan fisik wajar pascabencana',
+                ],
+                'critical_triggered' => false,
+                'transcript' => 'Alhamdulillah anak-anak selamat semua. Kami berusaha saling menguatkan di tenda.',
+                'recommended_action' => 'Dukungan Psikososial Komunitas (Routine Support): Pertahankan peran sosial di tenda penampungan, libatkan dalam kegiatan kelompok ibu dan anak.',
+                'volunteer_notes' => 'Sangat resilien. Menjadi salah satu koordinator logistik konsumsi posko.',
+                'volunteer_id' => 'VOL-014',
+                'victim_name' => 'Dewi Sartika',
+                'victim_age' => '28',
+                'victim_gender' => 'P',
+                'victim_category' => 'Dewasa',
+                'total_integrated_score' => 5,
+                'risk_factor_score' => 1,
+                'functional_score_total' => 0,
+                'status_title' => 'Routine Community Support',
+                'created_at' => now()->subDay(),
+            ],
+        ];
+
+        foreach ($assessments as $assessmentData) {
+            Assessment::updateOrCreate(['record_id' => $assessmentData['record_id']], $assessmentData);
+        }
+
+        // 5. Initial Emergency Alert (T0-Suspect for Ahmad Fauzi)
+        EmergencyAlert::updateOrCreate(
+            ['id' => 'EMG-2026-000001'],
+            [
+                'record_id' => 'ASM-2026-000001',
+                'survivor_id' => 'RM-2026-000004',
+                'survivor_name' => 'Ahmad Fauzi',
+                'posko' => 'Posko C',
+                'status' => 'T0-Suspect',
+                'emergency_reasons' => [
+                    '2. Gejala Psikotik Akut Bencana: Halusinasi auditorik dan delusi paranoid',
+                    '3. Perilaku Agitasi & Gangguan Kendali: Amuk dan mencoba melarikan diri ke area tebing curam',
+                ],
+                'gps_lat' => -6.8040,
+                'gps_lng' => 107.1260,
+                'reporter_volunteer_id' => 'VOL-042',
+                'volunteer_notes' => 'Penyintas lansia panik luar biasa dan mencoba berlari ke jurang. Dua relawan mengamankan secara fisik di tenda medis.',
+                'created_at' => now()->subMinutes(25),
+            ]
+        );
+    }
+}

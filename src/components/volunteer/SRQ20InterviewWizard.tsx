@@ -1265,6 +1265,19 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               </div>
             </div>
 
+            {/* ⚠️ CATATAN ETIK & MEDIS BAKU RAPID-MIND */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 border-2 border-amber-300 text-amber-950 flex items-start gap-3 shadow-2xs">
+              <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+              <div className="text-xs leading-relaxed">
+                <span className="font-bold block uppercase tracking-wider text-amber-900 text-[11px] mb-0.5">
+                  Catatan Etik & Medis Sistem Triase:
+                </span>
+                <p className="font-semibold text-amber-950 italic">
+                  "Hasil asesmen ini bersifat REKOMENDASI SISTEM sebagai alat bantu keputusan awal hingga dilakukan VALIDASI KLINIS resmi oleh Tenaga Kesehatan / Spesialis Profesional."
+                </p>
+              </div>
+            </div>
+
             {/* ACTION CARD (TINDAKAN BERIKUTNYA) */}
             <div className="p-4 sm:p-5 bg-white border-2 border-slate-200 rounded-3xl space-y-4 shadow-2xs">
               <div className="flex items-center gap-2">

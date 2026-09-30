@@ -93,11 +93,11 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
             )}
           </button>
 
-          {/* Database Engine Chip (Supabase Cloud vs IndexedDB Browser) */}
+          {/* Database Engine Chip (Laravel Cloud API vs IndexedDB Browser) */}
           {isUsingSupabase ? (
             <span
               className="hidden xs:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
-              title="Terhubung ke Cloud PostgreSQL (Supabase)"
+              title="Terhubung ke Server Pusat (Laravel 13 API & PostgreSQL)"
             >
               <Cloud className="w-3 h-3 text-emerald-600" />
               <span>Cloud</span>

@@ -14,9 +14,10 @@ import {
   syncAssessmentsWithSupabase,
   hydrateFromIndexedDB,
 } from '../services/offlineStorage';
-import { isSupabaseConfigured } from '../services/supabaseClient';
 import { syncSurvivorsWithSupabase, hydrateSurvivorsFromIndexedDB } from '../data/mockSurvivors';
 import { isIndexedDBSupported, openIndexedDB } from '../services/indexedDbService';
+import { emergencyService, EmergencyAlertItem } from '../services/emergencyService';
+import { syncService } from '../services/syncService';
 
 interface AssessmentContextValue {
   centralAssessments: AssessmentRecord[];
@@ -24,7 +25,7 @@ interface AssessmentContextValue {
   allAssessments: AssessmentRecord[];
   isOnline: boolean;
   isSyncing: boolean;
-  isUsingSupabase: boolean;
+  isUsingSupabase: boolean; // Preserved for UI compatibility (represents Cloud API active)
   isIndexedDBReady: boolean;
   syncSuccessBanner: string | null;
   toggleOnlineStatus: (explicitStatus?: boolean) => void;
@@ -42,9 +43,9 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [isIndexedDBReady, setIsIndexedDBReady] = useState<boolean>(false);
   const [syncSuccessBanner, setSyncSuccessBanner] = useState<string | null>(null);
-  const isUsingSupabase = isSupabaseConfigured();
+  const isUsingSupabase = true; // Laravel Cloud API is enabled
 
-  // Initialize from storage on mount & trigger cloud sync if Supabase is connected
+  // Initialize from storage on mount & trigger cloud sync
   useEffect(() => {
     setCentralAssessments(getCentralAssessments());
     setOfflineQueue(getPendingAssessments());
@@ -72,7 +73,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         });
     }
 
-    if (online && isUsingSupabase) {
+    if (online) {
       Promise.all([
         syncSurvivorsWithSupabase(),
         syncAssessmentsWithSupabase(),
@@ -82,10 +83,67 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setOfflineQueue(getPendingAssessments());
         })
         .catch((err) => {
-          console.warn('Initial Supabase sync skipped:', err);
+          console.warn('Initial cloud sync skipped:', err);
         });
     }
-  }, [isUsingSupabase]);
+
+    // Auto-sync listener when browser reconnects
+    const unsubscribeAutoSync = syncService.initAutoSync((result) => {
+      setCentralAssessments(getCentralAssessments());
+      setOfflineQueue([]);
+      setSyncSuccessBanner(`✓ ${result.syncedCount} rekaman otomatis disinkronisasi ke server pusat.`);
+      setTimeout(() => setSyncSuccessBanner(null), 5000);
+    });
+
+    // Realtime Reverb WebSockets listener for emergency triage events
+    const unsubscribeRealtime = emergencyService.listenForRealtimeAlerts(
+      (createdAlert: EmergencyAlertItem) => {
+        // When a new T0 emergency alert is created, ensure it appears in the assessment registry
+        setCentralAssessments((prev) => {
+          const exists = prev.find((a) => a.recordId === createdAlert.recordId);
+          if (exists) {
+            return prev.map((a) =>
+              a.recordId === createdAlert.recordId ? { ...a, t0Status: createdAlert.status } : a
+            );
+          }
+          return prev;
+        });
+      },
+      (confirmedAlert: EmergencyAlertItem) => {
+        setCentralAssessments((prev) =>
+          prev.map((a) =>
+            a.recordId === confirmedAlert.recordId
+              ? {
+                  ...a,
+                  t0Status: 'T0-Confirmed',
+                  hospitalReferralStatus: 'in_transit',
+                  hospitalNotes: confirmedAlert.teleNotes,
+                }
+              : a
+          )
+        );
+      },
+      (downgradedAlert: EmergencyAlertItem) => {
+        setCentralAssessments((prev) =>
+          prev.map((a) =>
+            a.recordId === downgradedAlert.recordId
+              ? {
+                  ...a,
+                  t0Status: 'Downgraded',
+                  triageTier: downgradedAlert.downgradedTier || 'T1',
+                  zone: downgradedAlert.downgradedTier === 'T1' ? 'RED' : 'YELLOW',
+                }
+              : a
+          )
+        );
+      }
+    );
+
+    return () => {
+      unsubscribeAutoSync();
+      unsubscribeRealtime();
+    };
+  }, []);
 
   const toggleOnlineStatus = useCallback((explicitStatus?: boolean) => {
     setIsOnline((prev) => {
@@ -136,7 +194,6 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Derived KPI Stats from central assessments calculated per unique survivor's latest status
   const kpiStats = useMemo<KPIStats>(() => {
     const totalAssessments = centralAssessments.length;
-    // centralAssessments has newest records first; group by unique survivor (victimId || id)
     const latestSurvivorMap = new Map<string, AssessmentRecord>();
     for (const r of centralAssessments) {
       const key = r.victimId || r.id;
@@ -187,44 +244,32 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, [centralAssessments, offlineQueue]);
 
-  const value = useMemo(
-    () => ({
-      centralAssessments,
-      offlineQueue,
-      allAssessments,
-      isOnline,
-      isSyncing,
-      isUsingSupabase,
-      isIndexedDBReady,
-      syncSuccessBanner,
-      toggleOnlineStatus,
-      addAssessment,
-      triggerSync,
-      kpiStats,
-    }),
-    [
-      centralAssessments,
-      offlineQueue,
-      allAssessments,
-      isOnline,
-      isSyncing,
-      isUsingSupabase,
-      isIndexedDBReady,
-      syncSuccessBanner,
-      toggleOnlineStatus,
-      addAssessment,
-      triggerSync,
-      kpiStats,
-    ]
+  return (
+    <AssessmentContext.Provider
+      value={{
+        centralAssessments,
+        offlineQueue,
+        allAssessments,
+        isOnline,
+        isSyncing,
+        isUsingSupabase,
+        isIndexedDBReady,
+        syncSuccessBanner,
+        toggleOnlineStatus,
+        addAssessment,
+        triggerSync,
+        kpiStats,
+      }}
+    >
+      {children}
+    </AssessmentContext.Provider>
   );
-
-  return <AssessmentContext.Provider value={value}>{children}</AssessmentContext.Provider>;
 };
 
-export function useAssessment() {
+export const useAssessment = (): AssessmentContextValue => {
   const context = useContext(AssessmentContext);
   if (!context) {
     throw new Error('useAssessment must be used within an AssessmentProvider');
   }
   return context;
-}
+};

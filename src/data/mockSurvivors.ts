@@ -1,9 +1,5 @@
 import { SurvivorProfile } from '../types/assessment';
-import {
-  fetchSurvivorsFromSupabase,
-  upsertSurvivorToSupabase,
-  updateSurvivorNikInSupabase,
-} from '../services/supabaseService';
+import { patientService } from '../services/patientService';
 import {
   idbSaveSurvivor,
   idbBulkSaveSurvivors,
@@ -206,8 +202,9 @@ export function saveSurvivorToRegistry(survivor: SurvivorProfile): SurvivorProfi
   });
 
   // Background sync to Supabase if configured
-  upsertSurvivorToSupabase(survivor).catch((err) => {
-    console.warn('Background Supabase survivor upsert failed:', err);
+  // Background sync to Laravel API
+  patientService.createSurvivor(survivor).catch((err) => {
+    console.warn('Background Laravel survivor sync note:', err);
   });
 
   return updated;
@@ -237,9 +234,9 @@ export function updateSurvivorNik(id: string, newNik: string): SurvivorProfile |
     console.warn('IndexedDB survivor update failed:', err);
   });
 
-  // Background sync to Supabase if configured
-  updateSurvivorNikInSupabase(id, newNik).catch((err) => {
-    console.warn('Background Supabase NIK update failed:', err);
+  // Background sync to Laravel API
+  patientService.updateNik(id, newNik).catch((err) => {
+    console.warn('Background Laravel NIK update note:', err);
   });
 
   return updatedSurvivor;
@@ -278,31 +275,35 @@ export async function hydrateSurvivorsFromIndexedDB(): Promise<SurvivorProfile[]
 }
 
 /**
- * Initial sync to pull survivors from Supabase on app start
+ * Initial sync to pull survivors from Laravel backend on app start
  */
 export async function syncSurvivorsWithSupabase(): Promise<SurvivorProfile[]> {
-  const remote = await fetchSurvivorsFromSupabase();
-  if (!remote || remote.length === 0) return getStoredSurvivors();
+  try {
+    const remote = await patientService.getSurvivors();
+    if (!remote || remote.length === 0) return getStoredSurvivors();
 
-  const local = getStoredSurvivors();
-  const map = new Map<string, SurvivorProfile>();
+    const local = getStoredSurvivors();
+    const map = new Map<string, SurvivorProfile>();
 
-  // Add remote first
-  remote.forEach((s) => map.set(s.id, s));
-  // Add local (can override or merge)
-  local.forEach((s) => {
-    if (!map.has(s.id)) {
-      map.set(s.id, s);
-      // Upload local survivor to Supabase in background
-      upsertSurvivorToSupabase(s).catch(() => {});
+    // Add remote first
+    remote.forEach((s) => map.set(s.id, s));
+    // Add local (can override or merge)
+    local.forEach((s) => {
+      if (!map.has(s.id)) {
+        map.set(s.id, s);
+        // Upload local survivor to Laravel backend in background
+        patientService.createSurvivor(s).catch(() => {});
+      }
+    });
+
+    const merged = Array.from(map.values());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(merged));
     }
-  });
-
-  const merged = Array.from(map.values());
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY_SURVIVORS, JSON.stringify(merged));
+    return merged;
+  } catch {
+    return getStoredSurvivors();
   }
-  return merged;
 }
 
 /**

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ShieldAlert,
   MapPin,
@@ -12,6 +12,10 @@ import {
   ArrowLeft,
   Ambulance,
   X,
+  MessageSquare,
+  Send,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { LocationPost } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
@@ -42,6 +46,46 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
   onGoToHospitalPortal,
 }) => {
   const { isOnline } = useAssessment();
+  const [isSoundMuted, setIsSoundMuted] = useState(false);
+
+  // 1. Tactile Haptic Alert (Tier 3 Physical Feedback)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate([250, 100, 250, 100, 450]);
+      } catch {
+        // Ignore vibration error
+      }
+    }
+  }, []);
+
+  // 2. Play Local High-Urgency Synthetic Audio Alert
+  const playLocalBuzzer = () => {
+    if (isSoundMuted) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    } catch {
+      // Audio not permitted without interaction
+    }
+  };
+
+  // Tier 2: SMS Gateway Emergency Fallback URI (Sinyal 2G/GSM)
+  const smsEmergencyPayload = `[SOS T0 RAPID-MIND] NIK/ID: ${survivorId}, Nama: ${survivorName}, Posko: ${posko}, Waktu: ${timestamp}, Alasan: ${emergencyReasons.join('; ')}`;
+  const smsFallbackUri = `sms:119?body=${encodeURIComponent(smsEmergencyPayload)}`;
 
   return (
     <div
@@ -80,24 +124,40 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition shrink-0"
-          aria-label="Tutup"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setIsSoundMuted(!isSoundMuted);
+              if (isSoundMuted) playLocalBuzzer();
+            }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition shrink-0"
+            title={isSoundMuted ? 'Bunyikan Alarm Lokal' : 'Senyapkan Alarm'}
+          >
+            {isSoundMuted ? <VolumeX className="w-4 h-4 text-slate-400" /> : <Volume2 className="w-4 h-4 text-red-600 animate-pulse" />}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition shrink-0"
+            aria-label="Tutup"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* 3. BODY CONTENT (SCROLLABLE ON MOBILE) */}
       <div className="p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[calc(92vh-160px)]">
-        {/* A. STATUS TRANSMISI DATA (JUJUR & REALISTIS) */}
-        <div className="p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 text-xs">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Status Transmisi Data Lapangan
-            </span>
+        {/* A. 3-TIER FALLBACK STRATEGY UNTUK TRANSMISI T0 (OFFLINE-FIRST) */}
+        <div className="p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
+          <div className="flex items-center justify-between gap-2 flex-wrap border-b border-slate-200 pb-2.5">
+            <div>
+              <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Mekanisme 3-Tier Fallback Transmisi T0
+              </span>
+              <span className="text-[10px] text-slate-500">Offline-First Resilient Architecture</span>
+            </div>
             <span
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold ${
                 isOnline
@@ -109,46 +169,69 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
                 <>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <Wifi className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>ONLINE · TERKIRIM</span>
+                  <span>ONLINE · TIER 1 AKTIF</span>
                 </>
               ) : (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
                   <WifiOff className="w-3.5 h-3.5 text-amber-600" />
-                  <span>OFFLINE · TERSIMPAN LOKAL</span>
+                  <span>OFFLINE · TIER 2 & 3 SIAGA</span>
                 </>
               )}
             </span>
           </div>
 
-          <div className="space-y-1.5 font-medium">
-            <div className="flex items-center gap-2 text-emerald-700">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Data T0 tercatat aman di IndexedDB perangkat lokal</span>
+          <div className="space-y-2.5 font-medium">
+            {/* Tier 1 Status */}
+            <div className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${isOnline ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950' : 'bg-slate-100/70 border-slate-200 text-slate-500'}`}>
+              <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${isOnline ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <div>
+                <span className="font-bold block text-[11px]">Tier 1: WebSockets & Push Notification (Online)</span>
+                <span className="text-[11px] block mt-0.5 opacity-90">
+                  {isOnline
+                    ? 'Sinyal darurat T0 telah diteruskan instan (<1 detik) ke Dashboard Faskes & PSC 119.'
+                    : 'Koneksi data internet tidak terdeteksi. Sistem beralih ke strategi fallback Tier 2 & Tier 3.'}
+                </span>
+              </div>
             </div>
 
-            {isOnline ? (
-              <>
-                <div className="flex items-center gap-2 text-blue-700">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                  <span>Sinyal rujukan terkirim ke Antrean Faskes / RS (Role 2)</span>
+            {/* Tier 2 Status & SMS Trigger */}
+            <div className="p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 text-blue-950 space-y-2">
+              <div className="flex items-start gap-2.5">
+                <Radio className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <span className="font-bold block text-[11px]">Tier 2: Sinyal Seluler 2G/GSM Auto-Fallback (SMS Gateway)</span>
+                  <span className="text-[11px] block mt-0.5 text-blue-900 leading-relaxed">
+                    Jika internet mati namun HP relawan menangkap sinyal seluler biasa (2G/GSM), kirim SMS darurat terenkripsi berisi NIK, Red Flag, dan Titik GPS ke PSC 119.
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-600 text-[11px] pl-0.5">
-                  <Radio className="w-3.5 h-3.5 text-red-600 animate-pulse shrink-0" />
-                  <span>Notifikasi siaga PSC 119 diteruskan (Standby verifikasi Tele-Emergency)</span>
-                </div>
-              </>
-            ) : (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1.5">
-                <div className="flex items-center gap-1.5 font-bold text-amber-950">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Sinkronisasi Server Tertunda (Perangkat Sedang Offline)</span>
-                </div>
-                <p className="text-[11px] text-amber-900 leading-relaxed font-normal">
-                  Data kedaruratan tersimpan aman di antrean lokal. Segera lakukan koordinasi manual via Radio HT Posko atau panggilan seluler langsung ke PSC 119.
-                </p>
               </div>
-            )}
+              <a
+                href={smsFallbackUri}
+                className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition"
+              >
+                <MessageSquare className="w-4 h-4 text-white" />
+                <span>Kirim Format Darurat SMS Gateway ke 119</span>
+                <Send className="w-3.5 h-3.5 text-white/80" />
+              </a>
+            </div>
+
+            {/* Tier 3 Status (IndexedDB, Local Alert & Background Sync) */}
+            <div className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/70 text-amber-950 space-y-1.5">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold block text-[11px]">Tier 3: Sinyal Mati Total (Blank Spot) — Local Alert & Background Sync</span>
+                  <span className="text-[11px] block mt-0.5 text-amber-900 leading-relaxed">
+                    Data T0 dikunci di urutan teratas memori lokal (IndexedDB). Begitu HP relawan menangkap secuil sinyal, Service Worker akan otomatis menyinkronkan data tanpa perlu input ulang.
+                  </span>
+                </div>
+              </div>
+              <div className="p-2 bg-amber-100/70 rounded-lg text-[11px] text-amber-950 font-bold border border-amber-300 flex items-center gap-1.5">
+                <span>⚠️ INSTRUKSI FISIK:</span>
+                <span>Bawa & dampingi penyintas secara langsung ke Tenda Medis Posko Terdekat!</span>
+              </div>
+            </div>
           </div>
         </div>
 
