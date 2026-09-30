@@ -1,6 +1,6 @@
-import { INITIAL_ASSESSMENTS } from '../data/mockAssessments';
-import { MOCK_LOCATIONS } from '../data/mockLocations';
-import { INITIAL_MOCK_SURVIVORS } from '../data/mockSurvivors';
+import { INITIAL_ASSESSMENTS } from '../data/seedAssessments';
+import { MOCK_LOCATIONS } from '../data/seedLocations';
+import { INITIAL_MOCK_SURVIVORS } from '../data/seedSurvivors';
 import { MOCK_VOLUNTEER, MOCK_ADMIN, MOCK_HOSPITAL } from '../context/AuthContext';
 import { AssessmentRecord, TriageTier, LocationPost } from '../types/assessment';
 import { User } from '../types/auth';

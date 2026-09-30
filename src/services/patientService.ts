@@ -1,6 +1,6 @@
 import { apiClient } from '../lib/api';
 import { SurvivorProfile, LocationPost } from '../types/assessment';
-import { INITIAL_MOCK_SURVIVORS } from '../data/mockSurvivors';
+import { INITIAL_MOCK_SURVIVORS } from '../data/seedSurvivors';
 import { db } from '../lib/db';
 
 export const patientService = {

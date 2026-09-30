@@ -1,5 +1,5 @@
 import { AssessmentRecord } from '../types/assessment';
-import { INITIAL_ASSESSMENTS } from '../data/mockAssessments';
+import { INITIAL_ASSESSMENTS } from '../data/seedAssessments';
 import { assessmentService } from './assessmentService';
 import { syncService } from './syncService';
 import {

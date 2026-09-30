@@ -14,7 +14,7 @@ import {
   syncAssessmentsWithSupabase,
   hydrateFromIndexedDB,
 } from '../services/offlineStorage';
-import { syncSurvivorsWithSupabase, hydrateSurvivorsFromIndexedDB } from '../data/mockSurvivors';
+import { syncSurvivorsWithSupabase, hydrateSurvivorsFromIndexedDB } from '../data/seedSurvivors';
 import { isIndexedDBSupported, openIndexedDB } from '../services/indexedDbService';
 import { emergencyService, EmergencyAlertItem } from '../services/emergencyService';
 import { syncService } from '../services/syncService';

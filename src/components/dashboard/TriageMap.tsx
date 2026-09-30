@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { MOCK_LOCATIONS } from '../../data/mockLocations';
+import { MOCK_LOCATIONS } from '../../data/seedLocations';
 import { useAssessment } from '../../context/AssessmentContext';
 import { MapPin, Info, Layers, Users } from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import { calculateIntegratedTriage } from '../services/triageEngine';
-import { INITIAL_ASSESSMENTS } from '../data/mockAssessments';
+import { INITIAL_ASSESSMENTS } from '../data/seedAssessments';
 import { AssessmentRecord, TriageTier, T0EmergencyStatus } from '../types/assessment';
 
 // Functions matching HospitalPage.tsx implementation

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useMe
 import { User, UserRole, LoginCredentials, AuthContextType, NewUserInput } from '../types/auth';
 import { LocationPost } from '../types/assessment';
 import { authService } from '../services/authService';
-import { DEFAULT_USERS, MOCK_ADMIN, MOCK_VOLUNTEER, MOCK_HOSPITAL } from '../data/mockUsers';
+import { DEFAULT_USERS, MOCK_ADMIN, MOCK_VOLUNTEER, MOCK_HOSPITAL } from '../data/seedUsers';
 
 const STORAGE_KEY_AUTH = 'rapidmind_auth_session';
 const STORAGE_KEY_CUSTOM_USERS = 'rapidmind_custom_users_v2';

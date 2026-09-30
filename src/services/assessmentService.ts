@@ -1,6 +1,6 @@
 import { apiClient } from '../lib/api';
 import { AssessmentRecord, LocationPost, TriageTier } from '../types/assessment';
-import { INITIAL_ASSESSMENTS } from '../data/mockAssessments';
+import { INITIAL_ASSESSMENTS } from '../data/seedAssessments';
 import { db } from '../lib/db';
 
 interface AssessmentFilters {

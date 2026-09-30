@@ -40,7 +40,7 @@ import {
   PFA_CLOSING_SCRIPT,
 } from '../../data/pfaProtocol';
 import { useAssessment } from '../../context/AssessmentContext';
-import { saveSurvivorToRegistry } from '../../data/mockSurvivors';
+import { saveSurvivorToRegistry } from '../../data/seedSurvivors';
 
 interface PFAMenuSectionProps {
   survivor: SurvivorProfile;

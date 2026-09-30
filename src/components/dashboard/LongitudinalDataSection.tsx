@@ -13,7 +13,7 @@ import {
   ArrowUp,
 } from 'lucide-react';
 import { useAssessment } from '../../context/AssessmentContext';
-import { getStoredSurvivors } from '../../data/mockSurvivors';
+import { getStoredSurvivors } from '../../data/seedSurvivors';
 import { AssessmentRecord, LocationPost, TriageTier } from '../../types/assessment';
 
 type SortField = 'name' | 'tier' | 'posko' | 'recordsCount';

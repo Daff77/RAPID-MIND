@@ -22,7 +22,7 @@ import {
   generateSurvivorId,
   updateSurvivorNik,
   getStoredSurvivors,
-} from '../../data/mockSurvivors';
+} from '../../data/seedSurvivors';
 
 interface AutoLookupHomeScreenProps {
   onSelectSurvivor: (survivor: SurvivorProfile, targetFlow: 'pfa' | 'srq20') => void;

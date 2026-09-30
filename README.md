@@ -140,6 +140,14 @@ RAPID-MIND/
 │   ├── database/seeders/                  # Seeder Demo Kedaruratan & Posko
 │   ├── routes/api.php                     # Rute API RESTful Terstruktur
 │   └── tests/Feature/                     # Pengujian Fitur Otomatis
+├── docs/                                  # Dokumentasi Terpusat
+│   ├── alur-sistem.md                     # Panduan alur operasional sistem
+│   ├── alur-rapidmind.md                  # Alur kerja spesifik RapidMind
+│   ├── full-paper.md                      # Dokumentasi komprehensif / paper
+│   ├── migration.md                       # Dokumentasi teknis migrasi Supabase -> Laravel
+│   ├── rencana-baru.md                    # Roadmap & rencana pengembangan
+│   └── legacy/
+│       └── supabase-schema.sql            # Skema SQL legacy Supabase
 ├── public/                                # Aset publik statis
 ├── src/
 │   ├── components/
@@ -148,6 +156,14 @@ RAPID-MIND/
 │   ├── context/
 │   │   ├── AssessmentContext.tsx          # Real-time Reverb listener & sync state
 │   │   └── AuthContext.tsx                # Sanctum auth integration & RBAC
+│   ├── data/                              # Data seed & protokol kuesioner medis
+│   │   ├── seedAssessments.ts
+│   │   ├── seedLocations.ts
+│   │   ├── seedSurvivors.ts
+│   │   ├── seedUsers.ts
+│   │   ├── pfaProtocol.ts
+│   │   ├── riskAndFunctionalAssessment.ts
+│   │   └── srq20Questions.ts
 │   ├── lib/
 │   │   ├── api.ts                         # Client API sentral & HTTP Interceptor
 │   │   ├── echo.ts                        # Laravel Echo Reverb WebSockets Client
@@ -160,8 +176,7 @@ RAPID-MIND/
 │   │   └── syncService.ts                 # Layanan sinkronisasi batch idempoten
 │   ├── pages/                             # DashboardPage, HospitalPage, LoginPage, VolunteerPage
 │   └── types/                             # TypeScript Types
-├── MIGRATION.md                           # Dokumentasi lengkap proses migrasi Supabase -> Laravel
-├── ALUR_SISTEM.md                         # Panduan alur operasional sistem
+├── index.html
 └── package.json
 ```
 
@@ -169,5 +184,5 @@ RAPID-MIND/
 
 ## 📖 Dokumentasi Lengkap Alur & Migrasi
 
-* 👉 [**DOKUMEN MIGRASI TEKNIS (MIGRATION.md)**](file:///c:/DaffaP/Project%20df/RAPID-MIND/MIGRATION.md)
-* 👉 [**PANDUAN LENGKAP ALUR SISTEM (ALUR_SISTEM.md)**](file:///c:/DaffaP/Project%20df/RAPID-MIND/ALUR_SISTEM.md)
+* 👉 [**DOKUMEN MIGRASI TEKNIS (docs/migration.md)**](file:///c:/DaffaP/Project%20df/RAPID-MIND/docs/migration.md)
+* 👉 [**PANDUAN LENGKAP ALUR SISTEM (docs/alur-sistem.md)**](file:///c:/DaffaP/Project%20df/RAPID-MIND/docs/alur-sistem.md)

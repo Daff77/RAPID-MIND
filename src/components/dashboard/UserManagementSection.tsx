@@ -21,7 +21,7 @@ import { useAuth } from '../../context/AuthContext';
 import { UserRole, User } from '../../types/auth';
 import { LocationPost } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
-import { MOCK_LOCATIONS } from '../../data/mockLocations';
+import { MOCK_LOCATIONS } from '../../data/seedLocations';
 
 export const UserManagementSection: React.FC = () => {
   const { currentUser, allUsers, addUser, deleteUser, updateUserPost } = useAuth();

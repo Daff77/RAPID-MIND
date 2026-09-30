@@ -1,7 +1,7 @@
 import { apiClient } from '../lib/api';
 import { User, UserRole, LoginCredentials, NewUserInput } from '../types/auth';
 import { LocationPost } from '../types/assessment';
-import { DEFAULT_USERS } from '../data/mockUsers';
+import { DEFAULT_USERS } from '../data/seedUsers';
 
 interface AuthResponse {
   status: string;
