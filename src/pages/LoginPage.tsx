@@ -216,7 +216,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rm-btn-primary min-h-[48px] text-xs sm:text-sm font-bold shadow-xs cursor-pointer disabled:opacity-50"
+              className="w-full rm-btn-primary min-h-[52px] text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50"
             >
               <span>{isLoading ? 'Memproses Masuk...' : 'Masuk ke Sistem'}</span>
               <ArrowRight className="w-4 h-4" />

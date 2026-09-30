@@ -148,17 +148,19 @@
        ------------------------------------------------------------------------ */
     --touch-target-min: 48px;
     --touch-target-emergency: 56px;
-    --touch-target-mobile-field: 52px;
+    --touch-target-mobile-field: 56px;
 
     /* ------------------------------------------------------------------------
-       4. CONCENTRIC RADIUS SYSTEM
-       Outer radius = inner radius + padding
+       4. CONCENTRIC RADIUS SYSTEM (RESTRICTED DESIGN LANGUAGE)
+       Small controls: 6–8px
+       Standard cards: 10–14px
+       Major panels: 14–18px
        ------------------------------------------------------------------------ */
-    --radius-card: 16px;       /* 1rem - Main card boundaries */
-    --radius-item: 12px;       /* 0.75rem - Nested container or section */
-    --radius-control: 10px;    /* 0.625rem - Inputs, buttons, switches */
-    --radius-badge: 6px;       /* 0.375rem - Status chips, flags */
-    --radius-pill: 9999px;     /* Full rounded pills */
+    --radius-panel: 16px;      /* 1rem - Major panels, modals, bottom sheets */
+    --radius-card: 12px;       /* 0.75rem - Standard cards, list rows, groups */
+    --radius-control: 8px;     /* 0.5rem - Inputs, buttons, segmented controls */
+    --radius-badge: 6px;       /* 0.375rem - Status chips, flags, micro tags */
+    --radius-pill: 9999px;     /* Floating emergency controls, pill badges */
 
     /* ------------------------------------------------------------------------
        5. ELEVATION & SHADOW SYSTEM (Crisp, Clinical Depth)
@@ -227,7 +229,7 @@
   line-height: 1.25rem;
   padding: 0.75rem 1.25rem;
   min-height: var(--touch-target-mobile-field);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: background-color 150ms ease, transform 100ms ease;
@@ -259,7 +261,7 @@
   line-height: 1.25rem;
   padding: 0.75rem 1.25rem;
   min-height: var(--touch-target-mobile-field);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius-control);
   border: 1px solid var(--rm-border-default);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
@@ -291,7 +293,7 @@
   line-height: 1.25rem;
   padding: 0.875rem 1.25rem;
   min-height: var(--touch-target-emergency);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
   box-shadow: var(--shadow-emergency);
   text-transform: uppercase;

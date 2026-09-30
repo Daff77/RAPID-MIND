@@ -507,7 +507,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
               mobileActiveTab === 'detail' ? 'hidden lg:block' : 'block'
             }`}
           >
-            <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-2xs space-y-3.5">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
               {/* Queue Header */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
@@ -771,7 +771,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
             {activeRecord ? (
               <div className="space-y-4">
                 {/* 1. Header Workspace Kasus Pasien (WHO, WHERE, WHEN) */}
-                <div className="p-5 bg-white border border-slate-200 rounded-3xl shadow-2xs space-y-3.5">
+                <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-3.5">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 pb-3.5">
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -865,7 +865,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
 
                   if (isT0Pending) {
                     return (
-                      <div className="p-4 sm:p-5 rounded-3xl border-2 space-y-2 shadow-2xs transition bg-rose-50/80 border-rose-500 ring-2 ring-rose-500/20">
+                      <div className="p-4 sm:p-5 rounded-xl border-2 space-y-2 shadow-2xs transition bg-rose-50/80 border-rose-500 ring-2 ring-rose-500/20">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <AlertOctagon className="w-5 h-5 text-rose-600 shrink-0" />
@@ -886,7 +886,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
 
                   if (isT0Confirmed) {
                     return (
-                      <div className="p-4 sm:p-5 rounded-3xl border-2 space-y-2 shadow-2xs transition bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20">
+                      <div className="p-4 sm:p-5 rounded-xl border-2 space-y-2 shadow-2xs transition bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
@@ -907,7 +907,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
 
                   if (isDowngraded) {
                     return (
-                      <div className="p-4 sm:p-5 rounded-3xl border-2 space-y-2 shadow-2xs transition bg-slate-50 border-slate-300">
+                      <div className="p-4 sm:p-5 rounded-xl border-2 space-y-2 shadow-2xs transition bg-slate-50 border-slate-300">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <ArrowDownRight className="w-5 h-5 text-slate-600 shrink-0" />
@@ -928,7 +928,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
 
                   if (tier === 'T1') {
                     return (
-                      <div className="p-4 sm:p-5 rounded-3xl border-2 space-y-2 shadow-2xs transition bg-orange-50/70 border-orange-300">
+                      <div className="p-4 sm:p-5 rounded-xl border-2 space-y-2 shadow-2xs transition bg-orange-50/70 border-orange-300">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0" />
@@ -949,7 +949,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
 
                   if (tier === 'T2') {
                     return (
-                      <div className="p-4 sm:p-5 rounded-3xl border-2 space-y-2 shadow-2xs transition bg-amber-50/70 border-amber-300">
+                      <div className="p-4 sm:p-5 rounded-xl border-2 space-y-2 shadow-2xs transition bg-amber-50/70 border-amber-300">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <Activity className="w-5 h-5 text-amber-600 shrink-0" />
@@ -970,7 +970,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
 
                   // Default / T3
                   return (
-                    <div className="p-4 sm:p-5 rounded-3xl border-2 space-y-2 shadow-2xs transition bg-slate-50 border-slate-200">
+                    <div className="p-4 sm:p-5 rounded-xl border-2 space-y-2 shadow-2xs transition bg-slate-50 border-slate-200">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-2">
                           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
@@ -995,7 +995,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                   const isCritical = tier === 'T0' || activeRecord.criticalTriggered;
 
                   return (
-                    <div className="p-5 bg-white border border-slate-200 rounded-3xl space-y-3.5 shadow-2xs">
+                    <div className="p-5 bg-white border border-slate-200 rounded-xl space-y-3.5">
                       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <div className="flex items-center gap-2">
                           {isCritical ? (
@@ -1072,7 +1072,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 })()}
 
                 {/* 4. Integrated Assessment Breakdown (ASSESSMENT CONTEXT) */}
-                <div className="p-5 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-2xs">
+                <div className="p-5 bg-white border border-slate-200 rounded-xl space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-2">
                       <Activity className="w-4 h-4 text-blue-600" />
@@ -1125,7 +1125,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                   </div>
 
                   {activeRecord.recommendedAction && (
-                    <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl text-xs text-blue-950 font-medium leading-relaxed">
+                    <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-950 font-medium leading-relaxed">
                       <span className="font-bold block text-[10px] uppercase text-blue-900 mb-0.5">
                         Rekomendasi Protokol Lapangan:
                       </span>
@@ -1135,7 +1135,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 </div>
 
                 {/* 5. PSC 119 Transport & Bed Allocation Tracking */}
-                <div className="p-5 bg-white border border-slate-200 rounded-3xl space-y-3.5 shadow-2xs">
+                <div className="p-5 bg-white border border-slate-200 rounded-xl space-y-3.5">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-2">
                       <Ambulance className="w-4 h-4 text-blue-600" />
@@ -1205,7 +1205,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 </div>
 
                 {/* 6. Two-Tiered Clinical Validation Decision Card (WHAT NEXT) */}
-                <div className="p-5 bg-white border-2 border-slate-200 rounded-3xl space-y-3.5 shadow-2xs">
+                <div className="p-5 bg-white border-2 border-slate-200 rounded-xl space-y-3.5">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
                     <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
@@ -1325,8 +1325,8 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="p-12 bg-white border border-slate-200 rounded-3xl text-center space-y-3 shadow-2xs">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+              <div className="p-12 bg-white border border-slate-200 rounded-2xl text-center space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6 text-slate-400" />
                 </div>
                 <h3 className="text-base font-bold text-slate-800">
@@ -1347,7 +1347,7 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
       {/* ============================================================ */}
       {isTeleModalOpen && selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white border border-slate-200 w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+          <div className="bg-white border border-slate-200 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
             {/* Modal Header: Clear Context (Patient, Posko, Status) */}
             <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-3 min-w-0">

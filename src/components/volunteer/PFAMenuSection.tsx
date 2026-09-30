@@ -481,7 +481,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             <button
               type="button"
               onClick={() => setActiveStep('listen')}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition min-h-[52px] cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition min-h-[56px] cursor-pointer"
             >
               <span>Lanjut ke Tahap 2: LISTEN</span>
               <ArrowRight className="w-4 h-4" />
@@ -653,7 +653,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             <button
               type="button"
               onClick={() => setActiveStep('link')}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition min-h-[52px] cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition min-h-[56px] cursor-pointer"
             >
               <span>Lanjut ke Tahap 3: LINK</span>
               <ArrowRight className="w-4 h-4" />
@@ -798,7 +798,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => handleFinishPFA(false)}
-                  className="px-4 py-3 rounded-xl border border-slate-300 hover:bg-slate-100 active:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition min-h-[52px] cursor-pointer"
+                  className="px-4 py-3 rounded-xl border border-slate-300 hover:bg-slate-100 active:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition min-h-[56px] cursor-pointer"
                 >
                   <Save className="w-4 h-4 text-slate-600" />
                   <span>Simpan PFA & Selesai</span>
@@ -807,7 +807,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => handleFinishPFA(true)}
-                  className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition min-h-[52px] cursor-pointer"
+                  className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition min-h-[56px] cursor-pointer"
                 >
                   <span>Simpan & Lanjut ke SRQ-20</span>
                   <ArrowRight className="w-4 h-4" />

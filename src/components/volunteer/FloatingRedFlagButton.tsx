@@ -130,7 +130,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
         <button
           type="button"
           onClick={handleOpen}
-          className="group flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-black text-xs shadow-lg shadow-red-950/25 border-2 border-white transition-all transform hover:scale-[1.03] select-none min-h-[46px] cursor-pointer"
+          className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-black text-xs shadow-lg shadow-red-950/25 border-2 border-white transition-all transform hover:scale-[1.03] select-none min-h-[52px] cursor-pointer"
           title="Tekan untuk kasus darurat T0 (Ideasi Bunuh Diri, Psikosis, Agitasi, Krisis Medis)"
         >
           <div className="relative flex items-center justify-center">
@@ -150,7 +150,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
           {!isSubmitted ? (
-            <div className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
               {/* Modal Header */}
               <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div className="flex items-center gap-3">
@@ -185,7 +185,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
               <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs text-slate-700 leading-relaxed">
                 <>
                   {/* Step Aksi Relawan Guidance Alert */}
-                  <div className="p-3 bg-red-50/70 border border-red-200 rounded-2xl space-y-1.5 text-red-950">
+                  <div className="p-3 bg-red-50/70 border border-red-200 rounded-xl space-y-1.5 text-red-950">
                     <div className="flex items-center gap-2">
                       <AlertOctagon className="w-4 h-4 text-red-600 shrink-0" />
                       <strong className="text-xs font-bold">
@@ -200,7 +200,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                   </div>
 
                   {/* Context Snapshot & Identity Selection */}
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
                       <div>
                         <span className="text-slate-400 block font-semibold uppercase text-[10px]">
@@ -243,7 +243,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                     {/* Indicator 1 */}
                     <label
                       onClick={() => setIndicator1(!indicator1)}
-                      className={`p-3 rounded-2xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
                         indicator1
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -268,7 +268,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                     {/* Indicator 2 */}
                     <label
                       onClick={() => setIndicator2(!indicator2)}
-                      className={`p-3 rounded-2xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
                         indicator2
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -293,7 +293,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                     {/* Indicator 3 */}
                     <label
                       onClick={() => setIndicator3(!indicator3)}
-                      className={`p-3 rounded-2xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
                         indicator3
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -318,7 +318,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                     {/* Indicator 4 */}
                     <label
                       onClick={() => setIndicator4(!indicator4)}
-                      className={`p-3 rounded-2xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
                         indicator4
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -361,7 +361,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                       type="button"
                       onClick={handleConfirmEmergency}
                       disabled={!canSubmit}
-                      className="w-full min-h-[56px] rounded-2xl bg-red-600 hover:bg-red-700 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-red-600/40 transition uppercase tracking-wider"
+                      className="w-full min-h-[56px] rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-red-600/40 transition uppercase tracking-wider"
                     >
                       <Radio className="w-4 h-4 animate-pulse" />
                       <span>Kirim Sinyal Darurat T0-Suspect</span>

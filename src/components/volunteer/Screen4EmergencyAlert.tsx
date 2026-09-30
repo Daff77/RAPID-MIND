@@ -92,7 +92,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="emergency-alert-title"
-      className="bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col w-full text-slate-800 animate-in fade-in"
+      className="bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full text-slate-800 animate-in fade-in"
     >
       {/* 1. TOP CRITICAL URGENCY ACCENT BAR */}
       <div className="h-1.5 bg-red-600 w-full shrink-0" />
@@ -150,7 +150,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
       {/* 3. BODY CONTENT (SCROLLABLE ON MOBILE) */}
       <div className="p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[calc(92vh-160px)]">
         {/* A. 3-TIER FALLBACK STRATEGY UNTUK TRANSMISI T0 (OFFLINE-FIRST) */}
-        <div className="p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
+        <div className="p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs">
           <div className="flex items-center justify-between gap-2 flex-wrap border-b border-slate-200 pb-2.5">
             <div>
               <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
@@ -237,7 +237,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
 
         {/* B. IDENTITAS PENYINTAS & LOKASI POSKO */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
               Identitas Penyintas
             </span>
@@ -255,7 +255,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
             </div>
           </div>
 
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
               Posko & Waktu Pelaporan
             </span>
@@ -278,7 +278,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
         </div>
 
         {/* C. ALASAN & TRIGGER EMERGENCY */}
-        <div className="p-3.5 sm:p-4 bg-red-50/70 border border-red-200 rounded-2xl space-y-2 text-xs">
+        <div className="p-3.5 sm:p-4 bg-red-50/70 border border-red-200 rounded-xl space-y-2 text-xs">
           <div className="flex items-center gap-2 text-red-950 font-bold">
             <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
             <span>Indikator Alasan Emergency Terdeteksi:</span>
@@ -300,7 +300,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
         </div>
 
         {/* D. STANDAR OPERASIONAL KESELAMATAN WAJIB RELAWAN (SOP LAPANGAN) */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white rounded-2xl space-y-3 shadow-md">
+        <div className="p-4 sm:p-5 bg-slate-900 text-white rounded-xl space-y-3">
           <div className="flex items-center gap-2 text-amber-300">
             <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
             <span className="font-bold text-xs uppercase tracking-wider">
@@ -321,12 +321,12 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
         </div>
       </div>
 
-      {/* 4. ACTIONS (MOBILE-FIRST 52-56px TOUCH TARGETS) */}
+      {/* 4. ACTIONS (MOBILE-FIRST 56px TOUCH TARGETS) */}
       <div className="p-4 sm:p-6 pt-3 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center gap-3 bg-slate-50/60">
         <button
           type="button"
           onClick={onClose}
-          className="w-full sm:flex-1 min-h-[52px] px-4 rounded-2xl bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition shadow-xs"
+          className="w-full sm:flex-1 min-h-[56px] px-4 rounded-xl bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition"
         >
           <ArrowLeft className="w-4 h-4 text-slate-600" />
           <span>Kembali ke Pendampingan Penyintas</span>
@@ -336,7 +336,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
           <button
             type="button"
             onClick={onGoToHospitalPortal}
-            className="w-full sm:flex-1 min-h-[52px] px-4 rounded-2xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-red-600/25 transition"
+            className="w-full sm:flex-1 min-h-[56px] px-4 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-red-600/25 transition"
           >
             <Ambulance className="w-4 h-4 text-white" />
             <span>Buka Antrean Rujukan Faskes →</span>

@@ -213,7 +213,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Ketik 16 Digit NIK, ID Gelang (GL-...), atau Nama..."
-            className="w-full bg-slate-50 border border-slate-300 focus:border-blue-600 focus:bg-white rounded-xl pl-11 pr-10 min-h-[54px] text-sm text-slate-900 outline-none transition font-medium"
+            className="w-full bg-slate-50 border border-slate-300 focus:border-blue-600 focus:bg-white rounded-xl pl-11 pr-10 min-h-[56px] text-sm text-slate-900 outline-none transition font-medium"
             autoComplete="off"
           />
 
@@ -236,12 +236,12 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
           )}
         </div>
 
-        {/* Action Controls: Primary Search Button (54px) & QR Scan Button */}
+        {/* Action Controls: Primary Search Button (56px) & QR Scan Button */}
         <div className="flex flex-col sm:flex-row gap-2">
           <button
             type="button"
             onClick={() => handleSearch()}
-            className="flex-1 rm-btn-primary min-h-[54px] text-xs sm:text-sm font-bold shadow-xs flex items-center justify-center gap-2"
+            className="flex-1 rm-btn-primary min-h-[56px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
           >
             <Search className="w-4 h-4" />
             <span>Cari Penyintas</span>
@@ -253,7 +253,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
               setSearchQuery('GL-042');
               handleSearch('GL-042');
             }}
-            className="sm:w-auto px-4 rm-btn-secondary min-h-[54px] text-xs font-bold text-slate-700 hover:text-blue-700 flex items-center justify-center gap-1.5"
+            className="sm:w-auto px-4 rm-btn-secondary min-h-[56px] text-xs font-bold text-slate-700 hover:text-blue-700 flex items-center justify-center gap-1.5"
             title="Simulasi Pemindaian QR Gelang Posko"
           >
             <QrCode className="w-4 h-4 text-slate-600" />
@@ -479,7 +479,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectSurvivor(lookupResult, 'pfa')}
-                      className="w-full rm-btn-primary min-h-[54px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      className="w-full rm-btn-primary min-h-[56px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Eye className="w-4 h-4" />
                       <span>Lanjutkan Intervensi PFA (Fase Akut Hari 1–3)</span>
@@ -489,7 +489,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectSurvivor(lookupResult, 'srq20')}
-                      className="w-full rm-btn-secondary min-h-[48px] text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full rm-btn-secondary min-h-[52px] text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <span>Lewati PFA & Buka Wawancara SRQ-20 (Hari 4–30)</span>
                       <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
@@ -500,7 +500,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectSurvivor(lookupResult, 'srq20')}
-                      className="w-full rm-btn-primary min-h-[54px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      className="w-full rm-btn-primary min-h-[56px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <FileText className="w-4 h-4" />
                       <span>Mulai Wawancara SRQ-20 (Fase Lanjutan Hari 4–30)</span>
@@ -510,7 +510,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectSurvivor(lookupResult, 'pfa')}
-                      className="w-full rm-btn-secondary min-h-[48px] text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full rm-btn-secondary min-h-[52px] text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Eye className="w-4 h-4 text-blue-600" />
                       <span>Lihat / Perbarui Catatan PFA (Fase Akut)</span>
@@ -758,7 +758,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
               {/* Submit CTA */}
               <button
                 type="submit"
-                className="w-full rm-btn-primary min-h-[54px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                className="w-full rm-btn-primary min-h-[56px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Daftarkan & Mulai PFA Fase Akut</span>
                 <ArrowRight className="w-4 h-4" />

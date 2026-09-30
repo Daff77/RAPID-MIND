@@ -374,7 +374,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
 
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs space-y-5 animate-in fade-in">
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in">
       {/* Header Context (Khusus Step Interview SRQ-20 agar tidak duplikat di step lain) */}
       {wizardStep === 'interview' && (
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -654,7 +654,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
             return (
               <div
-                className={`p-4 sm:p-6 rounded-3xl border-2 transition space-y-4 shadow-xs ${
+                className={`p-4 sm:p-6 rounded-xl border-2 transition space-y-4 ${
                   currentQ.isRedFlag
                     ? 'bg-red-50/20 border-red-300'
                     : 'bg-white border-slate-200'
@@ -695,7 +695,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
                 {/* Critical Red Flag Indicator Warning if Question 17 */}
                 {currentQ.isRedFlag && (
-                  <div className="p-3 bg-red-50 border border-red-300 rounded-2xl flex items-start gap-2.5 text-red-950">
+                  <div className="p-3 bg-red-50 border border-red-300 rounded-xl flex items-start gap-2.5 text-red-950">
                     <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                     <div className="text-xs">
                       <span className="font-extrabold block text-red-900">
@@ -720,7 +720,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
                 {/* Conversational Script */}
                 {currentQ.scriptQuestion && (
-                  <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-1">
+                  <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1">
                     <span className="text-[10px] font-bold text-blue-900 flex items-center gap-1.5 uppercase tracking-wider">
                       <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
                       <span>Panduan Percakapan Relawan:</span>
@@ -742,10 +742,10 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleAnswerToggle(currentQ.id, false)}
-                    className={`min-h-[56px] rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition active:scale-[0.98] ${
+                    className={`min-h-[56px] rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition active:scale-[0.98] ${
                       answers[currentQ.id] === false
                         ? 'bg-slate-800 text-white border-2 border-slate-800 shadow-md ring-2 ring-slate-400/40'
-                        : 'bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-300 shadow-xs'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-300'
                     }`}
                   >
                     <X
@@ -759,14 +759,14 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleAnswerToggle(currentQ.id, true)}
-                    className={`min-h-[56px] rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition active:scale-[0.98] ${
+                    className={`min-h-[56px] rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition active:scale-[0.98] ${
                       answers[currentQ.id] === true
                         ? currentQ.isRedFlag
                           ? 'bg-red-600 text-white border-2 border-red-600 shadow-md ring-2 ring-red-400/40'
                           : 'bg-blue-600 text-white border-2 border-blue-600 shadow-md ring-2 ring-blue-400/40'
                         : currentQ.isRedFlag
-                          ? 'bg-white hover:bg-red-50 text-red-700 border-2 border-red-300 shadow-xs'
-                          : 'bg-white hover:bg-blue-50 text-slate-800 border-2 border-slate-300 shadow-xs'
+                          ? 'bg-white hover:bg-red-50 text-red-700 border-2 border-red-300'
+                          : 'bg-white hover:bg-blue-50 text-slate-800 border-2 border-slate-300'
                     }`}
                   >
                     <Check
@@ -778,13 +778,13 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   </button>
                 </div>
 
-                {/* PREV / NEXT QUESTION CONTROLS (MIN-H 52PX) */}
+                {/* PREV / NEXT QUESTION CONTROLS (MIN-H 56PX) */}
                 <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
                   <button
                     type="button"
                     disabled={currentQuestionIndex === 0}
                     onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-                    className="flex-1 sm:flex-initial px-4 min-h-[52px] rounded-2xl bg-white hover:bg-slate-100 active:scale-[0.99] disabled:opacity-30 disabled:pointer-events-none text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 transition shadow-xs"
+                    className="flex-1 sm:flex-initial px-4 min-h-[56px] rounded-xl bg-white hover:bg-slate-100 active:scale-[0.99] disabled:opacity-30 disabled:pointer-events-none text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 transition"
                   >
                     <ArrowLeft className="w-4 h-4 text-slate-600" />
                     <span>Sebelumnya</span>
@@ -798,7 +798,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     <button
                       type="button"
                       onClick={() => setCurrentQuestionIndex((prev) => Math.min(19, prev + 1))}
-                      className="flex-1 sm:flex-initial px-5 min-h-[52px] rounded-2xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xs"
+                      className="flex-1 sm:flex-initial px-5 min-h-[56px] rounded-xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
                     >
                       <span>Berikutnya</span>
                       <ArrowRight className="w-4 h-4 text-white" />
@@ -807,7 +807,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     <button
                       type="button"
                       onClick={handleProceedToFunctional}
-                      className={`flex-1 sm:flex-initial px-5 min-h-[52px] rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-xs ${
+                      className={`flex-1 sm:flex-initial px-5 min-h-[56px] rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition ${
                         isAllSRQAnswered
                           ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white'
                           : 'bg-amber-500 hover:bg-amber-600 text-white'
@@ -1011,7 +1011,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                 return (
                   <div
                     key={domain.id}
-                    className="p-4 sm:p-5 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-2xs"
+                    className="p-4 sm:p-5 bg-white border border-slate-200 rounded-xl space-y-3"
                   >
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-mono font-bold text-xs">
@@ -1022,13 +1022,13 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                       </h4>
                     </div>
 
-                    <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-2xl">
+                    <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-lg">
                       <p className="text-xs text-blue-950 italic font-medium leading-relaxed">
                         "{domain.question}"
                       </p>
                     </div>
 
-                    {/* 3 Large Vertical Options (Min-H 54-56px on mobile) */}
+                    {/* 3 Large Vertical Options (Min-H 56px on mobile) */}
                     <div className="space-y-2 pt-1">
                       {domain.options.map((opt) => {
                         const isSelected = currentPts === opt.points;
@@ -1037,13 +1037,13 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                         if (isSelected) {
                           if (opt.points === 0) {
                             selectedStyle =
-                              'bg-emerald-50/80 border-emerald-600 text-emerald-950 font-bold shadow-2xs ring-2 ring-emerald-500/20';
+                              'bg-emerald-50/80 border-emerald-600 text-emerald-950 font-bold ring-2 ring-emerald-500/20';
                           } else if (opt.points === 1) {
                             selectedStyle =
-                              'bg-amber-50/80 border-amber-600 text-amber-950 font-bold shadow-2xs ring-2 ring-amber-500/20';
+                              'bg-amber-50/80 border-amber-600 text-amber-950 font-bold ring-2 ring-amber-500/20';
                           } else {
                             selectedStyle =
-                              'bg-rose-50/80 border-rose-600 text-rose-950 font-bold shadow-2xs ring-2 ring-rose-500/20';
+                              'bg-rose-50/80 border-rose-600 text-rose-950 font-bold ring-2 ring-rose-500/20';
                           }
                         } else {
                           selectedStyle =
@@ -1055,7 +1055,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                             key={opt.points}
                             type="button"
                             onClick={() => setFunctionalOption(domain.id, opt.points)}
-                            className={`w-full p-3.5 sm:p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition min-h-[56px] active:scale-[0.99] ${selectedStyle}`}
+                            className={`w-full p-3.5 sm:p-4 rounded-xl border-2 text-left flex items-center justify-between gap-3 transition min-h-[56px] active:scale-[0.99] ${selectedStyle}`}
                           >
                             <div className="min-w-0 flex items-center gap-3">
                               <span className="text-base shrink-0">
@@ -1092,12 +1092,12 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </div>
           </section>
 
-          {/* BOTTOM ACTIONS (MOBILE-FIRST 52-56PX) */}
+          {/* BOTTOM ACTIONS (MOBILE-FIRST 56PX) */}
           <div className="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center gap-3">
             <button
               type="button"
               onClick={() => setWizardStep('interview')}
-              className="w-full sm:w-auto px-5 min-h-[52px] rounded-2xl bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition shadow-xs"
+              className="w-full sm:w-auto px-5 min-h-[56px] rounded-xl bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition"
             >
               <ArrowLeft className="w-4 h-4 text-slate-600" />
               <span>Kembali ke Soal SRQ</span>
@@ -1106,7 +1106,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             <button
               type="button"
               onClick={handleCalculateTriage}
-              className="w-full sm:flex-1 min-h-[54px] px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition"
+              className="w-full sm:flex-1 min-h-[56px] px-6 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition"
             >
               <Sparkles className="w-4 h-4 text-white" />
               <span>Lihat Hasil Analisis Triase →</span>
@@ -1177,7 +1177,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
             {/* STATUS RESULT CARD (DOMINANT ELEMENT) */}
             <div
-              className={`p-5 sm:p-6 rounded-3xl border-2 space-y-4 shadow-2xs transition ${
+              className={`p-5 sm:p-6 rounded-2xl border-2 space-y-4 transition ${
                 isT0
                   ? 'bg-rose-50/80 border-rose-500 ring-2 ring-rose-500/20'
                   : isT1
@@ -1266,7 +1266,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </div>
 
             {/* ⚠️ CATATAN ETIK & MEDIS BAKU RAPID-MIND */}
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 border-2 border-amber-300 text-amber-950 flex items-start gap-3 shadow-2xs">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-amber-50/90 border-2 border-amber-300 text-amber-950 flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
               <div className="text-xs leading-relaxed">
                 <span className="font-bold block uppercase tracking-wider text-amber-900 text-[11px] mb-0.5">
@@ -1279,7 +1279,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </div>
 
             {/* ACTION CARD (TINDAKAN BERIKUTNYA) */}
-            <div className="p-4 sm:p-5 bg-white border-2 border-slate-200 rounded-3xl space-y-4 shadow-2xs">
+            <div className="p-4 sm:p-5 bg-white border-2 border-slate-200 rounded-xl space-y-4">
               <div className="flex items-center gap-2">
                 <div
                   className={`w-2.5 h-2.5 rounded-full shrink-0 ${
@@ -1299,7 +1299,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
               {/* Action Protocol Narrative */}
               <div
-                className={`p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed font-medium ${
+                className={`p-3.5 sm:p-4 rounded-xl border text-xs sm:text-sm leading-relaxed font-medium ${
                   isT0
                     ? 'bg-rose-50/70 border-rose-200 text-rose-950'
                     : isT1
@@ -1312,14 +1312,14 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                 {analysisResult.recommendedAction}
               </div>
 
-              {/* Primary & Secondary Action CTAs (Min-H 52-56px on Mobile) */}
+              {/* Primary & Secondary Action CTAs (Min-H 56px on Mobile) */}
               <div className="pt-1 flex flex-col gap-2.5">
                 {isT0 && (
                   <>
                     <button
                       type="button"
                       onClick={() => setShowItem17Alert(true)}
-                      className="w-full min-h-[56px] px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 transition uppercase tracking-wider"
+                      className="w-full min-h-[56px] px-6 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 transition uppercase tracking-wider"
                     >
                       <AlertOctagon className="w-5 h-5 text-white shrink-0" />
                       <span>Buka Protokol Rujukan Darurat T0</span>
@@ -1329,7 +1329,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                       onClick={() => {
                         window.location.hash = '/hospital';
                       }}
-                      className="w-full min-h-[52px] px-5 rounded-2xl bg-white hover:bg-rose-50 active:scale-[0.99] text-rose-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-rose-300 transition shadow-xs"
+                      className="w-full min-h-[56px] px-5 rounded-xl bg-white hover:bg-rose-50 active:scale-[0.99] text-rose-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-rose-300 transition"
                     >
                       <span>Koordinasi Portal Rujukan RS / PSC 119 →</span>
                     </button>
@@ -1343,7 +1343,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                       onClick={() => {
                         window.location.hash = '/hospital';
                       }}
-                      className="w-full min-h-[56px] px-6 rounded-2xl bg-orange-600 hover:bg-orange-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-600/30 transition"
+                      className="w-full min-h-[56px] px-6 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-600/30 transition"
                     >
                       <AlertTriangle className="w-5 h-5 text-white shrink-0" />
                       <span>Rujuk ke Fasilitas Kesehatan (Role 2) →</span>
@@ -1351,7 +1351,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     <button
                       type="button"
                       onClick={onBack}
-                      className="w-full min-h-[52px] px-5 rounded-2xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition shadow-xs"
+                      className="w-full min-h-[56px] px-5 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition"
                     >
                       <span>Selesai & Kembali ke Homescreen</span>
                     </button>
@@ -1362,7 +1362,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   <button
                     type="button"
                     onClick={onBack}
-                    className="w-full min-h-[54px] px-6 rounded-2xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-slate-900/20 transition"
+                    className="w-full min-h-[56px] px-6 rounded-xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
                   >
                     <Check className="w-4 h-4 text-white" />
                     <span>Catat ke Watchlist Posko & Selesai</span>
@@ -1373,7 +1373,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   <button
                     type="button"
                     onClick={onBack}
-                    className="w-full min-h-[54px] px-6 rounded-2xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-slate-900/20 transition"
+                    className="w-full min-h-[56px] px-6 rounded-xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
                   >
                     <Check className="w-4 h-4 text-white" />
                     <span>Selesai & Kembali ke Homescreen</span>
@@ -1394,7 +1394,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div className="p-3 bg-white rounded-2xl border border-slate-200 text-center">
+                <div className="p-3 bg-white rounded-xl border border-slate-200 text-center">
                   <span className="text-[10px] text-slate-500 block font-semibold uppercase">
                     Skor SRQ-20
                   </span>
@@ -1404,7 +1404,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   <span className="text-[10px] text-slate-400 block mt-0.5">Distres Emosional</span>
                 </div>
 
-                <div className="p-3 bg-white rounded-2xl border border-slate-200 text-center">
+                <div className="p-3 bg-white rounded-xl border border-slate-200 text-center">
                   <span className="text-[10px] text-slate-500 block font-semibold uppercase">
                     Faktor Risiko (A)
                   </span>
@@ -1414,7 +1414,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   <span className="text-[10px] text-slate-400 block mt-0.5">Kerentanan Lapangan</span>
                 </div>
 
-                <div className="p-3 bg-white rounded-2xl border border-slate-200 text-center">
+                <div className="p-3 bg-white rounded-xl border border-slate-200 text-center">
                   <span className="text-[10px] text-slate-500 block font-semibold uppercase">
                     Fungsi Harian (B)
                   </span>
@@ -1424,7 +1424,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                   <span className="text-[10px] text-slate-400 block mt-0.5">Hendaya Aktivitas</span>
                 </div>
 
-                <div className="p-3 bg-blue-50/70 rounded-2xl border border-blue-200 text-center">
+                <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200 text-center">
                   <span className="text-[10px] text-blue-800 block font-bold uppercase">
                     Total Integrasi
                   </span>
@@ -1438,7 +1438,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
             {/* DETECTED CLINICAL INDICATORS (PROGRESSIVE DISCLOSURE) */}
             {analysisResult.indicators.length > 0 && (
-              <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-2.5">
+              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800">
                     Indikator Klinis & Kerentanan Terdeteksi ({analysisResult.indicators.length})
@@ -1464,7 +1464,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
             {/* DATA PERSISTENCE & SYNC STATUS BANNER */}
             <div
-              className={`p-3.5 rounded-2xl border flex items-start gap-3 text-xs leading-relaxed ${
+              className={`p-3.5 rounded-xl border flex items-start gap-3 text-xs leading-relaxed ${
                 !isOnline || isSavedOffline
                   ? 'bg-amber-50/70 border-amber-200 text-amber-950'
                   : 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
