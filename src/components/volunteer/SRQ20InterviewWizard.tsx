@@ -900,18 +900,13 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </button>
           </div>
 
-          {/* SECTION 01: FAKTOR RISIKO */}
+          {/* FAKTOR RISIKO & KERENTANAN */}
           <section className="space-y-3">
             <div className="border-b border-slate-100 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-blue-600 text-white font-mono font-bold text-xs flex items-center justify-center">
-                  01
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                  Faktor Risiko
-                </h3>
-              </div>
-              <p className="text-xs text-slate-500 mt-1 pl-8">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                Faktor Risiko & Kerentanan
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
                 Pilih kondisi yang sesuai berdasarkan cerita atau observasi penyintas.
               </p>
             </div>
@@ -966,18 +961,13 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
             </div>
           </section>
 
-          {/* SECTION 02: KEBERFUNGSIAN SEHARI-HARI */}
+          {/* KEBERFUNGSIAN SEHARI-HARI */}
           <section className="space-y-4 pt-2">
             <div className="border-b border-slate-100 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-blue-600 text-white font-mono font-bold text-xs flex items-center justify-center">
-                  02
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                  Keberfungsian Sehari-hari
-                </h3>
-              </div>
-              <p className="text-xs text-slate-500 mt-1 pl-8">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                Keberfungsian Sehari-hari
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
                 Nilai kemampuan penyintas dalam menjalankan aktivitas sehari-hari.
               </p>
             </div>

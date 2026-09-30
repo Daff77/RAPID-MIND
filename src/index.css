@@ -173,20 +173,37 @@
   body {
     background-color: var(--rm-bg-canvas);
     color: var(--rm-text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0;
     padding: 0;
+  }
+
+  /* Taste-Skill Typography Polish */
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 }
 
 /* ----------------------------------------------------------------------------
    TYPOGRAPHY & ACCESSIBILITY UTILITIES
    ---------------------------------------------------------------------------- */
-.tabular-numbers {
+.tabular-numbers,
+.font-mono,
+[data-tabular-nums] {
   font-variant-numeric: tabular-nums;
+}
+
+/* Viewport stability (prevents mobile browser address bar layout jumps) */
+.min-h-screen {
+  min-height: 100dvh;
 }
 
 /* Accessible focus ring system across all interactive controls */
