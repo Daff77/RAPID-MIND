@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   Wind,
   Check,
-  Heart,
+  X,
   AlertTriangle,
   Info,
   Droplets,
@@ -25,11 +25,9 @@ import {
   UserCheck,
   Clock,
   MapPin,
-  Sparkles,
 } from 'lucide-react';
 import { SurvivorProfile } from '../../types/assessment';
 import {
-  PFA_PRINCIPLE,
   PFA_LOOK_ITEMS,
   PFA_VOLUNTEER_LOOK_TIP,
   PFA_LISTEN_GREETING_SCRIPT,
@@ -72,6 +70,16 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
 
   const initialDraft = useRef(loadSavedPfaDraft()).current;
   const [draftRestoredBanner, setDraftRestoredBanner] = useState<boolean>(Boolean(initialDraft));
+
+  // Auto-dismiss popup notification after 5 seconds
+  useEffect(() => {
+    if (draftRestoredBanner) {
+      const timer = setTimeout(() => {
+        setDraftRestoredBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [draftRestoredBanner]);
 
   const [activeStep, setActiveStep] = useState<'look' | 'listen' | 'link'>(
     initialDraft?.activeStep || 'look'
@@ -173,7 +181,10 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       currentPhase: 'followup_srq20',
       pfaRecord: {
         completedAt: `${timeHours}:${timeMins} (Fase Akut Hari 1-3)`,
-        lookItems: selectedLook,
+        lookItems:
+          selectedLook.length > 0
+            ? selectedLook
+            : ['Observasi Visual PFA Selesai Ditelaah'],
         listenNotes: listenNotes.trim(),
         groundingUsed,
         linkItems: selectedLink,
@@ -183,7 +194,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     // Save survivor to persistent registry
     saveSurvivorToRegistry(updatedProfile);
 
-    // Save as assessment record in state
+    // Save as assessment record in state (PFA is acute non-scoring intervention)
     addAssessment({
       id: survivor.id,
       victimId: survivor.id,
@@ -192,17 +203,13 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       location: survivor.posko,
       method: 'CHECKLIST',
       phase: 'acute_pfa',
-      zone: selectedLook.some((i) =>
-        i.includes('Distres') ||
-        i.includes('Cedera') ||
-        i.includes('Mutisme') ||
-        i.includes('Amuk')
-      )
-        ? 'YELLOW'
-        : 'GREEN',
+      zone: 'GREEN',
       triageTier: 'T3',
-      score: selectedLook.length,
-      indicators: [...selectedLook, ...selectedLink],
+      score: 0,
+      indicators: [
+        'Protokol PFA Look-Listen-Link Selesai',
+        ...(selectedLink.length > 0 ? selectedLink : ['Kebutuhan Dasar Terpantau']),
+      ],
       criticalTriggered: false,
       recommendedAction:
         'Intervensi PFA Look-Listen-Link (Fase Akut 72 Jam) selesai dicatat. Pantau pemulihan stres akut dan lanjutkan penapisan berkala SRQ-20 pada Fase Lanjutan (Hari 4-30).',
@@ -292,21 +299,33 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
 
   return (
     <div className="w-full bg-white border border-slate-200 rounded-xl p-4 sm:p-6 space-y-4 sm:space-y-5 animate-in fade-in pb-8">
-      {/* Banner Pemulihan Draf saat Refresh */}
+      {/* Pop-up Notifikasi Pemulihan Draf saat Refresh (Floating, Non-Intrusive) */}
       {draftRestoredBanner && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>
-              <strong>Draf PFA Dipulihkan:</strong> Catatan dan checklist Look-Listen-Link yang Anda isi sebelum refresh berhasil dipulihkan.
-            </span>
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] sm:w-auto bg-slate-900/95 backdrop-blur-md text-white shadow-2xl rounded-2xl p-3.5 sm:px-4 sm:py-3 flex items-center justify-between gap-3 border border-slate-700/80 animate-in fade-in slide-in-from-top-3 duration-300"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-xs leading-snug">
+              <span className="font-bold text-white block">
+                Draf PFA Dipulihkan
+              </span>
+              <span className="text-[11px] text-slate-300">
+                Catatan dan data yang diisi sebelum refresh berhasil dipulihkan.
+              </span>
+            </div>
           </div>
           <button
             type="button"
             onClick={() => setDraftRestoredBanner(false)}
-            className="text-blue-600 hover:text-blue-900 font-bold text-[11px] underline ml-2 shrink-0 cursor-pointer"
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-xs font-semibold shrink-0 transition cursor-pointer"
+            aria-label="Tutup notifikasi"
           >
-            Tutup
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -346,9 +365,6 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
             Pertolongan Pertama Psikologis (PFA)
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Panduan lapangan terstruktur Look-Listen-Link untuk fase akut pascabencana (Hari 1–3)
-          </p>
         </div>
 
         {/* Survivor Profile Snapshot Card */}
@@ -386,12 +402,6 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
           </div>
         </div>
 
-        {/* Core Principle Notice: Clean Field Reference */}
-        <div className="border-l-2 border-slate-300 pl-3 py-1 flex items-center gap-2 text-xs text-slate-700 font-medium">
-          <Heart className="w-4 h-4 text-slate-500 shrink-0" />
-          <span className="leading-snug">{PFA_PRINCIPLE}</span>
-        </div>
-
         {/* ------------------------------------------------------------------ */}
         {/* STEP PROGRESS CONNECTOR BAR: 01 LOOK ─── 02 LISTEN ─── 03 LINK     */}
         {/* ------------------------------------------------------------------ */}
@@ -422,7 +432,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                 )}
                 <span className="text-[10px] font-normal text-slate-500">
-                  {selectedLook.length > 0 ? `${selectedLook.length} diobservasi` : 'Amati'}
+                  Panduan Amati
                 </span>
               </div>
             </button>
@@ -448,7 +458,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                 )}
                 <span className="text-[10px] font-normal text-slate-500">
-                  {listenNotes.trim() || groundingUsed ? 'Tercatat' : 'Dengarkan'}
+                  Dengarkan & Validasi
                 </span>
               </div>
             </button>
@@ -474,7 +484,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                 )}
                 <span className="text-[10px] font-normal text-slate-500">
-                  {selectedLink.length > 0 ? `${selectedLink.length} terhubung` : 'Hubungkan'}
+                  Hubungkan Bantuan
                 </span>
               </div>
             </button>
@@ -489,14 +499,9 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
         <section className="space-y-4 animate-in fade-in" aria-labelledby="heading-look">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                  OBSERVE → IDENTIFY → ACT
-                </span>
-                <h3 id="heading-look" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                  Tahap 1: LOOK (Observasi Lapangan)
-                </h3>
-              </div>
+              <h3 id="heading-look" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                Tahap 1: LOOK (Observasi Lapangan)
+              </h3>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Lakukan pemindaian visual singkat selama 10–15 detik sebelum mendekati penyintas untuk memastikan keamanan dan mendeteksi distres berat.
               </p>
@@ -506,66 +511,71 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             </span>
           </div>
 
-          {/* Checklist Items: Large 52-56px Tap Targets */}
-          <div className="space-y-2.5" role="group" aria-label="Daftar observasi visual PFA">
-            {PFA_LOOK_ITEMS.map((item) => {
-              const isChecked = selectedLook.includes(item.label);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => toggleLook(item.label)}
-                  className={`w-full p-4 rounded-xl border text-left flex items-start justify-between gap-3.5 transition min-h-[58px] cursor-pointer ${
-                    isChecked
-                      ? item.isUrgent
-                        ? 'bg-red-50/90 border-red-300 text-red-950 ring-1 ring-red-300'
-                        : 'bg-blue-50/80 border-blue-300 text-blue-950 ring-1 ring-blue-300'
-                      : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300 hover:bg-slate-50/60'
-                  }`}
-                  aria-pressed={isChecked}
-                >
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="mt-0.5">
-                      {getLookItemIcon(item.id, item.isUrgent)}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs sm:text-sm font-bold block">
-                          {item.label}
-                        </span>
-                        {item.isUrgent && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-800 border border-red-200">
-                            Perlu Atensi Medis
-                          </span>
-                        )}
-                      </div>
-                      {item.subtext && (
-                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                          {item.subtext}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+          {/* Human-Centric & Non-Data-Entry Principle Notice */}
+          <div className="p-3.5 bg-blue-50/90 border border-blue-200 rounded-xl text-xs text-blue-950">
+            <div>
+              <span className="font-bold text-blue-900 block">
+                Buku Saku Observasi Visual (Non-Data-Entry):
+              </span>
+              <p className="text-[11px] text-blue-800 leading-relaxed mt-0.5">
+                <strong>Prinsip Non-Data-Entry & Human-Centric:</strong> Panduan ini adalah buku saku untuk dibaca relawan, bukan formulir untuk dicentang di depan penyintas. Pindai keamanan posko dan tanda distres visual selama 10–15 detik, lalu hadirlah secara utuh untuk mendampingi penyintas.
+              </p>
+            </div>
+          </div>
 
-                  {/* Accessible Checkmark Indicator (Visible without color) */}
+          {/* Kartu Panduan Visual (Non-Clickable Pocket Guide Cards) */}
+          <div className="space-y-2.5" role="list" aria-label="Daftar panduan observasi visual PFA">
+            {PFA_LOOK_ITEMS.map((item) => (
+              <div
+                key={item.id}
+                className={`w-full p-4 rounded-xl border text-left flex items-start justify-between gap-3.5 transition ${
+                  item.isUrgent
+                    ? 'bg-rose-50/40 border-rose-200 text-slate-900 shadow-2xs'
+                    : 'bg-emerald-50/30 border-emerald-200 text-slate-900 shadow-2xs'
+                }`}
+                role="listitem"
+              >
+                <div className="flex items-start gap-3.5 min-w-0">
                   <div
-                    className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition ${
-                      isChecked
-                        ? item.isUrgent
-                          ? 'bg-red-600 border-red-600 text-white shadow-xs'
-                          : 'bg-blue-600 border-blue-600 text-white shadow-xs'
-                        : 'border-slate-300 bg-white'
+                    className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                      item.isUrgent
+                        ? 'bg-rose-100/90 text-rose-700'
+                        : 'bg-emerald-100/90 text-emerald-700'
                     }`}
                   >
-                    {isChecked ? (
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    ) : (
-                      <span className="sr-only">Belum ditandai</span>
+                    {getLookItemIcon(item.id, item.isUrgent)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs sm:text-sm font-bold text-slate-900 block">
+                        {item.label}
+                      </span>
+                      {item.isUrgent ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 text-rose-600" />
+                          Perlu Atensi Medis / Rujuk T0
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          Panduan Area Aman
+                        </span>
+                      )}
+                    </div>
+                    {item.subtext && (
+                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                        {item.subtext}
+                      </p>
+                    )}
+                    {item.isUrgent && (
+                      <p className="text-[11px] text-rose-700 mt-1.5 font-medium flex items-center gap-1">
+                        <span>🚨 Tindakan Lapangan:</span> Jika menemukan tanda ini, arahkan segera ke Tenda Medis Posko atau tekan tombol mengambang <strong>SOS T0</strong> di kanan bawah.
+                      </p>
                     )}
                   </div>
-                </button>
-              );
-            })}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Volunteer Clinical Tip Box */}
@@ -597,14 +607,9 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       {activeStep === 'listen' && (
         <section className="space-y-4 animate-in fade-in" aria-labelledby="heading-listen">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                CONVERSATION & VALIDATION
-              </span>
-              <h3 id="heading-listen" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                Tahap 2: LISTEN (Dengarkan & Validasi)
-              </h3>
-            </div>
+            <h3 id="heading-listen" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+              Tahap 2: LISTEN (Dengarkan & Validasi)
+            </h3>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
               Fokus utama: Menenangkan emosi, mendengarkan aktif tanpa menghakimi, dan memulihkan rasa aman penyintas.
             </p>
@@ -690,10 +695,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
                     <span>Latihan Telah Dilakukan</span>
                   </>
                 ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-                    <span>+ Tandai Latihan Dilakukan</span>
-                  </>
+                  <span>+ Tandai Latihan Dilakukan</span>
                 )}
               </button>
             </div>
@@ -769,14 +771,9 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       {activeStep === 'link' && (
         <section className="space-y-4 animate-in fade-in" aria-labelledby="heading-link">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                NEED → CONNECT → SUPPORT
-              </span>
-              <h3 id="heading-link" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                Tahap 3: LINK (Hubungkan Kebutuhan & Bantuan)
-              </h3>
-            </div>
+            <h3 id="heading-link" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+              Tahap 3: LINK (Hubungkan Kebutuhan & Bantuan)
+            </h3>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
               Bantu penyintas menemukan kembali rasa kendali atas kebutuhan dasarnya, menghubungkan ke posko/keluarga, dan menutup sesi pendampingan.
             </p>
@@ -872,14 +869,14 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-bold text-slate-700">Ringkasan Sesi:</span>
               <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
-                <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
-                  {selectedLook.length} Observasi LOOK
+                <span className="bg-emerald-50 text-emerald-800 px-2.5 py-0.5 rounded border border-emerald-200 font-semibold">
+                  ✓ Panduan LOOK Ditelaah
                 </span>
                 <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
                   {groundingUsed ? '✓ Grounding Dilakukan' : 'Tanpa Grounding'}
                 </span>
                 <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
-                  {selectedLink.length} Kebutuhan LINK
+                  {selectedLink.length > 0 ? `${selectedLink.length} Kebutuhan Difasilitasi` : 'Kebutuhan Terfasilitasi'}
                 </span>
               </div>
             </div>

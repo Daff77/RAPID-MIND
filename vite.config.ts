@@ -9,6 +9,9 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
+    host: true,
+    cors: true,
+    allowedHosts: true,
     watch: {
       ignored: ['**/*.md', '**/.git/**'],
     },

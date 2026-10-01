@@ -6,7 +6,6 @@ import {
   Check,
   CheckCircle2,
   X,
-  Sparkles,
   ArrowRight,
   ArrowLeft,
   ShieldAlert,
@@ -88,6 +87,16 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
   const initialDraft = useRef(loadSavedDraft()).current;
   const [draftRestoredBanner, setDraftRestoredBanner] = useState<boolean>(Boolean(initialDraft));
+
+  // Auto-dismiss popup notification after 5 seconds
+  useEffect(() => {
+    if (draftRestoredBanner) {
+      const timer = setTimeout(() => {
+        setDraftRestoredBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [draftRestoredBanner]);
 
   const [wizardStep, setWizardStep] = useState<'interview' | 'functional' | 'result'>(
     initialDraft?.wizardStep || 'interview'
@@ -545,21 +554,33 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 space-y-5 animate-in fade-in">
-      {/* Banner Pemulihan Draf saat Refresh */}
+      {/* Pop-up Notifikasi Pemulihan Draf saat Refresh (Floating, Non-Intrusive) */}
       {draftRestoredBanner && wizardStep !== 'result' && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>
-              <strong>Draf Dipulihkan:</strong> Data pernyataan dan butir jawaban yang Anda isi sebelum refresh berhasil dipulihkan 100%.
-            </span>
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] sm:w-auto bg-slate-900/95 backdrop-blur-md text-white shadow-2xl rounded-2xl p-3.5 sm:px-4 sm:py-3 flex items-center justify-between gap-3 border border-slate-700/80 animate-in fade-in slide-in-from-top-3 duration-300"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-xs leading-snug">
+              <span className="font-bold text-white block">
+                Draf Skrining Dipulihkan
+              </span>
+              <span className="text-[11px] text-slate-300">
+                Pernyataan dan jawaban sebelum refresh berhasil dipulihkan 100%.
+              </span>
+            </div>
           </div>
           <button
             type="button"
             onClick={() => setDraftRestoredBanner(false)}
-            className="text-blue-600 hover:text-blue-900 font-bold text-[11px] underline ml-2 shrink-0 cursor-pointer"
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-xs font-semibold shrink-0 transition cursor-pointer"
+            aria-label="Tutup notifikasi"
           >
-            Tutup
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -1267,7 +1288,6 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
               onClick={handleCalculateTriage}
               className="w-full sm:flex-1 min-h-[56px] px-6 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-white" />
               <span>Lihat Hasil Analisis Triase →</span>
             </button>
           </div>

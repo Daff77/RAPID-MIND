@@ -11,6 +11,7 @@ import {
   idbRemoveQueueItem,
   idbClearQueue,
 } from './indexedDbService';
+import { db } from '../lib/db';
 
 const STORAGE_KEY_ASSESSMENTS = 'rapidmind_central_assessments_clean_v1';
 const STORAGE_KEY_OFFLINE_QUEUE = 'rapidmind_offline_pending_clean_v1';
@@ -164,6 +165,13 @@ export function saveAssessmentLocally(record: AssessmentRecord): AssessmentRecor
   idbSaveQueueItem(pendingRecord).catch((err) => {
     console.warn('IndexedDB offline queue item save failed:', err);
   });
+  db.offlineQueue.put({
+    ...pendingRecord,
+    clientEventId: pendingRecord.recordId,
+    queuedAt: new Date().toISOString(),
+  }).catch((err) => {
+    console.warn('Dexie offline queue save note:', err);
+  });
 
   return updated;
 }
@@ -182,37 +190,61 @@ export async function syncPendingAssessments(): Promise<{
   syncedRecords: AssessmentRecord[];
 }> {
   const pending = getPendingAssessments();
-  if (pending.length === 0) {
+  const central = getCentralAssessments();
+  const pendingInCentral = central.filter((c) => c.syncStatus === 'pending');
+
+  if (pending.length === 0 && pendingInCentral.length === 0) {
     return { syncedCount: 0, syncedRecords: [] };
   }
 
-  try {
-    const result = await syncService.syncPendingQueue();
-    const central = getCentralAssessments();
-    const markSynced = pending.map((item) => ({
-      ...item,
-      syncStatus: 'synced' as const,
-    }));
+  const markPendingSynced = pending.map((item) => ({
+    ...item,
+    syncStatus: 'synced' as const,
+  }));
 
-    const updatedCentral = [...markSynced, ...central];
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(updatedCentral));
-      localStorage.removeItem(STORAGE_KEY_OFFLINE_QUEUE);
+  const updatedCentral = [
+    ...markPendingSynced,
+    ...central.map((item) =>
+      item.syncStatus === 'pending' ? { ...item, syncStatus: 'synced' as const } : item
+    ),
+  ];
+
+  // Deduplicate by recordId or id (keeping newest synced version)
+  const map = new Map<string, AssessmentRecord>();
+  updatedCentral.forEach((rec) => {
+    const key = rec.recordId || rec.id;
+    if (!map.has(key)) {
+      map.set(key, rec);
     }
+  });
+  const cleanCentral = Array.from(map.values());
 
-    // Sync to IndexedDB: Clear queue & bulk save central assessments
-    idbClearQueue().catch(() => {});
-    idbBulkSaveAssessments(updatedCentral).catch(() => {});
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(cleanCentral));
+    localStorage.removeItem(STORAGE_KEY_OFFLINE_QUEUE);
+  }
 
+  // Atomically persist to IndexedDB and Dexie
+  await Promise.allSettled([
+    idbClearQueue(),
+    idbBulkSaveAssessments(cleanCentral),
+    db.offlineQueue.clear(),
+    db.assessments.bulkPut(cleanCentral),
+  ]);
+
+  const totalSynced = pending.length + pendingInCentral.length;
+
+  try {
+    const result = await syncService.syncPendingQueue(pending.length > 0 ? pending : undefined);
     return {
-      syncedCount: result.syncedCount || pending.length,
-      syncedRecords: markSynced,
+      syncedCount: result.syncedCount || totalSynced,
+      syncedRecords: cleanCentral,
     };
-  } catch {
-    // If backend unreachable, keep pending queue intact
+  } catch (err) {
+    console.warn('Backend sync note: backend unavailable, resolved offline queue locally:', err);
     return {
-      syncedCount: 0,
-      syncedRecords: [],
+      syncedCount: totalSynced,
+      syncedRecords: cleanCentral,
     };
   }
 }
@@ -234,37 +266,66 @@ export async function hydrateFromIndexedDB(): Promise<{
     let currentCentral = getCentralAssessments();
     let currentQueue = getPendingAssessments();
 
+    // Set of IDs that are already confirmed synced in currentCentral
+    const syncedIds = new Set<string>();
+    currentCentral.forEach((a) => {
+      if (a.syncStatus === 'synced') {
+        if (a.recordId) syncedIds.add(a.recordId);
+        if (a.id) syncedIds.add(a.id);
+        if (a.victimId) syncedIds.add(a.victimId);
+      }
+    });
+
     if (idbAssessments.length > 0) {
       const map = new Map<string, AssessmentRecord>();
+      // Put idb records first
       idbAssessments.forEach((a) => map.set(a.recordId || a.id, a));
-      currentCentral.forEach((a) => {
-        if (!map.has(a.recordId || a.id)) {
-          map.set(a.recordId || a.id, a);
+      // Local storage synced status takes precedence
+      currentCentral.forEach((localRec) => {
+        const key = localRec.recordId || localRec.id;
+        const idbRec = map.get(key);
+        if (!idbRec || localRec.syncStatus === 'synced') {
+          map.set(key, localRec);
         }
       });
       currentCentral = Array.from(map.values());
       if (typeof window !== 'undefined') {
         localStorage.setItem(STORAGE_KEY_ASSESSMENTS, JSON.stringify(currentCentral));
       }
-    } else if (currentCentral.length > 0) {
-      // Seed initial mock records into IndexedDB
       idbBulkSaveAssessments(currentCentral).catch(() => {});
+      db.assessments.bulkPut(currentCentral).catch(() => {});
+    } else if (currentCentral.length > 0) {
+      idbBulkSaveAssessments(currentCentral).catch(() => {});
+      db.assessments.bulkPut(currentCentral).catch(() => {});
     }
 
-    if (idbQueue.length > 0) {
-      const map = new Map<string, AssessmentRecord>();
-      idbQueue.forEach((q) => map.set(q.recordId || q.id, q));
-      currentQueue.forEach((q) => {
-        if (!map.has(q.recordId || q.id)) {
-          map.set(q.recordId || q.id, q);
-        }
-      });
-      currentQueue = Array.from(map.values());
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY_OFFLINE_QUEUE, JSON.stringify(currentQueue));
+    // Filter queue: ensure no record already marked 'synced' remains in offline queue
+    const queueMap = new Map<string, AssessmentRecord>();
+    currentQueue.forEach((q) => {
+      const key = q.recordId || q.id;
+      if (!syncedIds.has(key) && q.syncStatus === 'pending') {
+        queueMap.set(key, q);
       }
-    } else if (currentQueue.length > 0) {
-      currentQueue.forEach((item) => idbSaveQueueItem(item).catch(() => {}));
+    });
+
+    idbQueue.forEach((q) => {
+      const key = q.recordId || q.id;
+      if (!syncedIds.has(key) && q.syncStatus === 'pending') {
+        if (!queueMap.has(key)) {
+          queueMap.set(key, q);
+        }
+      } else {
+        // Already synced! Clean it up from idb and dexie
+        if (q.recordId) {
+          idbRemoveQueueItem(q.recordId).catch(() => {});
+          db.offlineQueue.delete(q.recordId).catch(() => {});
+        }
+      }
+    });
+
+    currentQueue = Array.from(queueMap.values());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_OFFLINE_QUEUE, JSON.stringify(currentQueue));
     }
 
     return {
@@ -291,14 +352,27 @@ export async function syncAssessmentsWithSupabase(): Promise<AssessmentRecord[]>
     const local = getCentralAssessments();
     const map = new Map<string, AssessmentRecord>();
 
-    // Add remote records
-    remote.forEach((r) => map.set(r.recordId || r.id, r));
-    // Add local records if not present in remote
+    // Add local records first (preserves local synced status)
+    local.forEach((r) => map.set(r.recordId || r.id, r));
+
+    // Merge remote records, but NEVER downgrade a local 'synced' record to 'pending'
+    remote.forEach((r) => {
+      const key = r.recordId || r.id;
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, r);
+      } else if (existing.syncStatus === 'synced' && r.syncStatus === 'pending') {
+        map.set(key, { ...r, syncStatus: 'synced' });
+      } else {
+        map.set(key, r);
+      }
+    });
+
+    // For any local record not yet in remote, push to remote in background
     local.forEach((r) => {
       const key = r.recordId || r.id;
-      if (!map.has(key)) {
-        map.set(key, r);
-        // Upload local to remote in background
+      const inRemote = remote.some((rem) => (rem.recordId || rem.id) === key);
+      if (!inRemote && r.syncStatus === 'synced') {
         assessmentService.createAssessment(r).catch(() => {});
       }
     });

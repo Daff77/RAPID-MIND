@@ -23,19 +23,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onSelectSection,
 }) => {
   const { currentUser, logout } = useAuth();
-  const { offlineQueue, triggerSync, isSyncing, isUsingSupabase, isIndexedDBReady } = useAssessment();
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  const { offlineQueue, triggerSync, isSyncing, isUsingSupabase, isIndexedDBReady, isOnline } = useAssessment();
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">

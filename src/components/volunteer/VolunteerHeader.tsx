@@ -27,12 +27,15 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
     isOnline,
     toggleOnlineStatus,
     offlineQueue,
+    allAssessments,
     triggerSync,
     isSyncing,
     syncSuccessBanner,
     isUsingSupabase,
     isIndexedDBReady,
   } = useAssessment();
+
+  const pendingCount = allAssessments.filter((a) => a.syncStatus === 'pending').length;
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-2xs">
@@ -163,13 +166,14 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
         </div>
       )}
 
-      {/* Pending Sync Strip (When Online and items exist in queue) */}
-      {isOnline && offlineQueue.length > 0 && (
+      {/* Pending Sync Strip (When Online and items exist in queue or isSyncing) */}
+      {isOnline && (pendingCount > 0 || isSyncing) && (
         <div className="bg-blue-50 border-t border-blue-200 px-3.5 sm:px-4 py-1.5 text-xs text-blue-950 flex items-center justify-between max-w-2xl mx-auto">
           <div className="flex items-center gap-1.5">
             <RefreshCw className={`w-3.5 h-3.5 text-blue-700 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
             <span>
-              <strong>KONEKSI AKTIF:</strong> {offlineQueue.length} data skrining siap disinkronkan.
+              <strong>KONEKSI AKTIF:</strong>{' '}
+              {isSyncing ? 'Sedang menyinkronkan otomatis ke server pusat...' : `${pendingCount} data antrean (auto-sync aktif).`}
             </span>
           </div>
           <button
@@ -178,7 +182,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
             disabled={isSyncing}
             className="px-2.5 py-1 rounded-md bg-[var(--rm-action-primary)] hover:bg-[var(--rm-action-hover)] text-white font-bold text-[11px] transition shadow-2xs shrink-0 cursor-pointer disabled:opacity-50"
           >
-            {isSyncing ? 'Sinkronisasi...' : 'Sinkronkan Sekarang'}
+            {isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Sekarang'}
           </button>
         </div>
       )}

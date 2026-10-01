@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   AssessmentRecord,
   KPIStats,
@@ -45,12 +45,44 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [syncSuccessBanner, setSyncSuccessBanner] = useState<string | null>(null);
   const isUsingSupabase = true; // Laravel Cloud API is enabled
 
+  const isSyncingRef = useRef(false);
+  isSyncingRef.current = isSyncing;
+
+  const triggerSync = useCallback(async (): Promise<number> => {
+    if (isSyncingRef.current) return 0;
+    const pending = getPendingAssessments();
+    const central = getCentralAssessments();
+    const pendingInCentral = central.some((a) => a.syncStatus === 'pending');
+    if (pending.length === 0 && offlineQueue.length === 0 && !pendingInCentral) return 0;
+
+    setIsSyncing(true);
+    isSyncingRef.current = true;
+    try {
+      const result = await syncPendingAssessments();
+      setCentralAssessments(getCentralAssessments());
+      setOfflineQueue([]);
+      if (result.syncedCount > 0) {
+        setSyncSuccessBanner(`✓ ${result.syncedCount} rekaman otomatis disinkronisasi ke server pusat.`);
+        setTimeout(() => setSyncSuccessBanner(null), 5000);
+      }
+      return result.syncedCount;
+    } finally {
+      setIsSyncing(false);
+      isSyncingRef.current = false;
+    }
+  }, [offlineQueue]);
+
+  const triggerSyncRef = useRef(triggerSync);
+  triggerSyncRef.current = triggerSync;
+
   // Initialize from storage on mount & trigger cloud sync
   useEffect(() => {
     setCentralAssessments(getCentralAssessments());
     setOfflineQueue(getPendingAssessments());
-    const online = getOnlineStatus();
-    setIsOnline(online);
+    const onlineSetting = getOnlineStatus();
+    const nativeOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    const initialOnline = onlineSetting && nativeOnline;
+    setIsOnline(initialOnline);
 
     // Hydrate from IndexedDB on startup for high-capacity offline persistence
     if (isIndexedDBSupported()) {
@@ -66,6 +98,9 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           if (idbRes) {
             setCentralAssessments(idbRes.assessments);
             setOfflineQueue(idbRes.pending);
+            if (initialOnline && idbRes.pending.length > 0) {
+              triggerSyncRef.current();
+            }
           }
         })
         .catch((err) => {
@@ -73,7 +108,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         });
     }
 
-    if (online) {
+    if (initialOnline) {
       Promise.all([
         syncSurvivorsWithSupabase(),
         syncAssessmentsWithSupabase(),
@@ -81,19 +116,59 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .then(() => {
           setCentralAssessments(getCentralAssessments());
           setOfflineQueue(getPendingAssessments());
+          const pending = getPendingAssessments();
+          if (pending.length > 0) {
+            triggerSyncRef.current();
+          }
         })
         .catch((err) => {
           console.warn('Initial cloud sync skipped:', err);
         });
     }
 
-    // Auto-sync listener when browser reconnects
-    const unsubscribeAutoSync = syncService.initAutoSync((result) => {
-      setCentralAssessments(getCentralAssessments());
-      setOfflineQueue([]);
-      setSyncSuccessBanner(`✓ ${result.syncedCount} rekaman otomatis disinkronisasi ke server pusat.`);
-      setTimeout(() => setSyncSuccessBanner(null), 5000);
-    });
+    // Auto-sync listener when browser reconnects to internet
+    const handleOnline = () => {
+      setIsOnline(true);
+      persistOnlineStatus(true);
+      // Auto-sync immediately when online connection returns!
+      setTimeout(() => {
+        const pending = getPendingAssessments();
+        if (pending.length > 0) {
+          triggerSyncRef.current();
+        }
+      }, 300);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      persistOnlineStatus(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Auto-sync when user returns to the tab and is online
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        setIsOnline(true);
+        persistOnlineStatus(true);
+        const pending = getPendingAssessments();
+        if (pending.length > 0) {
+          triggerSyncRef.current();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Periodic auto-sync heartbeat (every 20s if online with pending items)
+    const syncHeartbeat = setInterval(() => {
+      if (navigator.onLine && !isSyncingRef.current) {
+        const pending = getPendingAssessments();
+        if (pending.length > 0) {
+          triggerSyncRef.current();
+        }
+      }
+    }, 20000);
 
     // Realtime Reverb WebSockets listener for emergency triage events
     const unsubscribeRealtime = emergencyService.listenForRealtimeAlerts(
@@ -140,7 +215,10 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     );
 
     return () => {
-      unsubscribeAutoSync();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(syncHeartbeat);
       unsubscribeRealtime();
     };
   }, []);
@@ -149,6 +227,15 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsOnline((prev) => {
       const next = explicitStatus !== undefined ? explicitStatus : !prev;
       persistOnlineStatus(next);
+      if (next) {
+        // As soon as user enables online, trigger auto-sync
+        setTimeout(() => {
+          const pending = getPendingAssessments();
+          if (pending.length > 0) {
+            triggerSyncRef.current();
+          }
+        }, 150);
+      }
       return next;
     });
   }, []);
@@ -171,24 +258,30 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [isOnline]);
 
-  const triggerSync = useCallback(async (): Promise<number> => {
-    if (offlineQueue.length === 0) return 0;
-    setIsSyncing(true);
-    try {
-      const result = await syncPendingAssessments();
-      setCentralAssessments(getCentralAssessments());
-      setOfflineQueue([]);
-      setSyncSuccessBanner(`✓ ${result.syncedCount} asesmen berhasil disinkronisasi ke server pusat.`);
-      setTimeout(() => setSyncSuccessBanner(null), 5000);
-      return result.syncedCount;
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [offlineQueue]);
-
-  // Combined records for the volunteer view (pending items at top)
+  // Combined records for the volunteer view (pending items at top, deduplicated, synced takes precedence)
   const allAssessments = useMemo(() => {
-    return [...offlineQueue, ...centralAssessments];
+    const map = new Map<string, AssessmentRecord>();
+    // Add all central assessments first
+    centralAssessments.forEach((c) => {
+      const key = c.recordId || c.id;
+      map.set(key, c);
+    });
+    // Add offlineQueue items only if not already marked synced in central
+    offlineQueue.forEach((q) => {
+      const key = q.recordId || q.id;
+      const existing = map.get(key);
+      if (!existing || existing.syncStatus !== 'synced') {
+        map.set(key, q);
+      }
+    });
+
+    const records = Array.from(map.values());
+    records.sort((a, b) => {
+      if (a.syncStatus === 'pending' && b.syncStatus !== 'pending') return -1;
+      if (a.syncStatus !== 'pending' && b.syncStatus === 'pending') return 1;
+      return 0;
+    });
+    return records;
   }, [offlineQueue, centralAssessments]);
 
   // Derived KPI Stats from central assessments calculated per unique survivor's latest status

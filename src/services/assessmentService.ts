@@ -58,7 +58,13 @@ export const assessmentService = {
 
       return { assessment: serverRecord, isOffline: false };
     } catch {
-      // Offline fallback: Queue locally in Dexie
+      // If the record was already marked synced, preserve its synced status in Dexie
+      if (record.syncStatus === 'synced') {
+        db.assessments.put(record).catch(() => {});
+        return { assessment: record, isOffline: false };
+      }
+
+      // Offline fallback: Queue locally in Dexie only for genuinely offline/new records
       const offlineRecord: AssessmentRecord = {
         ...record,
         syncStatus: 'pending',

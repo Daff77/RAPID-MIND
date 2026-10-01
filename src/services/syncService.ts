@@ -13,8 +13,8 @@ export const syncService = {
   /**
    * Sync all pending offline records to Laravel central database.
    */
-  async syncPendingQueue(): Promise<SyncResult> {
-    const queue = await db.offlineQueue.toArray();
+  async syncPendingQueue(records?: AssessmentRecord[]): Promise<SyncResult> {
+    let queue: any[] = records && records.length > 0 ? (records as any[]) : await db.offlineQueue.toArray();
     if (queue.length === 0) {
       return { syncedCount: 0, skippedCount: 0, syncedRecords: [], errors: [] };
     }
