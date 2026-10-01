@@ -38,7 +38,7 @@ export interface AuthContextType {
   currentUser: User | null;
   isAuthenticated: boolean;
   allUsers: User[];
-  login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string; user?: User; role?: UserRole }>;
   quickLogin: (role: UserRole) => void;
   logout: () => void;
   addUser: (input: NewUserInput) => { success: boolean; error?: string; user?: User };

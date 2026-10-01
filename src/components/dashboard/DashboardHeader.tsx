@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Smartphone,
   RefreshCw,
   LogOut,
-  Building2,
   Users,
   Cloud,
   Database,
@@ -18,15 +16,11 @@ import { useAuth } from '../../context/AuthContext';
 interface DashboardHeaderProps {
   activeSection: string;
   onSelectSection: (section: string) => void;
-  onGoToVolunteer: () => void;
-  onGoToHospital?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   activeSection,
   onSelectSection,
-  onGoToVolunteer,
-  onGoToHospital,
 }) => {
   const { currentUser, logout } = useAuth();
   const { offlineQueue, triggerSync, isSyncing, isUsingSupabase, isIndexedDBReady } = useAssessment();
@@ -130,29 +124,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <span>Sync ({offlineQueue.length})</span>
             </button>
           )}
-
-          {/* Role Navigation Switchers */}
-          {onGoToHospital && (
-            <button
-              type="button"
-              onClick={onGoToHospital}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition border border-slate-200"
-              title="Buka Portal Tenaga Kesehatan / Faskes / PSC 119"
-            >
-              <Building2 className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden lg:inline">Portal RS / Faskes</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={onGoToVolunteer}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition border border-slate-200"
-            title="Buka Antarmuka Relawan Lapangan"
-          >
-            <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-            <span className="hidden lg:inline">App Relawan</span>
-          </button>
 
           {/* Admin Identity & Logout */}
           {currentUser && (

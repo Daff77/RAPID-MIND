@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Smartphone,
-  Shield,
   LogOut,
   Bed,
   Ambulance,
@@ -32,15 +30,9 @@ import { useAssessment } from '../context/AssessmentContext';
 import { AssessmentRecord, TriageTier, T0EmergencyStatus } from '../types/assessment';
 import { emergencyService } from '../services/emergencyService';
 
-interface HospitalPageProps {
-  onGoToVolunteer?: () => void;
-  onGoToDashboard?: () => void;
-}
+interface HospitalPageProps {}
 
-export const HospitalPage: React.FC<HospitalPageProps> = ({
-  onGoToVolunteer,
-  onGoToDashboard,
-}) => {
+export const HospitalPage: React.FC<HospitalPageProps> = () => {
   const { currentUser, logout } = useAuth();
   const { centralAssessments, isOnline } = useAssessment();
 
@@ -127,17 +119,30 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
     return undefined;
   };
 
-  const filtered = faskesCandidates.filter((r) => {
-    const tier = getRecordTier(r);
-    const matchesSearch =
-      r.id.toLowerCase().includes(search.toLowerCase()) ||
-      r.location.toLowerCase().includes(search.toLowerCase()) ||
-      (r.victimName && r.victimName.toLowerCase().includes(search.toLowerCase())) ||
-      (r.transcript && r.transcript.toLowerCase().includes(search.toLowerCase()));
+  const tierOrder: Record<TriageTier, number> = {
+    T0: 0,
+    T1: 1,
+    T2: 2,
+    T3: 3,
+  };
 
-    const matchesTier = filterTier === 'ALL' || tier === filterTier;
-    return matchesSearch && matchesTier;
-  });
+  const filtered = faskesCandidates
+    .filter((r) => {
+      const tier = getRecordTier(r);
+      const matchesSearch =
+        r.id.toLowerCase().includes(search.toLowerCase()) ||
+        r.location.toLowerCase().includes(search.toLowerCase()) ||
+        (r.victimName && r.victimName.toLowerCase().includes(search.toLowerCase())) ||
+        (r.transcript && r.transcript.toLowerCase().includes(search.toLowerCase()));
+
+      const matchesTier = filterTier === 'ALL' || tier === filterTier;
+      return matchesSearch && matchesTier;
+    })
+    .sort((a, b) => {
+      const tierA = tierOrder[getRecordTier(a)] ?? 99;
+      const tierB = tierOrder[getRecordTier(b)] ?? 99;
+      return tierA - tierB;
+    });
 
   const t0PendingList = centralAssessments.filter((r) => {
     const tier = getRecordTier(r);
@@ -371,31 +376,6 @@ export const HospitalPage: React.FC<HospitalPageProps> = ({
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="text-[11px]">Antrean T0 Terkendali</span>
               </div>
-            )}
-
-            {/* Quick Portal Switchers */}
-            {onGoToVolunteer && (
-              <button
-                type="button"
-                onClick={onGoToVolunteer}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
-                title="Buka Aplikasi Relawan"
-              >
-                <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-                <span>Relawan</span>
-              </button>
-            )}
-
-            {onGoToDashboard && (
-              <button
-                type="button"
-                onClick={onGoToDashboard}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
-                title="Buka Dashboard BPBD"
-              >
-                <Shield className="w-3.5 h-3.5 text-indigo-600" />
-                <span>BPBD</span>
-              </button>
             )}
 
             {/* User & Logout */}

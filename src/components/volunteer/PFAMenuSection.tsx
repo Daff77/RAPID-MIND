@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Eye,
   Ear,
@@ -57,19 +57,99 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
 }) => {
   const { addAssessment } = useAssessment();
 
-  const [activeStep, setActiveStep] = useState<'look' | 'listen' | 'link'>('look');
+  const PFA_DRAFT_KEY = `rapidmind_pfa_draft_${survivor.id}`;
+
+  const loadSavedPfaDraft = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = localStorage.getItem(PFA_DRAFT_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse PFA draft', e);
+    }
+    return null;
+  };
+
+  const initialDraft = useRef(loadSavedPfaDraft()).current;
+  const [draftRestoredBanner, setDraftRestoredBanner] = useState<boolean>(Boolean(initialDraft));
+
+  const [activeStep, setActiveStep] = useState<'look' | 'listen' | 'link'>(
+    initialDraft?.activeStep || 'look'
+  );
   const [selectedLook, setSelectedLook] = useState<string[]>(
-    survivor.pfaRecord?.lookItems || []
+    initialDraft?.selectedLook || survivor.pfaRecord?.lookItems || []
   );
   const [listenNotes, setListenNotes] = useState<string>(
-    survivor.pfaRecord?.listenNotes || ''
+    initialDraft?.listenNotes !== undefined
+      ? initialDraft.listenNotes
+      : survivor.pfaRecord?.listenNotes || ''
   );
   const [groundingUsed, setGroundingUsed] = useState<boolean>(
-    survivor.pfaRecord?.groundingUsed || false
+    initialDraft?.groundingUsed !== undefined
+      ? initialDraft.groundingUsed
+      : survivor.pfaRecord?.groundingUsed || false
   );
   const [selectedLink, setSelectedLink] = useState<string[]>(
-    survivor.pfaRecord?.linkItems || []
+    initialDraft?.selectedLink || survivor.pfaRecord?.linkItems || []
   );
+
+  // Auto-save PFA draft on every change so refresh never loses data
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasData =
+      selectedLook.length > 0 ||
+      listenNotes.trim().length > 0 ||
+      selectedLink.length > 0 ||
+      groundingUsed;
+
+    if (hasData) {
+      localStorage.setItem(
+        PFA_DRAFT_KEY,
+        JSON.stringify({
+          activeStep,
+          selectedLook,
+          listenNotes,
+          groundingUsed,
+          selectedLink,
+          updatedAt: Date.now(),
+        })
+      );
+    }
+  }, [PFA_DRAFT_KEY, activeStep, selectedLook, listenNotes, groundingUsed, selectedLink]);
+
+  // Browser refresh protection
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const hasUnsavedData =
+        selectedLook.length > 0 ||
+        listenNotes.trim().length > 0 ||
+        selectedLink.length > 0 ||
+        groundingUsed;
+
+      if (typeof window !== 'undefined' && hasUnsavedData) {
+        try {
+          localStorage.setItem(
+            PFA_DRAFT_KEY,
+            JSON.stringify({
+              activeStep,
+              selectedLook,
+              listenNotes,
+              groundingUsed,
+              selectedLink,
+              updatedAt: Date.now(),
+            })
+          );
+        } catch {}
+      }
+
+      if (hasUnsavedData) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [PFA_DRAFT_KEY, activeStep, selectedLook, listenNotes, selectedLink, groundingUsed]);
 
   const toggleLook = (label: string) => {
     setSelectedLook((prev) =>
@@ -134,6 +214,8 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       victimGender: survivor.gender,
       victimCategory: survivor.category,
     });
+
+    localStorage.removeItem(PFA_DRAFT_KEY);
 
     if (andProceedToSRQ && onProceedToSRQ20) {
       onProceedToSRQ20(updatedProfile);
@@ -210,6 +292,25 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
 
   return (
     <div className="w-full bg-white border border-slate-200 rounded-xl p-4 sm:p-6 space-y-4 sm:space-y-5 animate-in fade-in pb-8">
+      {/* Banner Pemulihan Draf saat Refresh */}
+      {draftRestoredBanner && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              <strong>Draf PFA Dipulihkan:</strong> Catatan dan checklist Look-Listen-Link yang Anda isi sebelum refresh berhasil dipulihkan.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDraftRestoredBanner(false)}
+            className="text-blue-600 hover:text-blue-900 font-bold text-[11px] underline ml-2 shrink-0 cursor-pointer"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
+
       {/* ------------------------------------------------------------------ */}
       {/* 1. PFA HEADER & SURVIVOR IDENTIFICATION */}
       {/* ------------------------------------------------------------------ */}

@@ -239,8 +239,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
 
                     {/* Indicator 1 */}
                     <label
-                      onClick={() => setIndicator1(!indicator1)}
-                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer select-none transition min-h-[56px] ${
                         indicator1
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -249,8 +248,8 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                       <input
                         type="checkbox"
                         checked={indicator1}
-                        onChange={() => {}}
-                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 pointer-events-none"
+                        onChange={(e) => setIndicator1(e.target.checked)}
+                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 cursor-pointer"
                       />
                       <div>
                         <span className="block text-xs font-bold text-red-900">
@@ -264,8 +263,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
 
                     {/* Indicator 2 */}
                     <label
-                      onClick={() => setIndicator2(!indicator2)}
-                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer select-none transition min-h-[56px] ${
                         indicator2
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -274,8 +272,8 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                       <input
                         type="checkbox"
                         checked={indicator2}
-                        onChange={() => {}}
-                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 pointer-events-none"
+                        onChange={(e) => setIndicator2(e.target.checked)}
+                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 cursor-pointer"
                       />
                       <div>
                         <span className="block text-xs font-bold text-red-900">
@@ -289,8 +287,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
 
                     {/* Indicator 3 */}
                     <label
-                      onClick={() => setIndicator3(!indicator3)}
-                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer select-none transition min-h-[56px] ${
                         indicator3
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -299,8 +296,8 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                       <input
                         type="checkbox"
                         checked={indicator3}
-                        onChange={() => {}}
-                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 pointer-events-none"
+                        onChange={(e) => setIndicator3(e.target.checked)}
+                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 cursor-pointer"
                       />
                       <div>
                         <span className="block text-xs font-bold text-red-900">
@@ -314,8 +311,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
 
                     {/* Indicator 4 */}
                     <label
-                      onClick={() => setIndicator4(!indicator4)}
-                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer transition min-h-[56px] ${
+                      className={`p-3 rounded-xl border text-left flex items-start gap-3 cursor-pointer select-none transition min-h-[56px] ${
                         indicator4
                           ? 'bg-red-50 border-red-500 text-red-950 font-bold'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800'
@@ -324,8 +320,8 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                       <input
                         type="checkbox"
                         checked={indicator4}
-                        onChange={() => {}}
-                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 pointer-events-none"
+                        onChange={(e) => setIndicator4(e.target.checked)}
+                        className="mt-0.5 accent-red-600 w-4 h-4 rounded shrink-0 cursor-pointer"
                       />
                       <div>
                         <span className="block text-xs font-bold text-red-900">

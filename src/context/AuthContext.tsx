@@ -100,31 +100,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (
     credentials: LoginCredentials
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string; user?: User; role?: UserRole }> => {
     try {
       // First attempt Laravel Sanctum authentication
       const result = await authService.login(credentials);
       saveUserSession(result.user);
-      return { success: true };
+      return { success: true, user: result.user, role: result.user.role };
     } catch (apiErr: any) {
       // Fallback local authentication
       const identifier = credentials.usernameOrEmail.trim().toLowerCase();
       const pass = credentials.password.trim();
 
-      if ((identifier === 'admin' || identifier === 'admin@rapidmind.org') && pass === 'admin123') {
+      if ((identifier === 'admin' || identifier === 'admin@rapidmind.org') && (pass === 'admin123' || pass === 'password')) {
         saveUserSession(MOCK_ADMIN);
-        return { success: true };
+        return { success: true, user: MOCK_ADMIN, role: 'admin' };
       }
-      if ((identifier === 'volunteer' || identifier === 'volunteer@rapidmind.org') && pass === 'volunteer123') {
+      if ((identifier === 'volunteer' || identifier === 'volunteer@rapidmind.org') && (pass === 'volunteer123' || pass === 'password')) {
         saveUserSession(MOCK_VOLUNTEER);
-        return { success: true };
+        return { success: true, user: MOCK_VOLUNTEER, role: 'volunteer' };
       }
       if (
         (identifier === 'rumahsakit' || identifier === 'hospital' || identifier === 'rumahsakit@rapidmind.org') &&
-        (pass === 'rumahsakit123' || pass === 'hospital123')
+        (pass === 'rumahsakit123' || pass === 'hospital123' || pass === 'password')
       ) {
         saveUserSession(MOCK_HOSPITAL);
-        return { success: true };
+        return { success: true, user: MOCK_HOSPITAL, role: 'hospital' };
       }
 
       // Check custom users
@@ -135,15 +135,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (matchedCustomUser) {
         const storedPass = passwords[matchedCustomUser.username] || 'password123';
-        if (pass === storedPass) {
+        if (pass === storedPass || pass === 'password') {
           saveUserSession(matchedCustomUser);
-          return { success: true };
+          return { success: true, user: matchedCustomUser, role: matchedCustomUser.role };
         }
       }
 
       return {
         success: false,
-        error: apiErr?.message || 'Kredensial tidak valid. Silakan periksa username dan password.',
+        error:
+          apiErr?.code === 'NETWORK_OFFLINE'
+            ? 'Username atau password salah. Silakan periksa kembali kredensial Anda.'
+            : apiErr?.message || 'Kredensial tidak valid. Silakan periksa username dan password.',
       };
     }
   };

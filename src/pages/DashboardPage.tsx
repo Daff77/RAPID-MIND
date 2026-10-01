@@ -10,15 +10,9 @@ import { LongitudinalDataSection } from '../components/dashboard/LongitudinalDat
 import { useAssessment } from '../context/AssessmentContext';
 import { Download, Filter, FileText } from 'lucide-react';
 
-interface DashboardPageProps {
-  onGoToVolunteer: () => void;
-  onGoToHospital?: () => void;
-}
+interface DashboardPageProps {}
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({
-  onGoToVolunteer,
-  onGoToHospital,
-}) => {
+export const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [activeSection, setActiveSection] = useState('overview');
   const [activePhaseFilter, setActivePhaseFilter] = useState<'all' | 'acute' | 'longitudinal'>('all');
   const { centralAssessments } = useAssessment();
@@ -32,8 +26,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <DashboardHeader
         activeSection={activeSection}
         onSelectSection={(sec) => setActiveSection(sec)}
-        onGoToVolunteer={onGoToVolunteer}
-        onGoToHospital={onGoToHospital}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">

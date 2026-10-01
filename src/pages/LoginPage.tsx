@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Smartphone,
   Shield,
-  Building2,
   Lock,
   User as UserIcon,
   ArrowRight,
@@ -20,21 +18,14 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({
   onLoginSuccess,
-  defaultRole = 'volunteer',
 }) => {
   const { login } = useAuth();
 
-  const [selectedRole, setSelectedRole] = useState<UserRole>(defaultRole);
   const [usernameOrEmail, setUsernameOrEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handleRoleChange = (role: UserRole) => {
-    setSelectedRole(role);
-    setErrorMessage(null);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,13 +40,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const res = await login({
       usernameOrEmail,
       password,
-      targetRole: selectedRole,
     });
 
     setIsLoading(false);
 
-    if (res.success) {
-      onLoginSuccess(selectedRole);
+    if (res.success && res.role) {
+      onLoginSuccess(res.role);
     } else {
       setErrorMessage(res.error || 'Username atau password tidak valid.');
     }
@@ -81,68 +71,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         {/* Main Card — Flat Surface, Subtle Border, Controlled Elevation */}
         <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-          {/* 3-Role Switch: Volunteer | Rumah Sakit | Admin */}
-          <div className="space-y-1.5">
-            <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider">
-              Pilih Akses Peran:
-            </span>
-            <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/70" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={selectedRole === 'volunteer'}
-                onClick={() => handleRoleChange('volunteer')}
-                className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[40px] ${
-                  selectedRole === 'volunteer'
-                    ? 'bg-white text-blue-700 shadow-xs border border-slate-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Volunteer</span>
-              </button>
-
-              <button
-                type="button"
-                role="tab"
-                aria-selected={selectedRole === 'hospital'}
-                onClick={() => handleRoleChange('hospital')}
-                className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[40px] ${
-                  selectedRole === 'hospital'
-                    ? 'bg-white text-emerald-700 shadow-xs border border-slate-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>RS</span>
-              </button>
-
-              <button
-                type="button"
-                role="tab"
-                aria-selected={selectedRole === 'admin'}
-                onClick={() => handleRoleChange('admin')}
-                className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[40px] ${
-                  selectedRole === 'admin'
-                    ? 'bg-white text-blue-700 shadow-xs border border-slate-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Admin</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Role Description Badge */}
-          <div className="text-[11px] text-slate-600 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80 flex items-center justify-between">
-            <span>
-              {selectedRole === 'volunteer' && 'Akses: Asesmen triase lapangan & penapisan PFA/SRQ'}
-              {selectedRole === 'hospital' && 'Akses: Penerimaan pasien rujukan RS & koordinasi medis'}
-              {selectedRole === 'admin' && 'Akses: Pusat komando, analitik data, & audit sistem'}
-            </span>
-          </div>
-
           {/* Error Message */}
           {errorMessage && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-center gap-2">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VolunteerHeader } from '../components/volunteer/VolunteerHeader';
 import { AutoLookupHomeScreen } from '../components/volunteer/AutoLookupHomeScreen';
 import { PFAMenuSection } from '../components/volunteer/PFAMenuSection';
@@ -6,16 +6,77 @@ import { SRQ20InterviewWizard } from '../components/volunteer/SRQ20InterviewWiza
 import { VolunteerHistory } from '../components/volunteer/VolunteerHistory';
 import { FloatingRedFlagButton } from '../components/volunteer/FloatingRedFlagButton';
 import { SurvivorProfile } from '../types/assessment';
+import { getStoredSurvivors } from '../data/seedSurvivors';
 
-interface VolunteerPageProps {
-  onGoToDashboard: () => void;
-}
+interface VolunteerPageProps {}
 
 type VolunteerActiveView = 'home' | 'pfa' | 'srq20' | 'history';
 
-export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard }) => {
-  const [activeView, setActiveView] = useState<VolunteerActiveView>('home');
-  const [selectedSurvivor, setSelectedSurvivor] = useState<SurvivorProfile | null>(null);
+const STORAGE_KEY_FLOW = 'rapidmind_volunteer_active_flow';
+
+export const VolunteerPage: React.FC<VolunteerPageProps> = () => {
+  const [activeView, setActiveView] = useState<VolunteerActiveView>(() => {
+    if (typeof window === 'undefined') return 'home';
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_FLOW);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.activeView && parsed.selectedSurvivor) {
+          return parsed.activeView;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse active flow', e);
+    }
+    return 'home';
+  });
+
+  const [selectedSurvivor, setSelectedSurvivor] = useState<SurvivorProfile | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_FLOW);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.selectedSurvivor) {
+          const fresh = getStoredSurvivors().find((s) => s.id === parsed.selectedSurvivor.id);
+          return fresh || parsed.selectedSurvivor;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse active survivor', e);
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (activeView === 'home' || !selectedSurvivor) {
+      localStorage.removeItem(STORAGE_KEY_FLOW);
+    } else {
+      localStorage.setItem(
+        STORAGE_KEY_FLOW,
+        JSON.stringify({ activeView, selectedSurvivor })
+      );
+    }
+  }, [activeView, selectedSurvivor]);
+
+  // Synchronously ensure flow state is saved on refresh/unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (typeof window === 'undefined') return;
+      if (activeView !== 'home' && selectedSurvivor) {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY_FLOW,
+            JSON.stringify({ activeView, selectedSurvivor })
+          );
+        } catch {}
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [activeView, selectedSurvivor]);
 
   const handleSelectSurvivorFromLookup = (survivor: SurvivorProfile, targetFlow: 'pfa' | 'srq20') => {
     setSelectedSurvivor(survivor);
@@ -32,7 +93,6 @@ export const VolunteerPage: React.FC<VolunteerPageProps> = ({ onGoToDashboard })
       <VolunteerHeader
         currentTab={activeView === 'history' ? 'history' : 'home'}
         onSelectTab={(tab) => setActiveView(tab)}
-        onGoToDashboard={onGoToDashboard}
       />
 
       {/* Main Container — Mobile-First (16px edge padding, safe bottom clearance for dock) */}

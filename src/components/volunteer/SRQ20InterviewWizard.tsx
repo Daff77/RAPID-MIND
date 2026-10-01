@@ -71,34 +71,76 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 }) => {
   const { addAssessment, isOnline } = useAssessment();
 
-  const [wizardStep, setWizardStep] = useState<'interview' | 'functional' | 'result'>('interview');
-  const [interviewMode, setInterviewMode] = useState<'verbal' | 'non_verbal'>('verbal');
-  const [showItem17Alert, setShowItem17Alert] = useState<boolean>(false);
-  const [activeSessionRecordId, setActiveSessionRecordId] = useState<string | null>(null);
-  const [isSavedOffline, setIsSavedOffline] = useState<boolean>(false);
-  const [recordedTime, setRecordedTime] = useState<string>('');
+  const DRAFT_KEY = `rapidmind_srq20_draft_${survivor.id}`;
+
+  const loadSavedDraft = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = localStorage.getItem(DRAFT_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to parse SRQ20 draft', e);
+    }
+    return null;
+  };
+
+  const initialDraft = useRef(loadSavedDraft()).current;
+  const [draftRestoredBanner, setDraftRestoredBanner] = useState<boolean>(Boolean(initialDraft));
+
+  const [wizardStep, setWizardStep] = useState<'interview' | 'functional' | 'result'>(
+    initialDraft?.wizardStep || 'interview'
+  );
+  const [interviewMode, setInterviewMode] = useState<'verbal' | 'non_verbal'>(
+    initialDraft?.interviewMode || 'verbal'
+  );
+  const [showItem17Alert, setShowItem17Alert] = useState<boolean>(
+    initialDraft?.showItem17Alert || false
+  );
+  const [activeSessionRecordId, setActiveSessionRecordId] = useState<string | null>(
+    initialDraft?.activeSessionRecordId || null
+  );
+  const [isSavedOffline, setIsSavedOffline] = useState<boolean>(
+    initialDraft?.isSavedOffline || false
+  );
+  const [recordedTime, setRecordedTime] = useState<string>(
+    initialDraft?.recordedTime || ''
+  );
 
   // SRQ-20 Answers: map of question id to boolean (true = Ya, false = Tidak)
-  const [answers, setAnswers] = useState<Record<number, boolean>>({});
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [answers, setAnswers] = useState<Record<number, boolean>>(
+    initialDraft?.answers || {}
+  );
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(
+    initialDraft?.currentQuestionIndex !== undefined ? initialDraft.currentQuestionIndex : 0
+  );
 
   // Bagian A: Checklist Faktor Risiko (R1-R5, Bobot: 2, 2, 1, 2, 1)
-  const [selectedRiskFactors, setSelectedRiskFactors] = useState<string[]>([]);
+  const [selectedRiskFactors, setSelectedRiskFactors] = useState<string[]>(
+    initialDraft?.selectedRiskFactors || []
+  );
 
   // Bagian B: Checklist Penilaian Fungsi Harian (F1, F2, F3: 0, 1, 3 point)
-  const [functionalScores, setFunctionalScores] = useState<Record<string, number>>({
-    F1: 0,
-    F2: 0,
-    F3: 0,
-  });
+  const [functionalScores, setFunctionalScores] = useState<Record<string, number>>(
+    initialDraft?.functionalScores || {
+      F1: 0,
+      F2: 0,
+      F3: 0,
+    }
+  );
 
   // Speech-to-Text State
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [liveInterim, setLiveInterim] = useState<string>('');
-  const [transcript, setTranscript] = useState<string>('');
+  const [transcript, setTranscript] = useState<string>(
+    initialDraft?.transcript || ''
+  );
 
   // Triage Analysis Result
-  const [analysisResult, setAnalysisResult] = useState<TriageAnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<TriageAnalysisResult | null>(
+    initialDraft?.analysisResult || null
+  );
 
   const activeStreamRef = useRef<MediaStream | null>(null);
   const activeSessionRef = useRef<SpeechSession | null>(null);
@@ -124,6 +166,108 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       cleanupAudioSession();
     };
   }, []);
+
+  // Auto-save draft on every change so refresh never corrupts or loses data
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const hasDataToSave =
+      wizardStep !== 'interview' ||
+      Object.keys(answers).length > 0 ||
+      selectedRiskFactors.length > 0 ||
+      Object.values(functionalScores).some((v) => v > 0) ||
+      transcript.trim().length > 0 ||
+      currentQuestionIndex > 0;
+
+    if (hasDataToSave) {
+      const draft = {
+        wizardStep,
+        interviewMode,
+        showItem17Alert,
+        activeSessionRecordId,
+        isSavedOffline,
+        recordedTime,
+        answers,
+        currentQuestionIndex,
+        selectedRiskFactors,
+        functionalScores,
+        transcript,
+        analysisResult,
+        updatedAt: Date.now(),
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }
+  }, [
+    DRAFT_KEY,
+    wizardStep,
+    interviewMode,
+    showItem17Alert,
+    activeSessionRecordId,
+    isSavedOffline,
+    recordedTime,
+    answers,
+    currentQuestionIndex,
+    selectedRiskFactors,
+    functionalScores,
+    transcript,
+    analysisResult,
+  ]);
+
+  // Browser refresh protection during statement / data entry
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Synchronously write draft to localStorage right before unload
+      const hasUnsavedData =
+        wizardStep !== 'result' &&
+        (transcript.trim().length > 0 ||
+          Object.keys(answers).length > 0 ||
+          selectedRiskFactors.length > 0 ||
+          Object.values(functionalScores).some((v) => v > 0));
+
+      if (typeof window !== 'undefined') {
+        try {
+          const draft = {
+            wizardStep,
+            interviewMode,
+            showItem17Alert,
+            activeSessionRecordId,
+            isSavedOffline,
+            recordedTime,
+            answers,
+            currentQuestionIndex,
+            selectedRiskFactors,
+            functionalScores,
+            transcript,
+            analysisResult,
+            updatedAt: Date.now(),
+          };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        } catch {}
+      }
+
+      if (hasUnsavedData) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [
+    DRAFT_KEY,
+    wizardStep,
+    interviewMode,
+    showItem17Alert,
+    activeSessionRecordId,
+    isSavedOffline,
+    recordedTime,
+    answers,
+    currentQuestionIndex,
+    selectedRiskFactors,
+    functionalScores,
+    transcript,
+    analysisResult,
+  ]);
 
   const handleStartSTT = async () => {
     cleanupAudioSession();
@@ -365,14 +509,61 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
       setIsSavedOffline(saveRes.isOfflineSaved);
     }
 
+    const resultDraft = {
+      wizardStep: 'result' as const,
+      interviewMode,
+      showItem17Alert,
+      activeSessionRecordId: saveRes?.record?.recordId || activeSessionRecordId,
+      isSavedOffline: saveRes?.isOfflineSaved ?? isSavedOffline,
+      recordedTime: timeString,
+      answers,
+      currentQuestionIndex,
+      selectedRiskFactors,
+      functionalScores,
+      transcript,
+      analysisResult: result,
+      updatedAt: Date.now(),
+    };
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(resultDraft));
+      } catch (e) {
+        console.warn('Failed to save result draft', e);
+      }
+    }
+
     setWizardStep('result');
     onComplete(result);
   };
 
-
+  const handleFinishAndExit = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(DRAFT_KEY);
+    }
+    onBack();
+  };
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 space-y-5 animate-in fade-in">
+      {/* Banner Pemulihan Draf saat Refresh */}
+      {draftRestoredBanner && wizardStep !== 'result' && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              <strong>Draf Dipulihkan:</strong> Data pernyataan dan butir jawaban yang Anda isi sebelum refresh berhasil dipulihkan 100%.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDraftRestoredBanner(false)}
+            className="text-blue-600 hover:text-blue-900 font-bold text-[11px] underline ml-2 shrink-0 cursor-pointer"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
+
       {/* Header Context (Khusus Step Interview SRQ-20 agar tidak duplikat di step lain) */}
       {wizardStep === 'interview' && (
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1114,7 +1305,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
 
               <button
                 type="button"
-                onClick={onBack}
+                onClick={handleFinishAndExit}
                 className="text-slate-500 hover:text-slate-800 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition min-h-[44px] flex items-center gap-1.5 text-xs font-semibold shrink-0"
                 title="Selesai & Kembali ke Homescreen"
               >
@@ -1295,6 +1486,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     <button
                       type="button"
                       onClick={() => {
+                        handleFinishAndExit();
                         window.location.hash = '/hospital';
                       }}
                       className="w-full min-h-[56px] px-5 rounded-lg bg-white hover:bg-rose-50 active:scale-[0.99] text-rose-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-rose-300 transition cursor-pointer"
@@ -1309,6 +1501,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     <button
                       type="button"
                       onClick={() => {
+                        handleFinishAndExit();
                         window.location.hash = '/hospital';
                       }}
                       className="w-full min-h-[56px] px-6 rounded-lg bg-orange-600 hover:bg-orange-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
@@ -1318,7 +1511,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                     </button>
                     <button
                       type="button"
-                      onClick={onBack}
+                      onClick={handleFinishAndExit}
                       className="w-full min-h-[56px] px-5 rounded-lg bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-300 transition cursor-pointer"
                     >
                       <span>Selesai & Kembali ke Homescreen</span>
@@ -1329,7 +1522,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                 {isT2 && (
                   <button
                     type="button"
-                    onClick={onBack}
+                    onClick={handleFinishAndExit}
                     className="w-full min-h-[56px] px-6 rounded-lg bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <Check className="w-4 h-4 text-white" />
@@ -1340,7 +1533,7 @@ export const SRQ20InterviewWizard: React.FC<SRQ20InterviewWizardProps> = ({
                 {isT3 && (
                   <button
                     type="button"
-                    onClick={onBack}
+                    onClick={handleFinishAndExit}
                     className="w-full min-h-[56px] px-6 rounded-lg bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <Check className="w-4 h-4 text-white" />

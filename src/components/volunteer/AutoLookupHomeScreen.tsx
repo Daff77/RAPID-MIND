@@ -38,15 +38,58 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
   const [multipleMatches, setMultipleMatches] = useState<SurvivorProfile[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
+  const NEW_SURVIVOR_DRAFT_KEY = 'rapidmind_new_survivor_form_draft';
+
+  const loadNewSurvivorDraft = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = sessionStorage.getItem(NEW_SURVIVOR_DRAFT_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return null;
+  };
+
+  const initialNewSurvivorDraft = useRef(loadNewSurvivorDraft()).current;
+
   // New Survivor registration form state
-  const [isRegisteringNew, setIsRegisteringNew] = useState(false);
-  const [newNik, setNewNik] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newAge, setNewAge] = useState('28');
-  const [newCategory, setNewCategory] = useState<'Anak' | 'Remaja' | 'Dewasa' | 'Lansia'>('Dewasa');
-  const [newGender, setNewGender] = useState<'L' | 'P'>('P');
-  const [newPosko, setNewPosko] = useState<LocationPost>('Posko A');
-  const [newPoskoId, setNewPoskoId] = useState('');
+  const [isRegisteringNew, setIsRegisteringNew] = useState(
+    initialNewSurvivorDraft?.isRegisteringNew || false
+  );
+  const [newNik, setNewNik] = useState(initialNewSurvivorDraft?.newNik || '');
+  const [newName, setNewName] = useState(initialNewSurvivorDraft?.newName || '');
+  const [newAge, setNewAge] = useState(initialNewSurvivorDraft?.newAge || '28');
+  const [newCategory, setNewCategory] = useState<'Anak' | 'Remaja' | 'Dewasa' | 'Lansia'>(
+    initialNewSurvivorDraft?.newCategory || 'Dewasa'
+  );
+  const [newGender, setNewGender] = useState<'L' | 'P'>(
+    initialNewSurvivorDraft?.newGender || 'P'
+  );
+  const [newPosko, setNewPosko] = useState<LocationPost>(
+    initialNewSurvivorDraft?.newPosko || 'Posko A'
+  );
+  const [newPoskoId, setNewPoskoId] = useState(initialNewSurvivorDraft?.newPoskoId || '');
+
+  // Auto-save form draft so refreshing doesn't lose typed survivor identity
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (isRegisteringNew && (newName.trim() || newNik.trim())) {
+      sessionStorage.setItem(
+        NEW_SURVIVOR_DRAFT_KEY,
+        JSON.stringify({
+          isRegisteringNew,
+          newNik,
+          newName,
+          newAge,
+          newCategory,
+          newGender,
+          newPosko,
+          newPoskoId,
+        })
+      );
+    } else if (!isRegisteringNew) {
+      sessionStorage.removeItem(NEW_SURVIVOR_DRAFT_KEY);
+    }
+  }, [isRegisteringNew, newNik, newName, newAge, newCategory, newGender, newPosko, newPoskoId]);
 
   // NIK update on existing survivor state
   const [isEditingNik, setIsEditingNik] = useState(false);
@@ -196,6 +239,10 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
     };
 
     saveSurvivorToRegistry(newSurvivor);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(NEW_SURVIVOR_DRAFT_KEY);
+    }
+    setIsRegisteringNew(false);
     onSelectSurvivor(newSurvivor, 'pfa');
   };
 

@@ -9,8 +9,6 @@ import {
   AlertCircle,
   UserCheck,
   History,
-  Shield,
-  Building2,
 } from 'lucide-react';
 import { useAssessment } from '../../context/AssessmentContext';
 import { useAuth } from '../../context/AuthContext';
@@ -18,13 +16,11 @@ import { useAuth } from '../../context/AuthContext';
 interface VolunteerHeaderProps {
   currentTab: 'home' | 'history';
   onSelectTab: (tab: 'home' | 'history') => void;
-  onGoToDashboard?: () => void;
 }
 
 export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
   currentTab,
   onSelectTab,
-  onGoToDashboard,
 }) => {
   const { currentUser, logout } = useAuth();
   const {
@@ -129,34 +125,6 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
               >
                 {currentUser.badgeNumber || currentUser.name}
               </span>
-
-              {/* Role Shortcut: Admin Command Center if Authorized */}
-              {currentUser.role === 'admin' && onGoToDashboard && (
-                <button
-                  type="button"
-                  onClick={onGoToDashboard}
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 font-bold text-indigo-700 border border-indigo-200 transition"
-                  title="Buka Command Center BPBD / Dinkes"
-                >
-                  <Shield className="w-3 h-3 inline mr-1" />
-                  Admin
-                </button>
-              )}
-
-              {/* Role Shortcut: Hospital Portal if Authorized */}
-              {currentUser.role === 'hospital' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.location.hash = '/hospital';
-                  }}
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 font-bold text-emerald-800 border border-emerald-200 transition"
-                  title="Buka Portal Faskes / Rumah Sakit"
-                >
-                  <Building2 className="w-3 h-3 inline mr-1" />
-                  RS
-                </button>
-              )}
 
               {/* Logout Button */}
               <button
