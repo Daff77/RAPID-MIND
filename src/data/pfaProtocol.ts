@@ -21,7 +21,7 @@ export const PFA_LOOK_ITEMS: PFACheckItem[] = [
   {
     id: 'look_physical_injury',
     label: 'Luka Fisik / Cedera Berat',
-    subtext: 'Perhatikan apakah penyintas mengalami luka berdarah atau cedera berat. (Jika ada: Segera arahkan ke Tenda Medis/Faskes).',
+    subtext: 'Perhatikan apakah penyintas mengalami luka berdarah atau cedera berat.',
     isUrgent: true,
   },
   {
@@ -45,7 +45,7 @@ export const PFA_LOOK_ITEMS: PFACheckItem[] = [
 ];
 
 export const PFA_VOLUNTEER_LOOK_TIP =
-  '💡 Petunjuk Relawan: Jika Anda melihat tanda distres di atas, dekati secara perlahan. Gunakan suara yang lembut dan tenang.';
+  'Jika Anda melihat tanda distres di atas, dekati secara perlahan. Gunakan suara yang lembut dan tenang.';
 
 /**
  * 👂 TAHAP 2: LISTEN (DENGARKAN)

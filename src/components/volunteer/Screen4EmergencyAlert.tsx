@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
+import { ArrowLeft, X } from 'lucide-react';
 import {
-  ShieldAlert,
-  MapPin,
-  Clock,
-  User,
-  Radio,
-  Wifi,
-  WifiOff,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowLeft,
-  Ambulance,
-  X,
-  MessageSquare,
-  Send,
-  Volume2,
-  VolumeX,
-} from 'lucide-react';
+  ShieldExclamationIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  PaperAirplaneIcon,
+  UserIcon,
+} from '@heroicons/react/24/solid';
+import { ClockIcon } from '@heroicons/react/24/outline';
+import {
+  IconAmbulance,
+  IconMapPin,
+  IconBroadcast,
+  IconWifi,
+  IconWifiOff,
+  IconMessage,
+  IconAlertOctagon,
+} from '@tabler/icons-react';
 import { LocationPost } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
 
@@ -46,8 +46,6 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
   onGoToHospitalPortal,
 }) => {
   const { isOnline } = useAssessment();
-  const [isSoundMuted, setIsSoundMuted] = useState(false);
-
   // 1. Tactile Haptic Alert (Tier 3 Physical Feedback)
   useEffect(() => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -58,30 +56,6 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
       }
     }
   }, []);
-
-  // 2. Play Local High-Urgency Synthetic Audio Alert
-  const playLocalBuzzer = () => {
-    if (isSoundMuted) return;
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
-      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.5);
-    } catch {
-      // Audio not permitted without interaction
-    }
-  };
 
   // Tier 2: SMS Gateway Emergency Fallback URI (Sinyal 2G/GSM)
   const smsEmergencyPayload = `[SOS T0 RAPID-MIND] NIK/ID: ${survivorId}, Nama: ${survivorName}, Posko: ${posko}, Waktu: ${timestamp}, Alasan: ${emergencyReasons.join('; ')}`;
@@ -101,7 +75,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
       <div className="p-4 sm:p-6 pb-3 border-b border-slate-100 flex items-start justify-between gap-3 bg-white">
         <div className="flex items-start gap-3">
           <div className="w-11 h-11 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center shrink-0 shadow-xs">
-            <ShieldAlert className="w-6 h-6 text-red-600" />
+            <ShieldExclamationIcon className="w-6 h-6 text-red-600" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -119,23 +93,12 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
               Peringatan Kedaruratan & Rujukan
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Protokol Keselamatan Cepat & Notifikasi Siaga Faskes / PSC 119
+              Protokol Keselamatan Cepat & Eskalasi Siaga PSC 119
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              setIsSoundMuted(!isSoundMuted);
-              if (isSoundMuted) playLocalBuzzer();
-            }}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition shrink-0"
-            title={isSoundMuted ? 'Bunyikan Alarm Lokal' : 'Senyapkan Alarm'}
-          >
-            {isSoundMuted ? <VolumeX className="w-4 h-4 text-slate-400" /> : <Volume2 className="w-4 h-4 text-red-600 animate-pulse" />}
-          </button>
           <button
             type="button"
             onClick={onClose}
@@ -168,13 +131,13 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
               {isOnline ? (
                 <>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <Wifi className="w-3.5 h-3.5 text-emerald-600" />
+                  <IconWifi className="w-3.5 h-3.5 text-emerald-600" stroke={2.5} />
                   <span>ONLINE · TIER 1 AKTIF</span>
                 </>
               ) : (
                 <>
                   <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                  <WifiOff className="w-3.5 h-3.5 text-amber-600" />
+                  <IconWifiOff className="w-3.5 h-3.5 text-amber-600" stroke={2.5} />
                   <span>OFFLINE · TIER 2 & 3 SIAGA</span>
                 </>
               )}
@@ -184,7 +147,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
           <div className="space-y-2.5 font-medium">
             {/* Tier 1 Status */}
             <div className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${isOnline ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950' : 'bg-slate-100/70 border-slate-200 text-slate-500'}`}>
-              <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${isOnline ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <CheckCircleIcon className={`w-4 h-4 shrink-0 mt-0.5 ${isOnline ? 'text-emerald-600' : 'text-slate-400'}`} />
               <div>
                 <span className="font-bold block text-[11px]">Tier 1: WebSockets & Push Notification (Online)</span>
                 <span className="text-[11px] block mt-0.5 opacity-90">
@@ -198,7 +161,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
             {/* Tier 2 Status & SMS Trigger */}
             <div className="p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 text-blue-950 space-y-2">
               <div className="flex items-start gap-2.5">
-                <Radio className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
+                <IconBroadcast className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" stroke={2} />
                 <div className="flex-1 min-w-0">
                   <span className="font-bold block text-[11px]">Tier 2: Sinyal Seluler 2G/GSM Auto-Fallback (SMS Gateway)</span>
                   <span className="text-[11px] block mt-0.5 text-blue-900 leading-relaxed">
@@ -210,16 +173,16 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
                 href={smsFallbackUri}
                 className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition"
               >
-                <MessageSquare className="w-4 h-4 text-white" />
+                <IconMessage className="w-4 h-4 text-white" stroke={2} />
                 <span>Kirim Format Darurat SMS Gateway ke 119</span>
-                <Send className="w-3.5 h-3.5 text-white/80" />
+                <PaperAirplaneIcon className="w-3.5 h-3.5 text-white/80" />
               </a>
             </div>
 
             {/* Tier 3 Status (IndexedDB, Local Alert & Background Sync) */}
             <div className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/70 text-amber-950 space-y-1.5">
               <div className="flex items-start gap-2.5">
-                <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <ExclamationTriangleIcon className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold block text-[11px]">Tier 3: Sinyal Mati Total (Blank Spot) — Local Alert & Background Sync</span>
                   <span className="text-[11px] block mt-0.5 text-amber-900 leading-relaxed">
@@ -243,7 +206,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
             </span>
             <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                <User className="w-3.5 h-3.5" />
+                <UserIcon className="w-3.5 h-3.5" />
               </div>
               <span className="truncate">{survivorName}</span>
             </div>
@@ -261,7 +224,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
             </span>
             <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center shrink-0">
-                <MapPin className="w-3.5 h-3.5" />
+                <IconMapPin className="w-3.5 h-3.5 text-red-700" stroke={2} />
               </div>
               <span className="truncate">{posko}</span>
             </div>
@@ -271,7 +234,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
               </span>
             </div>
             <div className="font-mono text-xs text-slate-600 flex items-center gap-1.5 pl-8">
-              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <ClockIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span>{timestamp} WIB</span>
             </div>
           </div>
@@ -280,7 +243,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
         {/* C. ALASAN & TRIGGER EMERGENCY */}
         <div className="p-3.5 sm:p-4 bg-red-50/70 border border-red-200 rounded-xl space-y-2 text-xs">
           <div className="flex items-center gap-2 text-red-950 font-bold">
-            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+            <ExclamationTriangleIcon className="w-4 h-4 text-red-600 shrink-0" />
             <span>Indikator Alasan Emergency Terdeteksi:</span>
           </div>
           <ul className="space-y-1.5 pl-5 list-disc text-red-950 font-medium leading-relaxed">
@@ -300,22 +263,22 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
         </div>
 
         {/* D. STANDAR OPERASIONAL KESELAMATAN WAJIB RELAWAN (SOP LAPANGAN) */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white rounded-xl space-y-3">
-          <div className="flex items-center gap-2 text-amber-300">
-            <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
-            <span className="font-bold text-xs uppercase tracking-wider">
+        <div className="p-4 sm:p-5 bg-amber-50/70 border border-amber-200/90 rounded-xl space-y-2.5">
+          <div className="flex items-center gap-2 text-amber-950">
+            <ShieldExclamationIcon className="w-4 h-4 shrink-0 text-amber-700" />
+            <span className="font-bold text-xs uppercase tracking-wider text-amber-950">
               Instruksi Keselamatan Wajib Relawan (SOP):
             </span>
           </div>
-          <ol className="space-y-2 text-xs text-slate-200 leading-relaxed pl-4 list-decimal">
+          <ol className="space-y-2 text-xs text-slate-800 leading-relaxed pl-4 list-decimal">
             <li>
-              <strong className="text-white">Dampingi tanpa jeda:</strong> Jangan pernah meninggalkan penyintas seorang diri dalam kondisi dan alasan apapun.
+              <strong className="text-slate-950 font-bold">Dampingi tanpa jeda:</strong> Jangan pernah meninggalkan penyintas seorang diri dalam kondisi dan alasan apapun.
             </li>
             <li>
-              <strong className="text-white">Amankan bahaya sekitar:</strong> Singkirkan benda tajam, obat-obatan posko, tali, dan jauhkan penyintas dari tepian jurang atau reruntuhan.
+              <strong className="text-slate-950 font-bold">Amankan bahaya sekitar:</strong> Singkirkan benda tajam, obat-obatan posko, tali, dan jauhkan penyintas dari tepian jurang atau reruntuhan.
             </li>
             <li>
-              <strong className="text-white">Siagakan HP Relawan:</strong> Tenaga medis Faskes/PSC 119 akan menghubungi Anda untuk verifikasi visual <em>Tele-Emergency</em> dalam 1–2 menit.
+              <strong className="text-slate-950 font-bold">Siagakan HP Relawan:</strong> Tenaga medis Faskes/PSC 119 akan menghubungi Anda untuk verifikasi visual <em className="font-semibold text-slate-900 not-italic">Tele-Emergency</em> dalam 1–2 menit.
             </li>
           </ol>
         </div>
@@ -338,7 +301,7 @@ export const Screen4EmergencyAlert: React.FC<Screen4EmergencyAlertProps> = ({
             onClick={onGoToHospitalPortal}
             className="w-full sm:flex-1 min-h-[56px] px-4 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-red-600/25 transition"
           >
-            <Ambulance className="w-4 h-4 text-white" />
+            <IconAmbulance className="w-5 h-5 text-white" stroke={2} />
             <span>Buka Antrean Rujukan Faskes →</span>
           </button>
         )}

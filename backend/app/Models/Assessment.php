@@ -16,7 +16,9 @@ class Assessment extends Model
 
     protected $fillable = [
         'record_id',
+        'rm_code',
         'client_event_id',
+        'survivor_id',
         'victim_id',
         'nik',
         'timestamp',
@@ -72,7 +74,10 @@ class Assessment extends Model
 
     public function survivor(): BelongsTo
     {
-        return $this->belongsTo(Survivor::class, 'victim_id', 'id');
+        return $this->belongsTo(Survivor::class, 'survivor_id', 'id')
+            ->withDefault(function ($survivor, $assessment) {
+                return Survivor::find($assessment->victim_id);
+            });
     }
 
     /**
@@ -80,10 +85,15 @@ class Assessment extends Model
      */
     public function toFrontendArray(): array
     {
+        $canonicalRm = $this->rm_code ?: $this->record_id;
+        $survivorIdentity = $this->survivor_id ?: $this->victim_id;
+
         return [
-            'recordId' => $this->record_id,
-            'id' => $this->victim_id,
-            'victimId' => $this->victim_id,
+            'recordId' => $canonicalRm,
+            'rmCode' => $canonicalRm,
+            'id' => $canonicalRm,
+            'survivorId' => $survivorIdentity,
+            'victimId' => $survivorIdentity,
             'nik' => $this->nik ?: null,
             'timestamp' => $this->timestamp,
             'location' => $this->location,

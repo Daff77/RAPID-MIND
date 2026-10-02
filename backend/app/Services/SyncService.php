@@ -29,13 +29,18 @@ class SyncService
         DB::transaction(function () use ($records, &$synced, &$skipped, &$errors) {
             foreach ($records as $item) {
                 try {
-                    $recordId = $item['recordId'] ?? $item['id'] ?? null;
+                    $rawRecordId = $item['rmCode'] ?? $item['recordId'] ?? null;
+                    if (!empty($rawRecordId)) {
+                        $recordId = str_starts_with($rawRecordId, 'PB-') ? str_replace('PB-', 'RM-', $rawRecordId) : $rawRecordId;
+                    } else {
+                        $recordId = 'RM-' . date('Y') . '-' . str_pad((string) (Assessment::count() + 1), 6, '0', STR_PAD_LEFT);
+                    }
                     $clientEventId = $item['clientEventId'] ?? $recordId;
 
-                    // Idempotency: check if already exists by record_id or client_event_id
+                    // Idempotency: check if already exists by record_id, rm_code, or client_event_id
                     $existing = null;
                     if ($recordId) {
-                        $existing = Assessment::where('record_id', $recordId)->first();
+                        $existing = Assessment::where('record_id', $recordId)->orWhere('rm_code', $recordId)->first();
                     }
                     if (!$existing && $clientEventId) {
                         $existing = Assessment::where('client_event_id', $clientEventId)->first();
@@ -46,14 +51,25 @@ class SyncService
                         continue;
                     }
 
-                    // Ensure survivor exists
-                    $victimId = $item['victimId'] ?? $item['id'] ?? ('VCT-' . date('Y') . '-000001');
+                    // Ensure survivor exists (Person entity)
+                    $victimId = $item['survivorId'] ?? $item['victimId'] ?? null;
+                    if (!empty($victimId) && str_starts_with($victimId, 'PB-')) {
+                        $victimId = str_replace('PB-', 'SURV-', $victimId);
+                    }
                     $victimName = $item['name'] ?? $item['victimName'] ?? 'Penyintas Lapangan';
                     $location = $item['posko'] ?? $item['location'] ?? 'Posko A';
-                    $survivor = Survivor::find($victimId);
+
+                    $survivor = null;
+                    if ($victimId) {
+                        $survivor = Survivor::where('id', $victimId)->first();
+                    }
+                    if (!$survivor && !empty($item['nik'])) {
+                        $survivor = Survivor::where('nik', $item['nik'])->first();
+                    }
                     if (!$survivor) {
+                        $targetSurvId = $victimId ?: ('SURV-' . date('Y') . '-' . str_pad((string) (Survivor::count() + 1), 6, '0', STR_PAD_LEFT));
                         $survivor = Survivor::create([
-                            'id' => $victimId,
+                            'id' => $targetSurvId,
                             'nik' => $item['nik'] ?? null,
                             'name' => $victimName,
                             'age' => (string) ($item['age'] ?? $item['victimAge'] ?? '30'),
@@ -83,8 +99,10 @@ class SyncService
                     );
 
                     $assessment = Assessment::create([
-                        'record_id' => $recordId ?: ('ASM-' . date('Y') . '-' . str_pad((string) (Assessment::count() + 1), 6, '0', STR_PAD_LEFT)),
+                        'record_id' => $recordId,
+                        'rm_code' => $recordId,
                         'client_event_id' => $clientEventId,
+                        'survivor_id' => $survivor->id,
                         'victim_id' => $survivor->id,
                         'nik' => $item['nik'] ?? $survivor->nik,
                         'timestamp' => $item['timestamp'] ?? date('H:i'),

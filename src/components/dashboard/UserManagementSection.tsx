@@ -1,22 +1,28 @@
 import React, { useState, useMemo } from 'react';
 import {
-  UserPlus,
-  Shield,
-  Smartphone,
-  Building2,
-  Trash2,
   CheckCircle,
   AlertCircle,
   X,
   Lock,
   MapPin,
-  Users,
-  Layers,
   Check,
   ArrowRight,
   Package,
-  Search,
 } from 'lucide-react';
+import {
+  UserGroupIcon,
+  UserPlusIcon,
+  KeyIcon,
+  TrashIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
+import { ShieldCheckIcon } from '@heroicons/react/24/solid';
+import {
+  IconBuildingHospital,
+  IconStethoscope,
+  IconFirstAidKit,
+  IconBuildingWarehouse,
+} from '@tabler/icons-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole, User } from '../../types/auth';
 import { LocationPost } from '../../types/assessment';
@@ -295,14 +301,14 @@ export const UserManagementSection: React.FC = () => {
       case 'admin':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-            <Shield className="w-3 h-3 text-indigo-600" />
+            <ShieldCheckIcon className="w-3.5 h-3.5 text-indigo-600" />
             Admin BPBD/Dinkes
           </span>
         );
       case 'hospital':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <Building2 className="w-3 h-3 text-emerald-600" />
+            <IconBuildingHospital className="w-3.5 h-3.5 text-emerald-600" stroke={1.8} />
             Tenaga Medis / RS
           </span>
         );
@@ -310,7 +316,7 @@ export const UserManagementSection: React.FC = () => {
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-            <Smartphone className="w-3 h-3 text-blue-600" />
+            <IconStethoscope className="w-3.5 h-3.5 text-blue-600" stroke={1.8} />
             Relawan Lapangan
           </span>
         );
@@ -357,7 +363,7 @@ export const UserManagementSection: React.FC = () => {
           onClick={() => handleOpenAddModal('volunteer')}
           className="h-9 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold flex items-center gap-2 shadow-2xs transition shrink-0 cursor-pointer"
         >
-          <UserPlus className="w-3.5 h-3.5" />
+          <UserPlusIcon className="w-4 h-4" />
           <span>Tambah Pengguna / Relawan Baru</span>
         </button>
       </div>
@@ -373,7 +379,7 @@ export const UserManagementSection: React.FC = () => {
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <Users className="w-4 h-4 text-blue-600" />
+          <UserGroupIcon className="w-4 h-4 text-blue-600" />
           <span>Manajemen Relawan & Penugasan Posko ({volunteersList.length})</span>
         </button>
 
@@ -386,7 +392,7 @@ export const UserManagementSection: React.FC = () => {
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <Layers className="w-4 h-4 text-blue-600" />
+          <IconFirstAidKit className="w-4 h-4 text-blue-600" stroke={1.8} />
           <span>Kapasitas Posko & Ringkasan Sumber Daya</span>
         </button>
 
@@ -399,7 +405,7 @@ export const UserManagementSection: React.FC = () => {
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <Shield className="w-4 h-4 text-blue-600" />
+          <KeyIcon className="w-4 h-4 text-blue-600" />
           <span>Semua Akun Pengguna Sistem ({allUsers.length})</span>
         </button>
       </div>
@@ -465,7 +471,7 @@ export const UserManagementSection: React.FC = () => {
               {/* Filter & Search Bar */}
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                  <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
                   <input
                     type="text"
                     value={volunteerSearch}
@@ -731,7 +737,7 @@ export const UserManagementSection: React.FC = () => {
                 <span className="text-[11px] text-blue-600 block mt-0.5">Petugas Penapisan PFA & SRQ-20</span>
               </div>
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                <Smartphone className="w-5 h-5" />
+                <IconStethoscope className="w-5 h-5 text-blue-600" stroke={1.8} />
               </div>
             </div>
 
@@ -742,7 +748,7 @@ export const UserManagementSection: React.FC = () => {
                 <span className="text-[11px] text-emerald-700 block mt-0.5">Petugas Validasi PSC 119 & IGD Jiwa</span>
               </div>
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <Building2 className="w-5 h-5" />
+                <IconBuildingHospital className="w-5 h-5 text-emerald-600" stroke={1.8} />
               </div>
             </div>
 
@@ -753,7 +759,7 @@ export const UserManagementSection: React.FC = () => {
                 <span className="text-[11px] text-indigo-700 block mt-0.5">Pusat Komando BPBD & Dinkes</span>
               </div>
               <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <Shield className="w-5 h-5" />
+                <ShieldCheckIcon className="w-5 h-5 text-indigo-600" />
               </div>
             </div>
           </div>
@@ -823,7 +829,7 @@ export const UserManagementSection: React.FC = () => {
                               className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
                               title="Hapus User"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <TrashIcon className="w-4 h-4" />
                             </button>
                           )}
                         </td>
@@ -973,7 +979,7 @@ export const UserManagementSection: React.FC = () => {
             <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
-                  <UserPlus className="w-4 h-4" />
+                  <UserPlusIcon className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
@@ -1019,7 +1025,7 @@ export const UserManagementSection: React.FC = () => {
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <Smartphone className="w-4 h-4 text-blue-600" />
+                    <IconStethoscope className="w-4 h-4 text-blue-600" stroke={1.8} />
                     <span>Volunteer</span>
                   </button>
 
@@ -1035,7 +1041,7 @@ export const UserManagementSection: React.FC = () => {
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <Building2 className="w-4 h-4 text-emerald-600" />
+                    <IconBuildingHospital className="w-4 h-4 text-emerald-600" stroke={1.8} />
                     <span>Rumah Sakit</span>
                   </button>
 
@@ -1051,7 +1057,7 @@ export const UserManagementSection: React.FC = () => {
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <Shield className="w-4 h-4 text-indigo-600" />
+                    <ShieldCheckIcon className="w-4 h-4 text-indigo-600" />
                     <span>Admin</span>
                   </button>
                 </div>

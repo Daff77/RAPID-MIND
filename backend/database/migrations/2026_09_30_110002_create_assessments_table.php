@@ -12,9 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('assessments', function (Blueprint $table) {
-            $table->string('record_id')->primary(); // Format: ASM-2026-000001
+            $table->string('record_id')->primary(); // Format: RM-2026-000001
+            $table->string('rm_code')->nullable()->index(); // Canonical Assessment / Record Identifier (Format: RM-2026-XXXXXX)
             $table->string('client_event_id')->nullable()->index(); // Idempotency check for offline sync
-            $table->string('victim_id');
+            $table->string('survivor_id')->nullable()->index();
+            $table->string('victim_id'); // Preserved alias for survivor_id
             $table->foreign('victim_id')->references('id')->on('survivors')->onDelete('cascade');
             $table->string('nik')->nullable();
             $table->string('timestamp'); // HH:mm or ISO format

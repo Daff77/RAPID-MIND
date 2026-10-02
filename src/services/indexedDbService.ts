@@ -45,6 +45,8 @@ export function openIndexedDB(): Promise<IDBDatabase> {
         // 1. Store: assessments (Riwayat penapisan triase klinis)
         if (!db.objectStoreNames.contains(STORES.ASSESSMENTS)) {
           const assessStore = db.createObjectStore(STORES.ASSESSMENTS, { keyPath: 'recordId' });
+          assessStore.createIndex('rmCode', 'rmCode', { unique: false });
+          assessStore.createIndex('survivorId', 'survivorId', { unique: false });
           assessStore.createIndex('victimId', 'victimId', { unique: false });
           assessStore.createIndex('triageTier', 'triageTier', { unique: false });
           assessStore.createIndex('syncStatus', 'syncStatus', { unique: false });
@@ -134,6 +136,22 @@ export async function idbGetAssessments(): Promise<AssessmentRecord[]> {
   } catch (err) {
     console.warn('idbGetAssessments fallback/error:', err);
     return [];
+  }
+}
+
+export async function idbRemoveAssessment(recordId: string): Promise<void> {
+  if (!isIndexedDBSupported()) return;
+  try {
+    const db = await openIndexedDB();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORES.ASSESSMENTS, 'readwrite');
+      const store = tx.objectStore(STORES.ASSESSMENTS);
+      const req = store.delete(recordId);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn('idbRemoveAssessment fallback/error:', err);
   }
 }
 

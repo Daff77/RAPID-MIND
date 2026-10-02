@@ -51,8 +51,11 @@ class AssessmentController extends Controller
             $q = strtolower(trim($request->input('q')));
             $query->where(function ($b) use ($q) {
                 $b->whereRaw('LOWER(victim_name) LIKE ?', ["%{$q}%"])
+                  ->orWhereRaw('LOWER(survivor_id) LIKE ?', ["%{$q}%"])
                   ->orWhereRaw('LOWER(victim_id) LIKE ?', ["%{$q}%"])
+                  ->orWhereRaw('LOWER(rm_code) LIKE ?', ["%{$q}%"])
                   ->orWhereRaw('LOWER(record_id) LIKE ?', ["%{$q}%"])
+                  ->orWhereRaw('LOWER(nik) LIKE ?', ["%{$q}%"])
                   ->orWhereRaw('LOWER(location) LIKE ?', ["%{$q}%"])
                   ->orWhereRaw('LOWER(transcript) LIKE ?', ["%{$q}%"]);
             });
@@ -74,10 +77,12 @@ class AssessmentController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'rmCode' => 'nullable|string',
             'recordId' => 'nullable|string',
             'clientEventId' => 'nullable|string',
-            'id' => 'nullable|string', // survivor/victim id
+            'survivorId' => 'nullable|string',
             'victimId' => 'nullable|string',
+            'id' => 'nullable|string', // survivor or record id
             'nik' => 'nullable|string',
             'timestamp' => 'nullable|string',
             'location' => 'nullable|string',
@@ -110,14 +115,25 @@ class AssessmentController extends Controller
             'category' => 'nullable|string',
         ]);
 
-        $victimId = $validated['victimId'] ?? $validated['id'] ?? ('VCT-' . strtoupper(\Illuminate\Support\Str::random(6)));
         $victimName = $validated['name'] ?? $validated['victimName'] ?? 'Penyintas Lapangan';
         $location = $validated['location'] ?? $validated['posko'] ?? 'Posko A';
         $method = $validated['method'] ?? 'srq20_screening';
 
-        $survivor = Survivor::firstOrCreate(
-            ['id' => $victimId],
-            [
+        // 1. Identify or register the survivor (Person entity)
+        $survivorId = $validated['survivorId'] ?? $validated['victimId'] ?? null;
+        $survivor = null;
+
+        if ($survivorId) {
+            $survivor = Survivor::where('id', $survivorId)->first();
+        }
+        if (!$survivor && !empty($validated['nik'])) {
+            $survivor = Survivor::where('nik', $validated['nik'])->first();
+        }
+        if (!$survivor) {
+            $newSurvId = $survivorId ?: ('SURV-' . date('Y') . '-' . str_pad((string) (Survivor::count() + 1), 6, '0', STR_PAD_LEFT));
+            $survivor = Survivor::create([
+                'id' => $newSurvId,
+                'nik' => $validated['nik'] ?? null,
                 'name' => $victimName,
                 'age' => $validated['age'] ?? $validated['victimAge'] ?? '30',
                 'gender' => $validated['gender'] ?? $validated['victimGender'] ?? 'P',
@@ -125,10 +141,10 @@ class AssessmentController extends Controller
                 'posko' => $location,
                 'registered_at' => now(),
                 'current_phase' => $validated['phase'] ?? 'followup_srq20',
-            ]
-        );
+            ]);
+        }
 
-        // Authoritative Server-side Triage
+        // 2. Authoritative Server-side Triage
         $srqScore = (int) ($validated['srqScore'] ?? $validated['score'] ?? 0);
         $item17 = in_array(17, $validated['srq20YesList'] ?? []) || !empty($validated['criticalTriggered']);
         $riskScore = (int) ($validated['riskScore'] ?? $validated['riskFactorScore'] ?? 0);
@@ -143,12 +159,20 @@ class AssessmentController extends Controller
             $isRedFlag
         );
 
-        $recordId = $validated['recordId'] ?? ('ASM-' . date('Y') . '-' . str_pad((string) (Assessment::count() + 1), 6, '0', STR_PAD_LEFT));
+        // 3. Generate canonical assessment RM code (RM-2026-XXXXXX)
+        $rawCode = $validated['rmCode'] ?? $validated['recordId'] ?? null;
+        if (!empty($rawCode)) {
+            $rmCode = str_starts_with($rawCode, 'PB-') ? str_replace('PB-', 'RM-', $rawCode) : $rawCode;
+        } else {
+            $rmCode = 'RM-' . date('Y') . '-' . str_pad((string) (Assessment::count() + 1), 6, '0', STR_PAD_LEFT);
+        }
 
         $assessment = Assessment::updateOrCreate(
-            ['record_id' => $recordId],
+            ['record_id' => $rmCode],
             [
+                'rm_code' => $rmCode,
                 'client_event_id' => $validated['clientEventId'] ?? null,
+                'survivor_id' => $survivor->id,
                 'victim_id' => $survivor->id,
                 'nik' => $validated['nik'] ?? $survivor->nik,
                 'timestamp' => $validated['timestamp'] ?? date('H:i'),

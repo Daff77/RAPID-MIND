@@ -109,10 +109,34 @@ class DatabaseSeeder extends Seeder
             DisasterPost::updateOrCreate(['id' => $postData['id']], $postData);
         }
 
-        // 3. Initial Survivors
+        // 3. Initial Survivors (Person Entity - Separated from RM Assessment records)
         $survivors = [
             [
-                'id' => 'RM-2026-000001',
+                'id' => 'SURV-2026-000089',
+                'nik' => '3578012345670089',
+                'posko_id' => 'GL-089',
+                'name' => 'Nando',
+                'age' => '29',
+                'gender' => 'L',
+                'category' => 'Dewasa',
+                'posko' => 'Posko B',
+                'phone' => '+62 812-9988-7766',
+                'registered_at' => now()->subDays(3),
+                'current_phase' => 'followup_srq20',
+                'pfa_record' => [
+                    'completedAt' => '09:20 WIB',
+                    'lookItems' => ['Keamanan fisik aman', 'Tanda distres emosional berat'],
+                    'listenNotes' => 'Penyintas menyatakan putus asa dan ingin menyakiti diri sendiri.',
+                    'groundingUsed' => true,
+                    'linkItems' => ['Posko Medis', 'Dukungan Krisis'],
+                ],
+                'srq20_score' => 5,
+                'triage_tier' => 'T0',
+                't0_status' => 'T0-Suspect',
+                'notes' => 'Memiliki riwayat asesmen longitudinal teratur di posko.',
+            ],
+            [
+                'id' => 'SURV-2026-000001',
                 'nik' => '3201019988770001',
                 'posko_id' => 'GL-014',
                 'name' => 'Siti Aminah',
@@ -135,7 +159,7 @@ class DatabaseSeeder extends Seeder
                 'notes' => 'Telah dilakukan grounding napas 5-4-3-2-1. Masih sering cemas saat ada suara gemuruh.',
             ],
             [
-                'id' => 'RM-2026-000002',
+                'id' => 'SURV-2026-000002',
                 'nik' => '3201019988770002',
                 'posko_id' => 'GL-028',
                 'name' => 'Budi Gunawan',
@@ -158,7 +182,7 @@ class DatabaseSeeder extends Seeder
                 'notes' => 'Skor SRQ-20 tinggi (14) ditambah faktor kehilangan rumah total. Direkomendasikan evaluasi nakes spesialis.',
             ],
             [
-                'id' => 'RM-2026-000003',
+                'id' => 'SURV-2026-000003',
                 'nik' => '3201019988770003',
                 'posko_id' => 'GL-042',
                 'name' => 'Dewi Sartika',
@@ -181,7 +205,7 @@ class DatabaseSeeder extends Seeder
                 'notes' => 'Kondisi adaptif dan resilien. Aktif membantu di dapur umum posko.',
             ],
             [
-                'id' => 'RM-2026-000004',
+                'id' => 'SURV-2026-000004',
                 'nik' => '3201019988770004',
                 'posko_id' => 'GL-055',
                 'name' => 'Ahmad Fauzi',
@@ -199,7 +223,7 @@ class DatabaseSeeder extends Seeder
                 'notes' => 'Mengalami disorientasi akut, halusinasi mendengar gemuruh susulan dan mencoba lari ke arah tebing. Membutuhkan intervensi darurat.',
             ],
             [
-                'id' => 'RM-2026-000005',
+                'id' => 'SURV-2026-000005',
                 'nik' => '3201019988770005',
                 'posko_id' => 'GL-061',
                 'name' => 'Rina Kusuma',
@@ -222,7 +246,7 @@ class DatabaseSeeder extends Seeder
                 'notes' => 'Distres sedang (somatik dan cemas). Diberikan konseling suportif di tenda remaja.',
             ],
             [
-                'id' => 'RM-2026-000006',
+                'id' => 'SURV-2026-000006',
                 'nik' => '3201019988770006',
                 'posko_id' => 'GL-078',
                 'name' => 'Hendra Wijaya',
@@ -244,11 +268,109 @@ class DatabaseSeeder extends Seeder
             Survivor::updateOrCreate(['id' => $survivorData['id']], $survivorData);
         }
 
-        // 4. Initial Assessments
+        // 4. Initial Assessments (RM-2026-XXXXXX is the Canonical Assessment Record Identifier)
         $assessments = [
+            // Longitudinal records for Nando (Demonstrating 1 Survivor -> Multiple RM Assessments)
             [
-                'record_id' => 'ASM-2026-000001',
-                'victim_id' => 'RM-2026-000004',
+                'record_id' => 'RM-2026-000089',
+                'rm_code' => 'RM-2026-000089',
+                'survivor_id' => 'SURV-2026-000089',
+                'victim_id' => 'SURV-2026-000089',
+                'nik' => '3578012345670089',
+                'timestamp' => '09:21',
+                'location' => 'Posko B',
+                'method' => 'VERBAL',
+                'phase' => 'followup_srq20',
+                'zone' => 'RED',
+                'triage_tier' => 'T0',
+                't0_status' => 'T0-Suspect',
+                'score' => 5,
+                'indicators' => [
+                    'Risiko keamanan jiwa: butir 17 aktif',
+                    'Keinginan menyakiti diri sendiri',
+                ],
+                'critical_triggered' => true,
+                'transcript' => 'Menyatakan ingin menyakiti diri sendiri, terlihat sangat putus asa dan bingung...',
+                'srq20_yes_list' => [1, 2, 4, 17, 18],
+                'recommended_action' => 'T0-Suspect: Sinyal SOS darurat aktif ke PSC 119 dan Faskes rujukan. Pendampingan tanpa jeda.',
+                'volunteer_notes' => 'Penyintas menyatakan ingin menyakiti diri sendiri. Dampingi 100% tanpa jeda.',
+                'volunteer_id' => 'VOL-042',
+                'victim_name' => 'Nando',
+                'victim_age' => '29',
+                'victim_gender' => 'L',
+                'victim_category' => 'Dewasa',
+                'total_integrated_score' => 15,
+                'risk_factor_score' => 4,
+                'functional_score_total' => 6,
+                'status_title' => 'T0 Critical Emergency (Red Flag Override)',
+                'created_at' => now()->subHours(8),
+            ],
+            [
+                'record_id' => 'RM-2026-000142',
+                'rm_code' => 'RM-2026-000142',
+                'survivor_id' => 'SURV-2026-000089',
+                'victim_id' => 'SURV-2026-000089',
+                'nik' => '3578012345670089',
+                'timestamp' => '13:45',
+                'location' => 'Posko B',
+                'method' => 'VERBAL',
+                'phase' => 'followup_srq20',
+                'zone' => 'RED',
+                'triage_tier' => 'T1',
+                't0_status' => null,
+                'score' => 12,
+                'indicators' => ['Sakit kepala tegang hebat', 'Insomnia persisten'],
+                'critical_triggered' => false,
+                'transcript' => 'Kondisi mulai tenang setelah pendampingan, namun masih mengalami insomnia parah.',
+                'recommended_action' => 'T1 HIGH RISK: Rujukan spesialis psikolog / psikiater.',
+                'volunteer_notes' => 'Evaluasi lanjutan pasca-stabilisasi akut.',
+                'volunteer_id' => 'VOL-042',
+                'victim_name' => 'Nando',
+                'victim_age' => '29',
+                'victim_gender' => 'L',
+                'victim_category' => 'Dewasa',
+                'total_integrated_score' => 16,
+                'risk_factor_score' => 2,
+                'functional_score_total' => 2,
+                'status_title' => 'Recommendation for Priority Clinical Assessment',
+                'created_at' => now()->subHours(4),
+            ],
+            [
+                'record_id' => 'RM-2026-000231',
+                'rm_code' => 'RM-2026-000231',
+                'survivor_id' => 'SURV-2026-000089',
+                'victim_id' => 'SURV-2026-000089',
+                'nik' => '3578012345670089',
+                'timestamp' => '17:15',
+                'location' => 'Posko B',
+                'method' => 'VERBAL',
+                'phase' => 'followup_srq20',
+                'zone' => 'YELLOW',
+                'triage_tier' => 'T2',
+                't0_status' => null,
+                'score' => 7,
+                'indicators' => ['Cemas berkurang', 'Mulai kooperatif makan dan istirahat'],
+                'critical_triggered' => false,
+                'transcript' => 'Penyintas merasa jauh lebih tenang setelah konseling dan teknik grounding.',
+                'recommended_action' => 'T2 MODERATE RISK: Pendampingan PFA berkelanjutan.',
+                'volunteer_notes' => 'Perbaikan kondisi signifikan, tetap dalam pengawasan relawan posko.',
+                'volunteer_id' => 'VOL-042',
+                'victim_name' => 'Nando',
+                'victim_age' => '29',
+                'victim_gender' => 'L',
+                'victim_category' => 'Dewasa',
+                'total_integrated_score' => 9,
+                'risk_factor_score' => 1,
+                'functional_score_total' => 1,
+                'status_title' => 'Recommendation for Psychosocial Follow-Up',
+                'created_at' => now()->subHours(1),
+            ],
+            // Assessments for other survivors
+            [
+                'record_id' => 'RM-2026-000001',
+                'rm_code' => 'RM-2026-000001',
+                'survivor_id' => 'SURV-2026-000004',
+                'victim_id' => 'SURV-2026-000004',
                 'nik' => '3201019988770004',
                 'timestamp' => '14:35',
                 'location' => 'Posko C',
@@ -279,8 +401,10 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now()->subMinutes(25),
             ],
             [
-                'record_id' => 'ASM-2026-000002',
-                'victim_id' => 'RM-2026-000002',
+                'record_id' => 'RM-2026-000002',
+                'rm_code' => 'RM-2026-000002',
+                'survivor_id' => 'SURV-2026-000002',
+                'victim_id' => 'SURV-2026-000002',
                 'nik' => '3201019988770002',
                 'timestamp' => '11:20',
                 'location' => 'Posko A',
@@ -312,8 +436,10 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now()->subHours(2),
             ],
             [
-                'record_id' => 'ASM-2026-000003',
-                'victim_id' => 'RM-2026-000005',
+                'record_id' => 'RM-2026-000003',
+                'rm_code' => 'RM-2026-000003',
+                'survivor_id' => 'SURV-2026-000005',
+                'victim_id' => 'SURV-2026-000005',
                 'nik' => '3201019988770005',
                 'timestamp' => '09:45',
                 'location' => 'Posko D',
@@ -343,8 +469,10 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now()->subHours(5),
             ],
             [
-                'record_id' => 'ASM-2026-000004',
-                'victim_id' => 'RM-2026-000003',
+                'record_id' => 'RM-2026-000004',
+                'rm_code' => 'RM-2026-000004',
+                'survivor_id' => 'SURV-2026-000003',
+                'victim_id' => 'SURV-2026-000003',
                 'nik' => '3201019988770003',
                 'timestamp' => '16:10',
                 'location' => 'Posko B',
@@ -381,8 +509,8 @@ class DatabaseSeeder extends Seeder
         EmergencyAlert::updateOrCreate(
             ['id' => 'EMG-2026-000001'],
             [
-                'record_id' => 'ASM-2026-000001',
-                'survivor_id' => 'RM-2026-000004',
+                'record_id' => 'RM-2026-000001',
+                'survivor_id' => 'SURV-2026-000004',
                 'survivor_name' => 'Ahmad Fauzi',
                 'posko' => 'Posko C',
                 'status' => 'T0-Suspect',
@@ -395,6 +523,26 @@ class DatabaseSeeder extends Seeder
                 'reporter_volunteer_id' => 'VOL-042',
                 'volunteer_notes' => 'Penyintas lansia panik luar biasa dan mencoba berlari ke jurang. Dua relawan mengamankan secara fisik di tenda medis.',
                 'created_at' => now()->subMinutes(25),
+            ]
+        );
+
+        // Emergency Alert for Nando (T0-Suspect)
+        EmergencyAlert::updateOrCreate(
+            ['id' => 'EMG-2026-000089'],
+            [
+                'record_id' => 'RM-2026-000089',
+                'survivor_id' => 'SURV-2026-000089',
+                'survivor_name' => 'Nando',
+                'posko' => 'Posko B',
+                'status' => 'T0-Suspect',
+                'emergency_reasons' => [
+                    '1. Risiko keamanan jiwa aktif: butir 17 SRQ-20 (Ideasi menyakiti diri)',
+                ],
+                'gps_lat' => -6.8285,
+                'gps_lng' => 107.1510,
+                'reporter_volunteer_id' => 'VOL-042',
+                'volunteer_notes' => 'Penyintas menyatakan ingin menyakiti diri sendiri. Dampingi 100% tanpa jeda.',
+                'created_at' => now()->subHours(8),
             ]
         );
     }

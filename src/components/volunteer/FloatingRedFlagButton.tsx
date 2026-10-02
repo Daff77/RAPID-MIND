@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import {
-  ShieldAlert,
-  AlertOctagon,
-  X,
-  MapPin,
-  Radio,
-} from 'lucide-react';
+  ShieldExclamationIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/solid';
+import {
+  IconAlertOctagon,
+  IconMapPin,
+  IconBroadcast,
+  IconHeartRateMonitor,
+  IconBrain,
+  IconAmbulance,
+  IconAlertTriangle,
+} from '@tabler/icons-react';
 import { LocationPost } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
 import { Screen4EmergencyAlert } from './Screen4EmergencyAlert';
@@ -133,7 +140,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
           className="group flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-black text-xs shadow-lg shadow-red-950/25 border-2 border-white transition-all transform hover:scale-[1.02] select-none min-h-[52px] cursor-pointer"
           title="Tekan untuk kasus darurat T0 (Ideasi Bunuh Diri, Psikosis, Agitasi, Krisis Medis)"
         >
-          <ShieldAlert className="w-5 h-5 text-white shrink-0" />
+          <ShieldExclamationIcon className="w-5 h-5 text-white shrink-0" />
           <span className="tracking-wide uppercase text-xs font-black">
             SOS T0
           </span>
@@ -152,7 +159,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
               <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
-                    <ShieldAlert className="w-5 h-5 text-red-600" />
+                    <ShieldExclamationIcon className="w-6 h-6 text-red-600" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
@@ -184,7 +191,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                   {/* Step Aksi Relawan Guidance Alert */}
                   <div className="p-3 bg-red-50/70 border border-red-200 rounded-xl space-y-1.5 text-red-950">
                     <div className="flex items-center gap-2">
-                      <AlertOctagon className="w-4 h-4 text-red-600 shrink-0" />
+                      <IconAlertOctagon className="w-4 h-4 text-red-600 shrink-0" stroke={2.5} />
                       <strong className="text-xs font-bold">
                         Instruksi Wajib Garda Depan (Protokol T0):
                       </strong>
@@ -212,7 +219,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                           Lokasi Posko
                         </span>
                         <span className="font-bold text-slate-800 flex items-center gap-1 justify-end">
-                          <MapPin className="w-3 h-3 text-red-600" />
+                          <IconMapPin className="w-3.5 h-3.5 text-red-600" stroke={2} />
                           {currentLocation}
                         </span>
                       </div>
@@ -356,7 +363,7 @@ export const FloatingRedFlagButton: React.FC<FloatingRedFlagButtonProps> = ({
                       disabled={!canSubmit}
                       className="w-full min-h-[56px] rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-red-600/40 transition uppercase tracking-wider"
                     >
-                      <Radio className="w-4 h-4 animate-pulse" />
+                      <IconBroadcast className="w-5 h-5 animate-pulse" stroke={2.5} />
                       <span>Kirim Sinyal Darurat T0-Suspect</span>
                     </button>
                     <p className="text-[10px] text-center text-slate-400 mt-1">

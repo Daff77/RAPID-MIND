@@ -105,7 +105,12 @@ class SurvivorController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $id = $validated['id'] ?? ('RM-' . date('Y') . '-' . str_pad((string) (Survivor::count() + 1), 6, '0', STR_PAD_LEFT));
+        $rawId = $validated['id'] ?? null;
+        if (!empty($rawId)) {
+            $id = str_starts_with($rawId, 'PB-') ? str_replace('PB-', 'SURV-', $rawId) : $rawId;
+        } else {
+            $id = 'SURV-' . date('Y') . '-' . str_pad((string) (Survivor::count() + 1), 6, '0', STR_PAD_LEFT);
+        }
 
         $survivor = Survivor::updateOrCreate(
             ['id' => $id],

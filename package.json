@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@tabler/icons-react": "^3.48.0",
     "@types/leaflet": "^1.9.22",
     "dexie": "^4.4.6",
     "laravel-echo": "^2.5.0",

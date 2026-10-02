@@ -1,34 +1,41 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Eye,
-  Ear,
-  Link2,
-  CheckCircle2,
   Save,
   ArrowRight,
   ArrowLeft,
-  ShieldAlert,
-  ShieldCheck,
-  Wind,
   Check,
   X,
-  AlertTriangle,
   Info,
   Droplets,
   Shirt,
-  Pill,
-  Users,
   MessageSquare,
   PhoneCall,
-  Activity,
-  EyeOff,
   UserCheck,
   Clock,
   MapPin,
 } from 'lucide-react';
+import {
+  EyeIcon,
+  SpeakerWaveIcon,
+  LinkIcon,
+  CheckCircleIcon as CheckCircleSolid,
+  ShieldCheckIcon,
+  ExclamationTriangleIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/solid';
+import {
+  IconEye,
+  IconEar,
+  IconLink,
+  IconWind,
+  IconPill,
+  IconFirstAidKit,
+  IconHeartHandshake,
+} from '@tabler/icons-react';
 import { SurvivorProfile } from '../../types/assessment';
 import {
   PFA_LOOK_ITEMS,
+  PFA_PRINCIPLE,
   PFA_VOLUNTEER_LOOK_TIP,
   PFA_LISTEN_GREETING_SCRIPT,
   PFA_DOS_AND_DONTS,
@@ -159,12 +166,6 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [PFA_DRAFT_KEY, activeStep, selectedLook, listenNotes, selectedLink, groundingUsed]);
 
-  const toggleLook = (label: string) => {
-    setSelectedLook((prev) =>
-      prev.includes(label) ? prev.filter((i) => i !== label) : [...prev, label]
-    );
-  };
-
   const toggleLink = (label: string) => {
     setSelectedLink((prev) =>
       prev.includes(label) ? prev.filter((i) => i !== label) : [...prev, label]
@@ -261,24 +262,16 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
     onBack();
   };
 
-  const getLookItemIcon = (id: string, isUrgent?: boolean) => {
+  const getLookItemIcon = (id: string, _isUrgent?: boolean) => {
     switch (id) {
       case 'look_safety_environment':
-        return <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />;
+        return <ShieldCheckIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 shrink-0" />;
       case 'look_physical_injury':
-        return <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />;
       case 'look_shock_mutism':
-        return <EyeOff className="w-5 h-5 text-amber-600 shrink-0" />;
       case 'look_hysteria':
-        return <Activity className="w-5 h-5 text-orange-600 shrink-0" />;
       case 'look_agitation':
-        return <ShieldAlert className="w-5 h-5 text-red-600 shrink-0" />;
       default:
-        return isUrgent ? (
-          <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
-        ) : (
-          <Eye className="w-5 h-5 text-blue-600 shrink-0" />
-        );
+        return <ExclamationTriangleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 shrink-0" />;
     }
   };
 
@@ -289,11 +282,11 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       case 'link_blanket_clothes':
         return <Shirt className="w-5 h-5 text-indigo-600 shrink-0" />;
       case 'link_medication':
-        return <Pill className="w-5 h-5 text-red-600 shrink-0" />;
+        return <IconPill className="w-5 h-5 text-red-600 shrink-0" stroke={1.8} />;
       case 'link_baby_elderly':
-        return <Users className="w-5 h-5 text-amber-600 shrink-0" />;
+        return <UserGroupIcon className="w-5 h-5 text-amber-600 shrink-0" />;
       default:
-        return <Link2 className="w-5 h-5 text-emerald-600 shrink-0" />;
+        return <IconLink className="w-5 h-5 text-emerald-600 shrink-0" stroke={2} />;
     }
   };
 
@@ -308,7 +301,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircleSolid className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-xs leading-snug">
               <span className="font-bold text-white block">
@@ -424,7 +417,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
               }`}
             >
               <div className="flex items-center gap-1.5 text-xs">
-                <Eye className="w-3.5 h-3.5" />
+                <IconEye className="w-4 h-4" stroke={2} />
                 <span>01 LOOK</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
@@ -450,7 +443,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
               }`}
             >
               <div className="flex items-center gap-1.5 text-xs">
-                <Ear className="w-3.5 h-3.5" />
+                <IconEar className="w-4 h-4" stroke={2} />
                 <span>02 LISTEN</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
@@ -476,7 +469,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
               }`}
             >
               <div className="flex items-center gap-1.5 text-xs">
-                <Link2 className="w-3.5 h-3.5" />
+                <IconLink className="w-4 h-4" stroke={2} />
                 <span>03 LINK</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
@@ -497,28 +490,24 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
       {/* ------------------------------------------------------------------ */}
       {activeStep === 'look' && (
         <section className="space-y-4 animate-in fade-in" aria-labelledby="heading-look">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-            <div>
-              <h3 id="heading-look" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                Tahap 1: LOOK (Observasi Lapangan)
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Lakukan pemindaian visual singkat selama 10–15 detik sebelum mendekati penyintas untuk memastikan keamanan dan mendeteksi distres berat.
-              </p>
-            </div>
-            <span className="self-start sm:self-auto text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium shrink-0">
-              Observasi 10–15 Detik
-            </span>
+          <div className="space-y-1">
+            <h3 id="heading-look" className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+              Tahap 1: LOOK (Observasi Lapangan)
+            </h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Lakukan pemindaian visual singkat selama 10–15 detik sebelum mendekati penyintas untuk memastikan keamanan dan mendeteksi distres berat.
+            </p>
           </div>
 
-          {/* Human-Centric & Non-Data-Entry Principle Notice */}
-          <div className="p-3.5 bg-blue-50/90 border border-blue-200 rounded-xl text-xs text-blue-950">
-            <div>
+          {/* Kartu Prinsip Utama PFA */}
+          <div className="p-3 sm:p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-xl text-xs text-blue-950 flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5 leading-relaxed">
               <span className="font-bold text-blue-900 block">
-                Buku Saku Observasi Visual (Non-Data-Entry):
+                Prinsip Utama PFA:
               </span>
-              <p className="text-[11px] text-blue-800 leading-relaxed mt-0.5">
-                <strong>Prinsip Non-Data-Entry & Human-Centric:</strong> Panduan ini adalah buku saku untuk dibaca relawan, bukan formulir untuk dicentang di depan penyintas. Pindai keamanan posko dan tanda distres visual selama 10–15 detik, lalu hadirlah secara utuh untuk mendampingi penyintas.
+              <p className="text-xs text-blue-900/90 font-medium">
+                {PFA_PRINCIPLE}
               </p>
             </div>
           </div>
@@ -528,51 +517,37 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             {PFA_LOOK_ITEMS.map((item) => (
               <div
                 key={item.id}
-                className={`w-full p-4 rounded-xl border text-left flex items-start justify-between gap-3.5 transition ${
-                  item.isUrgent
-                    ? 'bg-rose-50/40 border-rose-200 text-slate-900 shadow-2xs'
-                    : 'bg-emerald-50/30 border-emerald-200 text-slate-900 shadow-2xs'
-                }`}
+                className="w-full p-3.5 sm:p-4 rounded-xl border border-slate-200 bg-white text-left flex items-start gap-3 sm:gap-3.5 transition"
                 role="listitem"
               >
-                <div className="flex items-start gap-3.5 min-w-0">
-                  <div
-                    className={`p-2 rounded-xl shrink-0 mt-0.5 ${
-                      item.isUrgent
-                        ? 'bg-rose-100/90 text-rose-700'
-                        : 'bg-emerald-100/90 text-emerald-700'
-                    }`}
-                  >
-                    {getLookItemIcon(item.id, item.isUrgent)}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 block">
-                        {item.label}
-                      </span>
-                      {item.isUrgent ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3 text-rose-600" />
-                          Perlu Atensi Medis / Rujuk T0
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                          Panduan Area Aman
-                        </span>
-                      )}
+                <div className="p-2 rounded-lg bg-slate-100 shrink-0 mt-0.5">
+                  {getLookItemIcon(item.id, item.isUrgent)}
+                </div>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
+                    {item.label}
+                  </h4>
+                  {item.subtext && (
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed block">
+                      {item.subtext}
+                    </p>
+                  )}
+                  {item.id === 'look_physical_injury' && (
+                    <div className="pt-0.5 block">
+                      <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed block">
+                        Dampingi dan arahkan ke Tenda Medis terdekat.
+                      </p>
                     </div>
-                    {item.subtext && (
-                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                        {item.subtext}
+                  )}
+                  {(item.id === 'look_shock_mutism' ||
+                    item.id === 'look_hysteria' ||
+                    item.id === 'look_agitation') && (
+                    <div className="pt-0.5 block">
+                      <p className="text-xs sm:text-sm font-semibold text-red-600 leading-relaxed block">
+                        Tekan tombol Red Flag di kanan bawah.
                       </p>
-                    )}
-                    {item.isUrgent && (
-                      <p className="text-[11px] text-rose-700 mt-1.5 font-medium flex items-center gap-1">
-                        <span>🚨 Tindakan Lapangan:</span> Jika menemukan tanda ini, arahkan segera ke Tenda Medis Posko atau tekan tombol mengambang <strong>SOS T0</strong> di kanan bawah.
-                      </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -636,7 +611,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             {/* DO Card */}
             <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
               <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <CheckCircleSolid className="w-4 h-4 text-emerald-600" />
                 <span>✓ DO (Dianjurkan Dilakukan)</span>
               </div>
               <ul className="space-y-2 text-emerald-950 text-[11px] leading-relaxed">
@@ -652,7 +627,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
             {/* DON'T Card */}
             <div className="p-4 bg-rose-50/80 border border-rose-200 rounded-xl space-y-2.5">
               <div className="flex items-center gap-2 text-rose-900 font-extrabold text-xs">
-                <AlertTriangle className="w-4 h-4 text-rose-600" />
+                <ExclamationTriangleIcon className="w-4 h-4 text-rose-600" />
                 <span>✕ DON'T (Hindari Dilakukan)</span>
               </div>
               <ul className="space-y-2 text-rose-950 text-[11px] leading-relaxed">
@@ -670,7 +645,7 @@ export const PFAMenuSection: React.FC<PFAMenuSectionProps> = ({
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
               <div className="flex items-center gap-2">
-                <Wind className="w-5 h-5 text-blue-600" />
+                <IconWind className="w-5 h-5 text-blue-600" stroke={2} />
                 <div>
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900">
                     {PFA_GROUNDING_STEPS.title}

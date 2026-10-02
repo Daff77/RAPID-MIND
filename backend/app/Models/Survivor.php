@@ -43,7 +43,7 @@ class Survivor extends Model
 
     public function assessments(): HasMany
     {
-        return $this->hasMany(Assessment::class, 'victim_id', 'id')->orderBy('created_at', 'desc');
+        return $this->hasMany(Assessment::class, 'survivor_id', 'id')->orderBy('created_at', 'desc');
     }
 
     public function emergencyAlerts(): HasMany

@@ -63,9 +63,9 @@ export interface PFARecord {
 }
 
 export interface SurvivorProfile {
-  nik?: string; // Opsional jika belum tersedia saat tanggap darurat
-  id: string; // Unique Survivor ID / Patient ID internal (misal: RM-2026-000001)
-  poskoId?: string; // ID Posko / ID gelang jika tersedia
+  nik?: string; // NIK Identity (Lookup mechanism for the survivor)
+  id: string; // Unique Survivor / Person ID (e.g. SURV-2026-000001, distinct from RM assessment codes)
+  poskoId?: string; // ID Posko / ID gelang / QR code
   name: string;
   age: number | string;
   gender: 'L' | 'P';
@@ -82,7 +82,7 @@ export interface SurvivorProfile {
 }
 
 export interface VictimData {
-  id: string; // VCT-001
+  id: string; // VCT-001 or SURV-001
   nik?: string;
   name: string;
   age?: number | string;
@@ -94,10 +94,12 @@ export interface VictimData {
 }
 
 export interface AssessmentRecord {
-  recordId?: string; // Unique Assessment Log ID (e.g. ASM-2026-000001)
-  id: string; // Identifier referensi penyintas (e.g. RM-2026-000001)
-  victimId?: string; // Explicit Victim / Survivor ID alias (RM-2026-000001)
-  nik?: string;
+  rmCode?: string; // Canonical Assessment / Record Identifier (e.g. RM-2026-000089)
+  recordId?: string; // Unique Assessment Record ID (e.g. RM-2026-000089)
+  id: string; // Canonical Assessment Identifier (e.g. RM-2026-000089)
+  survivorId?: string; // Explicit Survivor / Person ID (e.g. SURV-2026-000089)
+  victimId?: string; // Preserved alias for survivorId
+  nik?: string; // NIK of the assessed survivor
   timestamp: string; // ISO string or human formatted
   location: LocationPost;
   method: AssessmentMethod;

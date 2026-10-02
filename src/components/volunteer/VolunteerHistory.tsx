@@ -1,5 +1,19 @@
 import React, { useState } from 'react';
-import { Search, X, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { X } from 'lucide-react';
+import {
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
+import {
+  ShieldExclamationIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/solid';
+import {
+  IconRefresh,
+  IconReportMedical,
+  IconActivityHeartbeat,
+} from '@tabler/icons-react';
 import { AssessmentRecord, TriageZone, TriageTier } from '../../types/assessment';
 import { useAssessment } from '../../context/AssessmentContext';
 
@@ -7,7 +21,7 @@ export const VolunteerHistory: React.FC = () => {
   const { allAssessments, triggerSync, isSyncing } = useAssessment();
   const [selectedRecord, setSelectedRecord] = useState<AssessmentRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [zoneFilter, setZoneFilter] = useState<'ALL' | TriageZone>('ALL');
+  const [tierFilter, setTierFilter] = useState<'ALL' | TriageTier>('ALL');
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   const pendingCount = allAssessments.filter((r) => r.syncStatus === 'pending').length;
@@ -22,40 +36,63 @@ export const VolunteerHistory: React.FC = () => {
     }
   };
 
+  const getRecordTier = (record: AssessmentRecord): TriageTier => {
+    if (record.triageTier) return record.triageTier;
+    if (record.criticalTriggered || record.t0Status === 'T0-Confirmed' || record.t0Status === 'T0-Suspect') return 'T0';
+    if (record.zone === 'RED') return 'T1';
+    if (record.zone === 'YELLOW') return 'T2';
+    return 'T3';
+  };
+
+  const getAssessmentCode = (record: AssessmentRecord): string => {
+    const raw = record.rmCode || record.recordId || record.id || '';
+    return raw.replace(/^(ASM|PB)-/i, 'RM-');
+  };
+
   const filtered = allAssessments.filter((record) => {
+    const code = getAssessmentCode(record);
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      record.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      record.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesZone = zoneFilter === 'ALL' || record.zone === zoneFilter;
-    return matchesSearch && matchesZone;
+      code.toLowerCase().includes(q) ||
+      record.id.toLowerCase().includes(q) ||
+      (record.recordId && record.recordId.toLowerCase().includes(q)) ||
+      record.location.toLowerCase().includes(q) ||
+      (record.victimName && record.victimName.toLowerCase().includes(q));
+    const recordTier = getRecordTier(record);
+    const matchesTier = tierFilter === 'ALL' || recordTier === tierFilter;
+    return matchesSearch && matchesTier;
   });
 
-  const getTriageBadge = (zone: TriageZone, tier?: TriageTier) => {
-    const effectiveTier = tier || (zone === 'GREEN' ? 'T3' : zone === 'YELLOW' ? 'T2' : 'T1');
+  const getTriageBadge = (zone: TriageZone, tier?: TriageTier, record?: AssessmentRecord) => {
+    const effectiveTier = tier || (record ? getRecordTier(record) : (zone === 'GREEN' ? 'T3' : zone === 'YELLOW' ? 'T2' : 'T1'));
     switch (effectiveTier) {
       case 'T0':
         return (
-          <span className="text-[10px] font-extrabold text-red-900 bg-red-100 border border-red-300 px-2 py-0.5 rounded">
-            T0
+          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-red-900 bg-red-100 border border-red-300 px-2 py-0.5 rounded">
+            <ShieldExclamationIcon className="w-3.5 h-3.5 text-red-700" />
+            <span>T0 (Darurat)</span>
           </span>
         );
       case 'T1':
         return (
-          <span className="text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded">
-            T1
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-900 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded">
+            <ExclamationTriangleIcon className="w-3.5 h-3.5 text-orange-600" />
+            <span>T1</span>
           </span>
         );
       case 'T2':
         return (
-          <span className="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
-            T2
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+            <IconActivityHeartbeat className="w-3.5 h-3.5 text-amber-700" stroke={2.5} />
+            <span>T2</span>
           </span>
         );
       case 'T3':
       default:
         return (
-          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-            T3
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+            <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-600" />
+            <span>T3</span>
           </span>
         );
     }
@@ -78,7 +115,7 @@ export const VolunteerHistory: React.FC = () => {
               className="text-[11px] font-bold bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-2.5 py-1 rounded-md flex items-center gap-1.5 transition shadow-2xs cursor-pointer disabled:opacity-50"
               title="Sinkronkan seluruh data antrean pending ke server pusat"
             >
-              <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+              <IconRefresh className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} stroke={2} />
               <span>Sinkronkan ({pendingCount})</span>
             </button>
           )}
@@ -91,7 +128,7 @@ export const VolunteerHistory: React.FC = () => {
       {/* Sync Feedback Toast */}
       {syncFeedback && (
         <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-900 font-bold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <CheckCircleIcon className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{syncFeedback}</span>
         </div>
       )}
@@ -106,23 +143,23 @@ export const VolunteerHistory: React.FC = () => {
             placeholder="Cari ID Pasien atau Posko..."
             className="w-full pl-9 pr-3 min-h-[44px] bg-white border border-slate-300 rounded-lg text-xs text-slate-900 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
           />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+          <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
         </div>
 
-        {/* Zone Filters */}
+        {/* Tier Filters (T1 dan T0 Terpisah) */}
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 text-xs">
-          {(['ALL', 'GREEN', 'YELLOW', 'RED'] as const).map((z) => (
+          {(['ALL', 'T3', 'T2', 'T1', 'T0'] as const).map((t) => (
             <button
-              key={z}
+              key={t}
               type="button"
-              onClick={() => setZoneFilter(z)}
-              className={`min-h-[36px] px-3 py-1 rounded-lg font-bold transition cursor-pointer text-xs ${
-                zoneFilter === z
-                  ? 'bg-slate-900 text-white'
+              onClick={() => setTierFilter(t)}
+              className={`min-h-[36px] px-3 py-1 rounded-lg font-bold transition cursor-pointer text-xs shrink-0 ${
+                tierFilter === t
+                  ? 'bg-blue-600 text-white shadow-2xs'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              {z === 'ALL' ? 'Semua Status' : z === 'GREEN' ? 'T3' : z === 'YELLOW' ? 'T2' : 'T1 / T0'}
+              {t === 'ALL' ? 'Semua Status' : t}
             </button>
           ))}
         </div>
@@ -131,42 +168,50 @@ export const VolunteerHistory: React.FC = () => {
       {/* History Records List: Compact rows with dividers instead of wrapped card */}
       <div className="divide-y divide-slate-100 border-t border-b border-slate-200">
         {filtered.length > 0 ? (
-          filtered.map((item) => (
-            <div
-              key={item.recordId || item.id}
-              onClick={() => setSelectedRecord(item)}
-              className="py-3 px-1.5 flex items-center justify-between gap-3 hover:bg-slate-50/90 active:bg-slate-100 cursor-pointer transition rounded-md"
-            >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-xs sm:text-sm text-slate-900">
-                    {item.victimId || item.id}
-                  </span>
-                  <span className="text-xs font-medium text-slate-700 truncate">
-                    {item.location}
-                  </span>
+          filtered.map((item) => {
+            const code = getAssessmentCode(item);
+            return (
+              <div
+                key={code || item.recordId || item.id}
+                onClick={() => setSelectedRecord(item)}
+                className="py-3 px-1.5 flex items-center justify-between gap-3 hover:bg-slate-50/90 active:bg-slate-100 cursor-pointer transition rounded-md"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-xs sm:text-sm text-slate-900">
+                      {code}
+                    </span>
+                    {item.victimName && (
+                      <span className="text-xs font-semibold text-slate-700 truncate">
+                        · {item.victimName}
+                      </span>
+                    )}
+                    <span className="text-xs font-medium text-slate-500 truncate">
+                      ({item.location})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                    <span>{item.timestamp}</span>
+                    <span>·</span>
+                    <span className="capitalize">{item.method}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                  <span>{item.timestamp}</span>
-                  <span>·</span>
-                  <span className="capitalize">{item.method}</span>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                {getTriageBadge(item.zone, item.triageTier)}
-                <span
-                  className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                    item.syncStatus === 'synced'
-                      ? 'text-slate-500 bg-slate-100 border border-slate-200'
-                      : 'bg-amber-50 text-amber-900 border border-amber-200'
-                  }`}
-                >
-                  {item.syncStatus === 'synced' ? 'Tersinkron' : 'Pending'}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  {getTriageBadge(item.zone, item.triageTier, item)}
+                  <span
+                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                      item.syncStatus === 'synced'
+                        ? 'text-slate-500 bg-slate-100 border border-slate-200'
+                        : 'bg-amber-50 text-amber-900 border border-amber-200'
+                    }`}
+                  >
+                    {item.syncStatus === 'synced' ? 'Tersinkron' : 'Pending'}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="py-10 text-center text-xs text-slate-400">
             Tidak ada riwayat penapisan yang cocok.
@@ -181,8 +226,13 @@ export const VolunteerHistory: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="font-mono font-bold text-base text-slate-900 block">
-                  {selectedRecord.victimId || selectedRecord.id}
+                  {getAssessmentCode(selectedRecord)}
                 </span>
+                {selectedRecord.victimName && (
+                  <span className="text-xs font-bold text-slate-800 block mt-0.5">
+                    {selectedRecord.victimName} {selectedRecord.nik && selectedRecord.nik !== '-' ? `· NIK: ${selectedRecord.nik}` : ''}
+                  </span>
+                )}
                 <span className="text-xs text-slate-500">
                   {selectedRecord.location} · {selectedRecord.timestamp}
                 </span>
@@ -200,7 +250,7 @@ export const VolunteerHistory: React.FC = () => {
             <div className="space-y-2 text-xs">
               <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Prioritas Triase</span>
-                {getTriageBadge(selectedRecord.zone, selectedRecord.triageTier)}
+                {getTriageBadge(selectedRecord.zone, selectedRecord.triageTier, selectedRecord)}
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Metode</span>

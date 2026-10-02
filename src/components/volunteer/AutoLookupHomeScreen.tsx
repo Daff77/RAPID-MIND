@@ -1,20 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Search,
-  UserCheck,
-  UserPlus,
   ArrowRight,
   Clock,
-  IdCard,
-  Users,
   Check,
   Eye,
-  QrCode,
   X,
-  FileText,
   AlertCircle,
-  Camera,
 } from 'lucide-react';
+import {
+  MagnifyingGlassIcon,
+  IdentificationIcon,
+  UserPlusIcon,
+  CameraIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
+import {
+  IconScan,
+  IconQrcode,
+  IconUserCheck,
+  IconBrain,
+  IconHeartHandshake,
+  IconReportMedical,
+} from '@tabler/icons-react';
 import { SurvivorProfile, LocationPost, getCategoryFromAge } from '../../types/assessment';
 import {
   searchSurvivors,
@@ -303,7 +310,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
         {/* Input Box: Minimum 56px touch floor */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-5 h-5 text-slate-400" />
+            <MagnifyingGlassIcon className="w-5 h-5 text-slate-400" />
           </div>
 
           <input
@@ -343,7 +350,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
             onClick={() => handleSearch()}
             className="flex-1 min-h-[56px] px-6 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
           >
-            <Search className="w-4 h-4" />
+            <MagnifyingGlassIcon className="w-4 h-4" />
             <span>Cari Penyintas</span>
           </button>
 
@@ -356,7 +363,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
             className="sm:w-auto px-5 min-h-[56px] rounded-lg bg-white border border-slate-300 hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-semibold text-sm flex items-center justify-center gap-2 transition cursor-pointer"
             title="Pindai QR Gelang Posko"
           >
-            <QrCode className="w-4 h-4 text-slate-600" />
+            <IconScan className="w-4 h-4 text-slate-600" stroke={2} />
             <span>Scan QR</span>
           </button>
         </div>
@@ -431,7 +438,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-slate-100">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
-                    <UserCheck className="w-5 h-5 text-emerald-600" />
+                    <IconUserCheck className="w-5 h-5 text-emerald-600" stroke={2} />
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -478,7 +485,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <IdCard className="w-4 h-4 text-slate-600" />
+                    <IdentificationIcon className="w-4 h-4 text-slate-600" />
                     <span className="font-bold text-slate-700">NIK KTP:</span>
                     {lookupResult.nik ? (
                       <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
@@ -597,7 +604,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                       onClick={() => onSelectSurvivor(lookupResult, 'pfa')}
                       className="w-full min-h-[56px] px-4 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
                     >
-                      <Eye className="w-4 h-4" />
+                      <IconHeartHandshake className="w-5 h-5" stroke={2} />
                       <span>Lanjutkan Intervensi PFA (Fase Akut Hari 1–3)</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
@@ -618,7 +625,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                       onClick={() => onSelectSurvivor(lookupResult, 'srq20')}
                       className="w-full min-h-[56px] px-4 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
                     >
-                      <FileText className="w-4 h-4" />
+                      <IconBrain className="w-5 h-5" stroke={2} />
                       <span>Mulai Wawancara SRQ-20 (Fase Lanjutan Hari 4–30)</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
@@ -628,7 +635,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                       onClick={() => onSelectSurvivor(lookupResult, 'pfa')}
                       className="w-full min-h-[52px] px-4 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition"
                     >
-                      <Eye className="w-4 h-4 text-slate-600" />
+                      <IconHeartHandshake className="w-4 h-4 text-slate-600" stroke={2} />
                       <span>Lihat / Perbarui Catatan PFA (Fase Akut)</span>
                     </button>
                   </>
@@ -640,7 +647,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
             <div className="w-full bg-white border border-slate-200 border-l-4 border-l-blue-600 rounded-xl p-4 sm:p-5 space-y-3.5">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                  <Users className="w-4 h-4" />
+                  <UserGroupIcon className="w-4 h-4" />
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
@@ -735,7 +742,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
             >
               <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                 <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                  <UserPlus className="w-5 h-5" />
+                  <UserPlusIcon className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider block">
@@ -897,7 +904,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
-                  <QrCode className="w-4 h-4" />
+                  <IconQrcode className="w-4 h-4" stroke={2} />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 leading-tight">
@@ -946,7 +953,7 @@ export const AutoLookupHomeScreen: React.FC<AutoLookupHomeScreenProps> = ({
                 {/* If camera is not available or blocked */}
                 {cameraError && (
                   <div className="absolute inset-0 bg-slate-900/90 text-white p-4 flex flex-col items-center justify-center text-center space-y-2">
-                    <Camera className="w-8 h-8 text-slate-400" />
+                    <CameraIcon className="w-8 h-8 text-slate-400" />
                     <p className="text-xs text-slate-300 leading-relaxed max-w-xs">
                       {cameraError}
                     </p>

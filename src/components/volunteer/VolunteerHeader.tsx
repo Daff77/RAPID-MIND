@@ -1,15 +1,21 @@
 import React from 'react';
 import {
-  WifiOff,
-  LogOut,
-  Cloud,
-  Database,
-  RefreshCw,
-  CheckCircle2,
-  AlertCircle,
-  UserCheck,
-  History,
-} from 'lucide-react';
+  IconBrain,
+  IconWifi,
+  IconWifiOff,
+  IconCloud,
+  IconDatabase,
+  IconRefresh,
+  IconHistory,
+} from '@tabler/icons-react';
+import {
+  ArrowRightOnRectangleIcon,
+  IdentificationIcon,
+} from '@heroicons/react/24/outline';
+import {
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+} from '@heroicons/react/24/solid';
 import { useAssessment } from '../../context/AssessmentContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -47,8 +53,8 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
           onClick={() => onSelectTab('home')}
           title="RAPID-MIND: Beranda Relawan"
         >
-          <div className="w-7 h-7 rounded-lg bg-[var(--rm-action-primary)] text-white flex items-center justify-center font-black text-xs shadow-xs transition group-hover:bg-[var(--rm-action-hover)]">
-            RM
+          <div className="w-8 h-8 rounded-lg bg-[var(--rm-action-primary)] text-white flex items-center justify-center font-black shadow-xs transition group-hover:bg-[var(--rm-action-hover)]">
+            <IconBrain className="w-5 h-5" stroke={2.2} />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
@@ -81,12 +87,12 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
           >
             {isOnline ? (
               <>
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                <IconWifi className="w-3.5 h-3.5 text-emerald-700 shrink-0" stroke={2.5} />
                 <span className="tracking-wide text-[11px]">ONLINE</span>
               </>
             ) : (
               <>
-                <WifiOff className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                <IconWifiOff className="w-3.5 h-3.5 text-amber-800 shrink-0" stroke={2.5} />
                 <span className="tracking-wide text-[11px]">OFFLINE</span>
               </>
             )}
@@ -98,7 +104,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
               className="hidden xs:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
               title="Terhubung ke Server Pusat (Laravel 13 API & PostgreSQL)"
             >
-              <Cloud className="w-3 h-3 text-emerald-600" />
+              <IconCloud className="w-3.5 h-3.5 text-emerald-600" stroke={2} />
               <span>Cloud</span>
             </span>
           ) : (
@@ -114,7 +120,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
                   : 'Penyimpanan Lokal: Local Storage'
               }
             >
-              <Database className={`w-3 h-3 ${isIndexedDBReady ? 'text-blue-600' : 'text-slate-500'}`} />
+              <IconDatabase className={`w-3.5 h-3.5 ${isIndexedDBReady ? 'text-blue-600' : 'text-slate-500'}`} stroke={2} />
               <span>{isIndexedDBReady ? 'IndexedDB' : 'Lokal'}</span>
             </span>
           )}
@@ -137,7 +143,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
                 title={`Keluar (${currentUser.name})`}
                 aria-label="Keluar dari sesi relawan"
               >
-                <LogOut className="w-4 h-4" />
+                <ArrowRightOnRectangleIcon className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -148,7 +154,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
       {!isOnline && (
         <div className="bg-amber-50 border-t border-amber-200 px-3.5 sm:px-4 py-1.5 text-xs text-amber-950 flex items-center justify-between max-w-2xl mx-auto">
           <div className="flex items-center gap-1.5 min-w-0">
-            <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+            <ExclamationTriangleIcon className="w-4 h-4 text-amber-700 shrink-0" />
             <span className="truncate">
               <strong>OFFLINE MODE:</strong> Data tersimpan aman di IndexedDB perangkat.
               {offlineQueue.length > 0 && (
@@ -170,7 +176,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
       {isOnline && (pendingCount > 0 || isSyncing) && (
         <div className="bg-blue-50 border-t border-blue-200 px-3.5 sm:px-4 py-1.5 text-xs text-blue-950 flex items-center justify-between max-w-2xl mx-auto">
           <div className="flex items-center gap-1.5">
-            <RefreshCw className={`w-3.5 h-3.5 text-blue-700 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
+            <IconRefresh className={`w-4 h-4 text-blue-700 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} stroke={2} />
             <span>
               <strong>KONEKSI AKTIF:</strong>{' '}
               {isSyncing ? 'Sedang menyinkronkan otomatis ke server pusat...' : `${pendingCount} data antrean (auto-sync aktif).`}
@@ -190,7 +196,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
       {/* Sync Success Banner */}
       {syncSuccessBanner && (
         <div className="bg-emerald-50 border-t border-emerald-200 px-4 py-1 text-xs text-emerald-900 font-bold flex items-center justify-center gap-1.5 max-w-2xl mx-auto animate-in fade-in">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+          <CheckCircleIcon className="w-4 h-4 text-emerald-600" />
           <span>Seluruh data antrean berhasil disinkronkan ke pusat.</span>
         </div>
       )}
@@ -210,7 +216,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
           }`}
           aria-selected={currentTab === 'home'}
         >
-          <UserCheck className="w-4 h-4" />
+          <IdentificationIcon className="w-4 h-4" />
           <span>Identifikasi Penyintas</span>
         </button>
 
@@ -224,7 +230,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({
           }`}
           aria-selected={currentTab === 'history'}
         >
-          <History className="w-4 h-4" />
+          <IconHistory className="w-4 h-4" stroke={2} />
           <span>Riwayat Skrining</span>
           {offlineQueue.length > 0 && (
             <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">

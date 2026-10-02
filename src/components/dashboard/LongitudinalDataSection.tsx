@@ -1,9 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Search,
   MapPin,
-  Activity,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -12,6 +9,23 @@ import {
   ArrowDown,
   ArrowUp,
 } from 'lucide-react';
+import {
+  ShieldExclamationIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon as CheckCircleSolid,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/solid';
+import {
+  MagnifyingGlassIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+} from '@heroicons/react/24/outline';
+import {
+  IconActivityHeartbeat,
+  IconChartLine,
+  IconBrain,
+  IconFirstAidKit,
+} from '@tabler/icons-react';
 import { useAssessment } from '../../context/AssessmentContext';
 import { getStoredSurvivors } from '../../data/seedSurvivors';
 import { AssessmentRecord, LocationPost, TriageTier } from '../../types/assessment';
@@ -208,8 +222,8 @@ export const LongitudinalDataSection: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200"
             title="T0 Emergency"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
-            <span>🚨 T0 Emergency</span>
+            <ShieldExclamationIcon className="w-3.5 h-3.5 text-red-600 animate-pulse" />
+            <span>T0 Emergency</span>
           </span>
         );
       case 'T1':
@@ -218,8 +232,8 @@ export const LongitudinalDataSection: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200"
             title="T1 High Risk"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
-            <span>🔴 T1 High Risk</span>
+            <ExclamationTriangleIcon className="w-3.5 h-3.5 text-orange-600" />
+            <span>T1 High Risk</span>
           </span>
         );
       case 'T2':
@@ -228,8 +242,8 @@ export const LongitudinalDataSection: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200"
             title="T2 Moderate"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-            <span>🟡 T2 Moderate</span>
+            <IconActivityHeartbeat className="w-3.5 h-3.5 text-amber-600" stroke={2} />
+            <span>T2 Moderate</span>
           </span>
         );
       case 'T3':
@@ -239,8 +253,8 @@ export const LongitudinalDataSection: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200"
             title="T3 Low Risk"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-            <span>🟢 T3 Low Risk</span>
+            <CheckCircleSolid className="w-3.5 h-3.5 text-emerald-600" />
+            <span>T3 Low Risk</span>
           </span>
         );
     }
@@ -291,7 +305,7 @@ export const LongitudinalDataSection: React.FC = () => {
               <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-blue-900 flex items-center gap-1.5 text-xs">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <ShieldCheckIcon className="w-4 h-4 text-emerald-600" />
                     Fase Akut: Pertolongan Pertama Psikologis (PFA Hari 1–3)
                   </span>
                   <span className="font-mono text-[11px] text-slate-500">
@@ -409,7 +423,7 @@ export const LongitudinalDataSection: React.FC = () => {
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center">
           <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+            <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
               value={search}
@@ -545,7 +559,7 @@ export const LongitudinalDataSection: React.FC = () => {
 
                     <td className="py-2.5 px-3.5 whitespace-nowrap">
                       <div className="flex items-center gap-1 text-slate-700 font-medium">
-                        <Activity className="w-3.5 h-3.5 text-blue-600" />
+                        <IconActivityHeartbeat className="w-3.5 h-3.5 text-blue-600" stroke={1.8} />
                         <span>{item.records.length} Sesi Terdata</span>
                       </div>
                     </td>

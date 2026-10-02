@@ -263,15 +263,29 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const map = new Map<string, AssessmentRecord>();
     // Add all central assessments first
     centralAssessments.forEach((c) => {
-      const key = c.recordId || c.id;
-      map.set(key, c);
+      const canonicalCode = (c.rmCode || c.recordId || c.id || '').replace(/^(ASM|PB)-/i, 'RM-');
+      const normalized: AssessmentRecord = {
+        ...c,
+        recordId: canonicalCode || c.recordId,
+        rmCode: canonicalCode || c.rmCode,
+        id: canonicalCode || c.id,
+      };
+      const key = canonicalCode || c.recordId || c.id;
+      map.set(key, normalized);
     });
     // Add offlineQueue items only if not already marked synced in central
     offlineQueue.forEach((q) => {
-      const key = q.recordId || q.id;
+      const canonicalCode = (q.rmCode || q.recordId || q.id || '').replace(/^(ASM|PB)-/i, 'RM-');
+      const normalized: AssessmentRecord = {
+        ...q,
+        recordId: canonicalCode || q.recordId,
+        rmCode: canonicalCode || q.rmCode,
+        id: canonicalCode || q.id,
+      };
+      const key = canonicalCode || q.recordId || q.id;
       const existing = map.get(key);
       if (!existing || existing.syncStatus !== 'synced') {
-        map.set(key, q);
+        map.set(key, normalized);
       }
     });
 

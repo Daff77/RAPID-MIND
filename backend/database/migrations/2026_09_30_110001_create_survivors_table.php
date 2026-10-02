@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('survivors', function (Blueprint $table) {
-            $table->string('id')->primary(); // Format: RM-2026-000001
+            $table->string('id')->primary(); // Unique Survivor/Person ID (Format: SURV-2026-XXXXXX or existing survivor identity)
             $table->string('nik')->nullable()->unique();
             $table->string('posko_id')->nullable(); // ID Gelang posko / kode tenda
             $table->string('name');

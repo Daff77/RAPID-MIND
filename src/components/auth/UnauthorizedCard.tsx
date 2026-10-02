@@ -1,5 +1,8 @@
 import React from 'react';
-import { ShieldAlert, ArrowLeft, LogOut, Lock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { ShieldExclamationIcon } from '@heroicons/react/24/solid';
+import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { IconShieldLock } from '@tabler/icons-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface UnauthorizedCardProps {
@@ -22,7 +25,7 @@ export const UnauthorizedCard: React.FC<UnauthorizedCardProps> = ({
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-lg text-center space-y-5 animate-in fade-in zoom-in-95">
         <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-xs">
-          <ShieldAlert className="w-8 h-8" />
+          <ShieldExclamationIcon className="w-8 h-8" />
         </div>
 
         <div className="space-y-1.5">
@@ -42,7 +45,7 @@ export const UnauthorizedCard: React.FC<UnauthorizedCardProps> = ({
 
         <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-left space-y-2">
           <div className="flex items-center gap-2 font-bold text-slate-800">
-            <Lock className="w-3.5 h-3.5 text-slate-500" />
+            <IconShieldLock className="w-4 h-4 text-slate-600" stroke={2} />
             <span>Role-Based Access Policy</span>
           </div>
           <ul className="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
@@ -66,7 +69,7 @@ export const UnauthorizedCard: React.FC<UnauthorizedCardProps> = ({
             onClick={handleSwitch}
             className="h-11 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-medium flex items-center justify-center gap-1.5 transition"
           >
-            <LogOut className="w-3.5 h-3.5 text-slate-500" />
+            <ArrowRightOnRectangleIcon className="w-4 h-4 text-slate-500" />
             <span>Switch Account</span>
           </button>
         </div>

@@ -128,7 +128,7 @@ Data ini terintegrasi langsung ke **Dashboard Admin (BPBD & Dinkes)** dalam bent
      
 6. Seluruh pergerakan data ini terekam secara real-time di Dashboard Role 3 (BPBD dan Dinkes) untuk pemetaan peta geospasial (heatmap) dan pengambil kebijakan skala wilayah.
 
-Halo Dev Team\! Biar kita satu frekuensi untuk pengerjaan prototipe/mockup web-app **RAPID-MIND**, berikut adalah ringkasan spesifikasi teknis, logika *backend*, dan alur UI/UX yang perlu kita bangun:
+### **SPESIFIKASI TEKNIS & ARSITEKTUR IMPLEMENTASI RAPID-MIND**
 
 1. PLATFORM & UI FRAMEWORK  
 * Architecture: Progressive Web App (PWA) berbasis Mobile-First Responsive UI untuk Relawan, serta Desktop-Optimized Dashboard untuk Admin & Faskes.  
@@ -181,11 +181,12 @@ Halo Dev Team\! Biar kita satu frekuensi untuk pengerjaan prototipe/mockup web-a
   * **CRITICAL REQUIREMENT:** *Human-in-the-Loop Control*. Relawan wajib memiliki akses *override* manual untuk menambah atau mengurai centang hasil *Speech-to-Text*.  
 * **Screen 6: Evaluasi Faktor Risiko & Fungsi Harian**  
   * Checklist dampak trauma pada keberfungsian hidup sehari-hari.  
-* **Screen 7: Result Screen (Auto-Calculated Triage Zone)**  
-  * **Logic Engine:** Memproses skor total SRQ-20 & checklist fungsi:  
-    * T1 (High Risk) : Skor SRQ-20 \>/= 11  
-    * T2 (Moderate Risk) : Skor SRQ-20 6–10.  
-    * T3 (Low Risk) : Skor SRQ-20 0–5.
+* **Screen 7: Result Screen (Auto-Calculated Integrated Triage Zone)**  
+  * **Logic Engine:** Memproses skor total terintegrasi (0–37 poin: SRQ-20 [0–20] + Faktor Risiko [0–8] + Keberfungsian [0–9]):  
+    * **T1 (High Risk):** Total Skor Integrasi >= 15 ATAU Skor Gangguan Keberfungsian F >= 6 (Rujukan Prioritas Spesialis/Psikolog).  
+    * **T2 (Moderate Risk):** Total Skor Integrasi 7–14 (Pendampingan PFA Lanjutan & Konseling).  
+    * **T3 (Low Risk):** Total Skor Integrasi 0–6 (Edukasi Kesehatan Jiwa & Dukungan Komunitas).  
+    * **T0 (Emergency):** Terpicu langsung saat indikator suisida (Q17=Ya), psikosis akut, agitasi membahayakan, atau tombol Red Flag ditekan.
 
 #### **3\. Persistent Global Component: "Floating Red-Flag Shortcut"**
 
@@ -242,18 +243,13 @@ Layout Main Components:
 * Panel Right Sidebar (Resource & Volunteer Management):  
   * List Relawan Aktif di setiap posko dan fitur alokasi/pemindahan relawan ke posko berdampak tinggi (Zona Merah/Orange).
 
-*Gimana Devs, draf alur & logika sistemnya sudah cukup jelas? Kalau ada struktur database atau endpoint API yang mau didiskusikan, kabari ya\!*
+### **RINGKASAN 5 PILAR ARSITEKTUR SISTEM RAPID-MIND**
 
-I. System Architecture & PWA Offline-First: Penerapan Service Worker dan IndexedDB untuk menjamin fungsionalitas aplikasi di area blank spot serta Background Auto-Sync.   
-    
-II. Universal Single Sign-On (SSO) & Role-Based Access Control (RBAC): Struktur otentikasi JWT yang memisahkan hak akses antarmuka Relawan (Mobile PWA) dan Pengambil Kebijakan (Desktop Dashboard).   
-
-III. Dual-Path Triage Algorithmic Framework:  
-Phase 1 (Acute Phase Hari 1–3): PFA First, Penapisan Red-Flag Safety Gate (T0 \- Emergency), dan Checklist Non-Verbal (Jalur B).   
-
-Phase 2 (Longitudinal Evaluation Hari 30): Wawancara SRQ-20 Terpandu (Jalur A) untuk klasifikasi T1 (High Risk), T2 (Moderate), dan T3 (Low Risk).   
-
-IV. Feature Innovations: Integrasi Speech-to-Text (Voice Input) untuk deteksi kata kunci berisiko dan Outdoor-Adaptable High-Contrast UI (Sunlight/Night Mode).  
-     
-V. Data Integration & Geospasial Dashboard: Pembuatan Unique Patient ID untuk pemantauan longitudinal dan visualisasi Heatmap interaktif bagi BPBD/Dinkes.   
+1. **System Architecture & PWA Offline-First:** Penerapan Service Worker dan IndexedDB untuk menjamin fungsionalitas aplikasi di area *blank spot* serta Background Auto-Sync saat koneksi internet pulih.
+2. **Universal Single Sign-On (SSO) & Role-Based Access Control (RBAC):** Struktur otentikasi JWT yang memisahkan hak akses antarmuka Relawan (Mobile PWA) dan Pengambil Kebijakan (Desktop Dashboard).
+3. **Dual-Path Triage Algorithmic Framework:**
+   * **Phase 1 (Acute Phase Hari 1–3):** Intervensi PFA Look-Listen-Link terpandu, penapisan Red-Flag Safety Gate (T0 - Emergency), dan panduan observasi non-data-entry.
+   * **Phase 2 (Longitudinal Evaluation Hari 4–30):** Wawancara SRQ-20 terpandu (Jalur Verbal & Non-Verbal), integrasi faktor risiko & fungsi (0–37 poin) untuk klasifikasi T1 (High Risk), T2 (Moderate), dan T3 (Low Risk).
+4. **Feature Innovations:** Integrasi Speech-to-Text (Voice Input) untuk deteksi kata kunci berisiko dengan kendali penuh relawan (*Human-in-the-Loop*), serta antarmuka berdaya kontras tinggi yang ramah kondisi lapangan.
+5. **Data Integration & Geospasial Dashboard:** Pembuatan Unique Patient ID untuk pemantauan longitudinal hingga 30 hari dan visualisasi Heatmap interaktif bagi BPBD/Dinkes.   
 

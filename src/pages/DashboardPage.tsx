@@ -1,124 +1,110 @@
 import React, { useState } from 'react';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { Sidebar } from '../components/dashboard/Sidebar';
 import { KPICards } from '../components/dashboard/KPICards';
 import { PriorityRedPanel } from '../components/dashboard/PriorityRedPanel';
-import { TriageCharts } from '../components/dashboard/TriageCharts';
 import { TriageMap } from '../components/dashboard/TriageMap';
+import { TriageCharts } from '../components/dashboard/TriageCharts';
 import { RecentAssessmentsTable } from '../components/dashboard/RecentAssessmentsTable';
 import { UserManagementSection } from '../components/dashboard/UserManagementSection';
 import { LongitudinalDataSection } from '../components/dashboard/LongitudinalDataSection';
 import { useAssessment } from '../context/AssessmentContext';
-import { Download, Filter, FileText } from 'lucide-react';
 
-interface DashboardPageProps {}
-
-export const DashboardPage: React.FC<DashboardPageProps> = () => {
+export const DashboardPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState('overview');
-  const [activePhaseFilter, setActivePhaseFilter] = useState<'all' | 'acute' | 'longitudinal'>('all');
-  const { centralAssessments } = useAssessment();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { offlineQueue } = useAssessment();
 
-  const handleExport = () => {
-    alert('Mengunduh Laporan Agregat Wilayah BPBD & Dinkes (PDF / Excel)...');
+  const handleSelectNav = (sectionId: string) => {
+    // Map sidebar IDs to views
+    if (sectionId === 'overview' || sectionId === 'penyintas' || sectionId === 'asesmen') {
+      setActiveSection('overview');
+      if (sectionId === 'penyintas' || sectionId === 'asesmen') {
+        const tableElem = document.getElementById('master-data-table');
+        if (tableElem) {
+          tableElem.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    } else if (sectionId === 'longitudinal' || sectionId === 'log') {
+      setActiveSection('longitudinal');
+    } else if (
+      sectionId === 'users' ||
+      sectionId === 'posko' ||
+      sectionId === 'relawan-master' ||
+      sectionId === 'faskes'
+    ) {
+      setActiveSection('users');
+    } else if (sectionId === 'laporan') {
+      alert('Membuka modul pelaporan komprehensif BPBD / Dinkes.');
+    } else if (sectionId === 'offline') {
+      alert(
+        `Mode Offline: ${
+          offlineQueue.length > 0
+            ? `${offlineQueue.length} data antrean tersimpan lokal di IndexedDB siap disinkronkan saat terhubung kembali.`
+            : 'Semua data telah tersimpan lokal di peramban.'
+        }`
+      );
+    } else {
+      setActiveSection(sectionId);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans">
+      {/* Top Header spanning across the entire layout */}
       <DashboardHeader
         activeSection={activeSection}
-        onSelectSection={(sec) => setActiveSection(sec)}
+        onSelectSection={handleSelectNav}
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen(true)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
-        {/* Global Filter & Export Bar (Role 3: BPBD / Dinkes Command Center) */}
-        {activeSection === 'overview' && (
-          <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 shrink-0">
-                <Filter className="w-3.5 h-3.5 text-blue-600" />
-                <span>Filter Fase Bencana:</span>
-              </span>
+      {/* Main Body: Fixed Left Sidebar + Main Content Area */}
+      <div className="flex-1 flex flex-row w-full">
+        {/* Fixed Left Navigation Sidebar */}
+        <Sidebar
+          activeItem={activeSection}
+          onSelectItem={handleSelectNav}
+          isMobileOpen={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          offlineCount={offlineQueue.length}
+        />
 
-              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setActivePhaseFilter('all')}
-                  className={`px-3 py-1 rounded-md transition-all ${
-                    activePhaseFilter === 'all'
-                      ? 'bg-white text-blue-700 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Semua Fase
-                </button>
+        {/* Main Content Viewport */}
+        <main className="flex-1 min-w-0 p-4 sm:p-5 lg:p-6 space-y-4 max-w-[1600px] mx-auto w-full">
+          {/* 1. Primary Command Center (Pusat Komando) */}
+          {activeSection === 'overview' && (
+            <div className="space-y-4 animate-in fade-in duration-100">
+              {/* Row 1: Top KPI Cards (5 compact cards) */}
+              <KPICards />
 
-                <button
-                  type="button"
-                  onClick={() => setActivePhaseFilter('acute')}
-                  className={`px-3 py-1 rounded-md transition-all ${
-                    activePhaseFilter === 'acute'
-                      ? 'bg-white text-blue-700 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Fase Akut (H 1–3)
-                </button>
+              {/* Row 2: Emergency Alert Cards + Geospatial Map side-by-side */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
+                {/* Left (7 cols): Peringatan Dini Kasus T0 */}
+                <div className="xl:col-span-7 flex flex-col">
+                  <PriorityRedPanel />
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => setActivePhaseFilter('longitudinal')}
-                  className={`px-3 py-1 rounded-md transition-all ${
-                    activePhaseFilter === 'longitudinal'
-                      ? 'bg-white text-blue-700 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Fase Lanjutan (H 4–30)
-                </button>
+                {/* Right (5 cols): Sebaran Kasus Geospasial */}
+                <div className="xl:col-span-5 flex flex-col">
+                  <TriageMap />
+                </div>
               </div>
 
-              <div className="hidden xl:flex items-center gap-1 text-[11px] font-mono font-medium text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
-                <FileText className="w-3 h-3 text-slate-400" />
-                <span>{centralAssessments.length} total rekaman triase</span>
-              </div>
+              {/* Row 3: 3 Analytics Panels Side-by-Side */}
+              <TriageCharts />
+
+              {/* Row 4: Master Data Penyintas Table */}
+              <RecentAssessmentsTable />
             </div>
+          )}
 
-            <button
-              type="button"
-              onClick={handleExport}
-              className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-1.5 shrink-0 shadow-2xs"
-            >
-              <Download className="w-3.5 h-3.5 text-blue-600" />
-              <span>Ekspor Laporan (PDF/Excel)</span>
-            </button>
-          </div>
-        )}
+          {/* 2. Data Longitudinal Penapisan Penyintas (30 Hari) */}
+          {activeSection === 'longitudinal' && <LongitudinalDataSection />}
 
-        {/* 1. Pusat Komando & Geospasial (Overview) */}
-        {activeSection === 'overview' && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            {/* Overview Metrics Cards */}
-            <KPICards />
-
-            {/* Emergency T0 Attention Panel (conditional if T0 active) */}
-            <PriorityRedPanel />
-
-            {/* Triage Distribution & Post Burden Charts */}
-            <TriageCharts />
-
-            {/* Geospatial Situation & Station Overview */}
-            <TriageMap />
-
-            {/* Recent Assessment Registry Log */}
-            <RecentAssessmentsTable />
-          </div>
-        )}
-
-        {/* 2. Data Longitudinal Penapisan Penyintas (Hari 1 - 30) */}
-        {activeSection === 'longitudinal' && <LongitudinalDataSection />}
-
-        {/* 3. Manajemen Relawan & Pengguna (Admin BPBD / Dinkes) */}
-        {activeSection === 'users' && <UserManagementSection />}
-      </main>
+          {/* 3. Manajemen Relawan & Posko Sumber Daya */}
+          {activeSection === 'users' && <UserManagementSection />}
+        </main>
+      </div>
     </div>
   );
 };
