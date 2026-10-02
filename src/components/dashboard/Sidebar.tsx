@@ -10,8 +10,6 @@ import {
   IconId,
   IconBuildingHospital,
   IconHistory,
-  IconWifiOff,
-  IconArrowRight,
   IconX,
 } from '@tabler/icons-react';
 
@@ -20,7 +18,6 @@ export interface SidebarProps {
   onSelectItem: (id: string) => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
-  offlineCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -28,7 +25,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectItem,
   isMobileOpen = false,
   onCloseMobile,
-  offlineCount = 0,
 }) => {
   const navGroups = [
     {
@@ -103,33 +99,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Offline Status Footer Card */}
-      <div className="p-3 border-t border-slate-100">
-        <div
-          onClick={() => handleNavClick('offline')}
-          className="p-2.5 rounded-xl border border-red-100 bg-red-50/40 hover:bg-red-50/80 transition-colors cursor-pointer flex items-center justify-between group"
-          title="Data tersimpan lokal di IndexedDB/Browser"
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center text-red-600 shrink-0">
-              <IconWifiOff className="w-3.5 h-3.5" stroke={2.2} />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold text-red-700 leading-tight">
-                Mode Offline
-              </div>
-              <div className="text-[10px] text-slate-500 leading-tight truncate">
-                {offlineCount > 0 ? `${offlineCount} data pending` : 'Data tersimpan lokal'}
-              </div>
-            </div>
-          </div>
-          <IconArrowRight
-            className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all shrink-0"
-            stroke={2}
-          />
-        </div>
       </div>
     </div>
   );

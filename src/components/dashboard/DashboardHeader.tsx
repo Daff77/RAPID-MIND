@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import {
   IconBrain,
-  IconWifi,
-  IconWifiOff,
   IconBell,
   IconChevronDown,
   IconMenu2,
   IconLogout,
   IconCloudCheck,
-  IconRefresh,
 } from '@tabler/icons-react';
 import { useAssessment } from '../../context/AssessmentContext';
 import { useAuth } from '../../context/AuthContext';
@@ -23,8 +20,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onToggleMobileSidebar,
 }) => {
   const { currentUser, logout } = useAuth();
-  const { isOnline, toggleOnlineStatus, offlineQueue, triggerSync, isSyncing, kpiStats } =
-    useAssessment();
+  const { kpiStats } = useAssessment();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
 
@@ -69,39 +65,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
         {/* Right: Status, Notification, User Profile */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Sync Trigger button if pending items exist */}
-          {offlineQueue.length > 0 && (
-            <button
-              type="button"
-              onClick={() => triggerSync()}
-              disabled={isSyncing}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold transition hover:bg-amber-100"
-              title="Kirim data lokal tertunda ke server"
-            >
-              <IconRefresh className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} stroke={2.2} />
-              <span>Sync ({offlineQueue.length})</span>
-            </button>
-          )}
-
-          {/* Online/Offline Status Pill */}
-          <button
-            type="button"
-            onClick={() => toggleOnlineStatus()}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-              isOnline
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/60'
-                : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/60'
-            }`}
-            title="Klik untuk beralih mode simulasi online/offline"
+          {/* Central Command Active Live Status Badge */}
+          <div
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700 select-none"
+            title="Pusat Komando BPBD/Dinkes Aktif & Terhubung Real-Time"
           >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-              }`}
-            />
-            <span>{isOnline ? 'Online' : 'Offline'}</span>
-            <IconChevronDown className="w-3 h-3 text-slate-400" />
-          </button>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Pusat Aktif</span>
+          </div>
 
           {/* Notification Indicator with Red Badge */}
           <div className="relative">

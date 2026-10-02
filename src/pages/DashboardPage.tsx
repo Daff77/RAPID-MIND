@@ -8,12 +8,10 @@ import { TriageCharts } from '../components/dashboard/TriageCharts';
 import { RecentAssessmentsTable } from '../components/dashboard/RecentAssessmentsTable';
 import { UserManagementSection } from '../components/dashboard/UserManagementSection';
 import { LongitudinalDataSection } from '../components/dashboard/LongitudinalDataSection';
-import { useAssessment } from '../context/AssessmentContext';
 
 export const DashboardPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { offlineQueue } = useAssessment();
 
   const handleSelectNav = (sectionId: string) => {
     // Map sidebar IDs to views
@@ -36,14 +34,6 @@ export const DashboardPage: React.FC = () => {
       setActiveSection('users');
     } else if (sectionId === 'laporan') {
       alert('Membuka modul pelaporan komprehensif BPBD / Dinkes.');
-    } else if (sectionId === 'offline') {
-      alert(
-        `Mode Offline: ${
-          offlineQueue.length > 0
-            ? `${offlineQueue.length} data antrean tersimpan lokal di IndexedDB siap disinkronkan saat terhubung kembali.`
-            : 'Semua data telah tersimpan lokal di peramban.'
-        }`
-      );
     } else {
       setActiveSection(sectionId);
     }
@@ -66,7 +56,6 @@ export const DashboardPage: React.FC = () => {
           onSelectItem={handleSelectNav}
           isMobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
-          offlineCount={offlineQueue.length}
         />
 
         {/* Main Content Viewport */}
